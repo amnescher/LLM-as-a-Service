@@ -1,0 +1,123 @@
+# model is large - create a 200G volume, mount under /home/ubuntu/model
+# ubuntu 2204 VM, 1x a100GB
+
+# had to add cuda toolkit as wasnt installed
+
+sudo apt install nvidia-cuda-toolkit nvidia-cuda-toolkit-gcc nvidia-driver-510
+
+
+# tools needed
+sudo apt install git vim python3 python3-pip
+sudo apt install nvtop htop
+sudo pip3 install --upgrade pip
+sudo pip3 install virtualenv
+mkdir ~/jupyter
+cd ~/jupyter
+virtualenv falcon_notebook
+source falcon_notebook/bin/activate
+pip3 install jupyter
+# by default jupyter listens on 127.0.0.1
+jupyter notebook --ip 0.0.0.0
+(from the output , change the local ip address to the public address and openlink, for e.g. http://localhost:8888/?token=f3ac9dfbd3b9328bc7c594e03832e35714242806273a2209)
+
+# make scratch directory in ~/jupyter
+mkdir scratch
+git clone https://github.com/camenduru/falcon-40b-instruct-lambda.git
+
+# at this stage i jumped in to the notebook to check things out
+
+# running commands on the system directly rather than from a notebook
+
+# aria2 - fast version of curl / wget, the falcon model is big
+sudo apt -y install -qq aria2
+mkdir ~/model
+
+# download all the files we need from hugggingface
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/raw/main/config.json -d /home/ubuntu/model/falcon-40b-instruct -o config.json
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/raw/main/configuration_RW.py -d /home/ubuntu/model/falcon-40b-instruct -o configuration_RW.py
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/raw/main/generation_config.json -d /home/ubuntu/model/falcon-40b-instruct -o generation_config.json
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/raw/main/modelling_RW.py -d /home/ubuntu/model/falcon-40b-instruct -o modelling_RW.py
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/resolve/main/pytorch_model-00001-of-00009.bin -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model-00001-of-00009.bin
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/resolve/main/pytorch_model-00002-of-00009.bin -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model-00002-of-00009.bin
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/resolve/main/pytorch_model-00003-of-00009.bin -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model-00003-of-00009.bin
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/resolve/main/pytorch_model-00004-of-00009.bin -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model-00004-of-00009.bin
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/resolve/main/pytorch_model-00005-of-00009.bin -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model-00005-of-00009.bin
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/resolve/main/pytorch_model-00006-of-00009.bin -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model-00006-of-00009.bin
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/resolve/main/pytorch_model-00007-of-00009.bin -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model-00007-of-00009.bin
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/resolve/main/pytorch_model-00008-of-00009.bin -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model-00008-of-00009.bin
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/resolve/main/pytorch_model-00009-of-00009.bin -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model-00009-of-00009.bin
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/raw/main/pytorch_model.bin.index.json -d /home/ubuntu/model/falcon-40b-instruct -o pytorch_model.bin.index.json
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/raw/main/special_tokens_map.json -d /home/ubuntu/model/falcon-40b-instruct -o special_tokens_map.json
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/raw/main/tokenizer.json -d /home/ubuntu/model/falcon-40b-instruct -o tokenizer.json
+aria2c --console-log-level=error -c -x 16 -s 16 -k 1M https://huggingface.co/tiiuae/falcon-40b-instruct/raw/main/tokenizer_config.json -d /home/ubuntu/model/falcon-40b-instruct -o tokenizer_config.json
+
+# lets setup a few more pip libs
+pip install  -U torch torchvision torchaudio torchtext torchdata --extra-index-url https://download.pytorch.org/whl/cu118
+pip install  -U bitsandbytes sentencepiece fsspec gradio einops xformers
+pip install  -U git+https://github.com/huggingface/transformers.git
+pip install  -U git+https://github.com/huggingface/accelerate.git
+
+# something to do with forcing the libbitsandbytes to use gpu, overwriting the cpu lib
+cp  /home/ubuntu/jupyter/falcon_notebook/lib/python3.10/site-packages/bitsandbytes/libbitsandbytes_cuda118.so /home/ubuntu/jupyter/falcon_notebook/lib/python3.10/site-packages/bitsandbytes/libbitsandbytes_cpu.so
+
+# ok lets test out some code;
+
+# note on model size
+A 40-B parameter model will not fit on and A100-80GB if it is in bf16 or fp16. In 16-bit precision the amount of VRAM needed to run a given model is at least 2GB per 1B parameters, and some models are closer to 3GB per 1B parameters. This does not include the amount of memory needed to actually run any type of inferencing. Two easy options: 1) run it on a node with multiple A100 80GB GPUs. 2) load the model in 8bit precision. This requires the package "bitsandbytes". This reduces the necessary VRAM to about 45GB. I have successfully loaded and performed inference with the falcon-40b-instruct model on a system with 4 A4500's (each GPU has 20GB VRAM) using this method.
+
+
+mkdir ~/code
+<file test.py>
+
+# test
+
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import transformers
+import torch
+
+model_name = '/home/ubuntu/model/falcon-40b-instruct'
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    local_files_only=True,
+    trust_remote_code=True,
+    # needed this line to load the model into a single a100 - comment out if you have 2 of them
+    load_in_4bit=True,
+    torch_dtype=torch.bfloat16,
+    device_map={"": 0},
+)
+pipeline = transformers.pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    torch_dtype=torch.bfloat16,
+    trust_remote_code=True,
+    device_map={"": 0},
+)
+sequences = pipeline(
+   "Girafatron is obsessed with giraffes, the most glorious animal on the face of this Earth. Giraftron believes all other animals are irrelevant when compared to the glorious majesty of the giraffe.\nDaniel: Hello, Girafatron!\nGirafatron:",
+    max_length=200,
+    do_sample=True,
+    top_k=10,
+    num_return_sequences=1,
+    pad_token_id=tokenizer.eos_token_id,
+)
+for seq in sequences:
+    print(f"Result: {seq['generated_text']}")
+
+
+</end test.py>
+
+# output (following loads of output)
+
+Result: Girafatron is obsessed with giraffes, the most glorious animal on the face of this Earth. Giraftron believes all other animals are irrelevant when compared to the glorious majesty of the giraffe.
+Daniel: Hello, Girafatron!
+Girafatron: Hello human, I am not here to converse with you.
+Daniel: What are you doing here?
+Girafatron: I am here to educate myself on all things giraffe.
+Daniel: Why do you like giraffes?
+Girafatron: Because of their long, majestic necks. The long necks of giraffes have always fascinated me, they are a testament to the glory of the natural world.
+Daniel: That’s interesting.
+Girafatron: Of course it is.
+Daniel: Do you like any other animals besides giraffes?
+Girafatron: No, giraffes are the only
