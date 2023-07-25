@@ -1,4 +1,6 @@
-from langchain import HuggingFacePipeline
+from typing import Literal
+from attr import dataclass
+from langchain import ConversationChain, HuggingFacePipeline
 from transformers import AutoTokenizer, pipeline,BitsAndBytesConfig
 import transformers
 import torch
@@ -28,10 +30,24 @@ import ast
 from langchain import SerpAPIWrapper
 from langchain.agents import load_tools
 from langchain.agents import initialize_agent
+from chromaviz import visualize_collection
+from langchain.chains.conversation.memory import ConversationSummaryMemory
 
 load_dotenv()
 
 os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
+
+
+###############################################################################################
+##### Chatbot functions
+############################################################################################### 
+
+
+
+
+
+
+
 
 
 
@@ -101,7 +117,7 @@ def get_llm(llm_name, model_temperature, max_tokens=256):
                 tokenizer = tokenizer,
                 return_full_text = True,
                 stopping_criteria=stopping_criteria,
-                max_length= 512, 
+                max_length= 1024, 
                 temperature= 0.0,
                 repetition_penalty=1.1
         )
@@ -111,6 +127,9 @@ def get_llm(llm_name, model_temperature, max_tokens=256):
     else:
         print = "No model with that name yet"
         return print,print
+
+
+
 
 def load_embeddings(embeddings):
     if embeddings == "OpenAI ADA-002":
@@ -128,7 +147,7 @@ def parse_pdf(file, embeddings):
     print('parsing pdf:', file, 'using embeddings:', embeddings)
     loader = PyPDFLoader(file)
     pages = loader.load_and_split()
-    sections = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap=100, length_function=len).split_documents(pages)
+    sections = RecursiveCharacterTextSplitter(chunk_size = 600, chunk_overlap=100, length_function=len).split_documents(pages)
     print('check pdf parsed: ', sections)
     db5 = Chroma.from_documents(sections, embeddings, persist_directory="./chroma_db")
     db5.persist()
@@ -145,8 +164,6 @@ def confirm_search_options(answer,summary,youtube,web_search):
     options = [answer,summary,youtube,web_search]
     print('the options selected:', options)
     return options
-
-
 
 def search_pdf(query,llm,embeddings,options): 
         if not options:
@@ -182,8 +199,9 @@ def search_pdf(query,llm,embeddings,options):
         print('combined summary', summary)
         return answer, resource_youtube, summary, internet_resource
 
-
-
+def display_chormadb(embeddings):
+    chroma_db = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
+    visualize_collection(chroma_db._collection)
 
 
 
@@ -191,22 +209,22 @@ st.set_page_config(layout='wide')
 
 st.title("PDF Question Answer")
 
-#search_tab = st.tabs["Search"]
+search_tab, chroma_db_tab, chatbot_tab = st.tabs(["Search","ChromaDB","ChatBot"])
 
 #, upload_tab, query_tab , "Upload/Extract", "Query", 
 
+with search_tab: 
+    st.title('Semantic search Application')
+    st.subheader('Setup')
+    llm_name = st.selectbox('Which LLM?', ["Falcon-7B","Falcon-40B"])
+    embedding_name = st.selectbox('Which Embeddings?', ["SBERT","OpenAI ADA-002"])
+    model,embedding = get_llm(llm_name, 0.0, 1024)
 
-st.title('Semantic search Application')
-st.subheader('Setup')
-llm_name = st.selectbox('Which LLM?', ["Falcon-7B","Falcon-40B"])
-embedding_name = st.selectbox('Which Embeddings?', ["SBERT","OpenAI ADA-002"])
-model,embedding = get_llm(llm_name, 0.0, 1024)
-
-#embedding = load_embeddings(embedding_name)
-st.subheader("Upload a PDF")
-uploaded_pdf = st.file_uploader('pdf',type=['pdf'])
-    
-if uploaded_pdf is not None:
+    #embedding = load_embeddings(embedding_name)
+    st.subheader("Upload a PDF")
+    uploaded_pdf = st.file_uploader('pdf',type=['pdf'])
+   
+    if uploaded_pdf is not None:
         
         col1,col2,col3 = st.columns(3) #([2,1]) 
         with col1:
@@ -238,8 +256,17 @@ if uploaded_pdf is not None:
                 if wresource is not None:
                     st.text_area("Resource: ", wresource, height=70)
 
+with chroma_db_tab:
+    st.title('Semantic search Application')
+    st.subheader('Setup')
+    if st.button("Display DB"):
+    
+    
+        display_chormadb(embedding)
 
-
+with chatbot_tab:
+    st.title('Falcon Chatbot')
+    st.subheader('Setup')
 
 
 
