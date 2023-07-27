@@ -71,9 +71,12 @@ st.sidebar.markdown("<br>", unsafe_allow_html=True)
 st.sidebar.markdown("---")  
 st.sidebar.markdown("<br>", unsafe_allow_html=True)
 
-show_answer = st.sidebar.radio(options=["Database Search", "Normal Search"], label="Type of search")
+search_choice = st.sidebar.radio(options=["Database Search", "Normal Search"], label="Type of search")
 if st.sidebar.button("Confirm"):
-         print('yes')
+         url = "http://127.0.0.1:5000/search_mode"
+         data = {"search_mode": search_choice}
+         response = requests.post(url, json=data)
+
 
 
 for message in st.session_state.messages:

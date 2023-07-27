@@ -110,6 +110,34 @@ def save_uploadpdf(uploadfile):
             f.write(uploadfile.file.read())
         return (os.path.join("data_pdf", uploadfile.filename), True)
 
+def choose_search_mode(mode):
+    if mode == "Database Search":
+        new_prompt = agent.agent.create_prompt(
+            system_message=sys_msg,
+            tools=tools
+        )
+        agent.agent.llm_chain.prompt = new_prompt
+
+        instruction = B_INST + " Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
+        human_msg = instruction + "\nUser: {input}"
+
+        agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
+        print('check template: ', agent.agent.llm_chain.prompt)
+        
+    elif mode == "Normal Search":
+        new_prompt = agent.agent.create_prompt(
+            system_message=sys_msg2,
+            tools=tools
+        )
+        agent.agent.llm_chain.prompt = new_prompt
+
+        instruction = B_INST + " Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
+        human_msg = instruction + "\nUser: {input}"
+
+        agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
+        print('check template: ', agent.agent.llm_chain.prompt)
+        
+        
 
 QA = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever())
 
@@ -197,6 +225,63 @@ Assistant: ```json
 ```
 
 Here is the latest conversation between Assistant and User.""" + E_SYS
+
+sys_msg2 = B_SYS + """Assistantasdxva asf asgds is a expert JSON builder designed to assist with a wide range of tasks.
+
+Assistant is able to respond to the User and use tools using JSON strings that contain "action" and "action_input" parameters.
+
+All of Assistant's communication is performed using this JSON format.
+
+Assistant can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to Assistant are:
+- "Retrieval Question Answering tool": Use this tool only when given a document you need to answer questions about the document.
+  - To use the Retrieval Question Answering tool, Assistant should write like so:
+    ```json
+    {{"action": "Retrieval Question Answering tool",
+      "action_input": give me a summary of document }}
+    ```
+
+Here are some previous conversations between the Assistant and User:
+
+User: 1.0 how are you?
+Assistant: ```json
+{{"action": "Final Answer",
+ "action_input": "I'm good thanks, how are you?"}}
+```
+
+User: 3.0  What is the title of the document?
+Assistant: ```json
+{{"action": "Retrieval Question Answering tool",
+ "action_input": "What is the title of the document?" }}
+```
+User4: where is the capital of Iran?
+Assistant: ```json
+{{"action": "Final Answer",
+ "action_input": "The capital of Iran is Tehran"}}
+```
+User: 2.0
+Assistant: ```json
+{{"action": "Final Answer",
+ "action_input": "According tho the document world war 1 started in 1941"}}
+```
+User: Thanks could you tell me the circumference of a circle that has a radius of 4 mm?
+Assistant: ```json
+{{"action": "circumference",
+ "action_input": "4" }}
+```
+User: 16.0
+Assistant: ```json
+{{"action": "Final Answer",
+ "action_input": "according to docuemnt the inflation between 1931-2000 wa 11%"}}
+```
+User: 16.0
+Assistant: ```json
+{{"action": "Final Answer",
+ "action_input": "the document is about the global warming"}}
+```
+
+Here is the latest conversation between Assistant and User.""" + E_SYS
+
+
 new_prompt = agent.agent.create_prompt(
     system_message=sys_msg,
     tools=tools
@@ -213,6 +298,7 @@ agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
 # ------------------------------------------------------------------------------
 
 def inference(prompt):
+    print('check template: ', agent.agent.llm_chain.prompt)
     return agent(prompt)
 
 app = FastAPI()
@@ -221,6 +307,9 @@ class Input(BaseModel):
       prompt:str
       messages: List[Dict[str, str]]
 
+class SearchModeInput(BaseModel):
+    search_mode: str
+
 @app.get("/")
 def test_root():
      return {"backend","backend for Falcon"}
@@ -228,6 +317,10 @@ def test_root():
 @app.post("/clearMem")
 def clearMemory():
     agent.memory.clear()
+
+@app.post("/search_mode")
+def search_modes(input: SearchModeInput):
+    choose_search_mode(input.search_mode)
 
 @app.post("/document_loading")
 def document_loading(file: UploadFile = File(...)):
