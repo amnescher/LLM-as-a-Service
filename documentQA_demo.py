@@ -84,8 +84,7 @@ def add_pdf_to_DB(pdf_path):
     pages = loader.load_and_split()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=20)
     texts = text_splitter.split_documents(pages)
-    text =texts[0:3]
-    vectorstore.add_documents(text)
+    vectorstore.add_documents(texts)
     
 
 
