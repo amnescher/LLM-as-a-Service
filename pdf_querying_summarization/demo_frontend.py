@@ -58,14 +58,23 @@ st.sidebar.subheader("Upload a PDF")
 uploaded_pdf = st.sidebar.file_uploader("Add PDF",type=['pdf'])
 
 st.sidebar.markdown("<br>", unsafe_allow_html=True)
-
 if st.sidebar.button("extract document"):
-    if uploaded_pdf is not None:
-        file_bytes = io.BytesIO(uploaded_pdf.getvalue())
-        url = "http://127.0.0.1:5000/document_loading"
-        file = {"file": uploaded_pdf}
-        response = requests.post(url, files=file)
-        st.sidebar.success('Document parsed.')
+        if uploaded_pdf is not None:
+            file_bytes = io.BytesIO(uploaded_pdf.getvalue())
+            url = "http://127.0.0.1:5000/document_loading"
+            file = {"file": uploaded_pdf}
+            response = requests.post(url, files=file)
+            st.sidebar.success('Document parsed.')
+
+
+st.sidebar.markdown("<br>", unsafe_allow_html=True)
+st.sidebar.markdown("---")  
+st.sidebar.markdown("<br>", unsafe_allow_html=True)
+
+show_answer = st.sidebar.radio(options=["Database Search", "Normal Search"], label="Type of search")
+if st.sidebar.button("Confirm"):
+         print('yes')
+
 
 for message in st.session_state.messages:
         with st.chat_message(message["role"]):
