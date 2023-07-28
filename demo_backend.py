@@ -1,4 +1,3 @@
-
 # Run the following command uvicorn demo_backend:app --reload --port 5000
 from fastapi import FastAPI
 import uvicorn
@@ -64,12 +63,15 @@ from langchain.agents import load_tools
 from langchain.tools import BaseTool
 import torch
 from transformers import BlipProcessor, BlipForConditionalGeneration
-
+from langchain.embeddings import HuggingFaceInstructEmbeddings
 import requests
 from PIL import Image
 from langchain.tools import BaseTool
 from langchain.chains import RetrievalQA
 
+
+hf_model = "Salesforce/blip-image-captioning-large"
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class CircumferenceTool(BaseTool):
     name = "Circumference calculator"
@@ -81,6 +83,17 @@ class CircumferenceTool(BaseTool):
     def _arun(self, radius: Union[int, float]):
         raise NotImplementedError("This tool does not support async")
 
+
+processor = BlipProcessor.from_pretrained(hf_model)
+model = BlipForConditionalGeneration.from_pretrained(hf_model).to(device)
+
+hf_model = "Salesforce/blip-image-captioning-large"
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+processor = BlipProcessor.from_pretrained(hf_model)
+model = BlipForConditionalGeneration.from_pretrained(hf_model).to(device)
+
+from langchain.tools import BaseTool, StructuredTool, Tool, tool
 
 
 
@@ -95,46 +108,76 @@ class ImageCaptionTool(BaseTool):
 
     def _run(self, url: str):
         # download the image and convert to PIL object
-        image = Image.open(requests.get(url, stream=True).raw).convert('RGB')
-        # preprocess the image
-        inputs = processor(image, return_tensors="pt").to(device)
-        # generate the caption
-        out = model.generate(**inputs, max_new_tokens=20)
-        # get the caption
-        caption = processor.decode(out[0], skip_special_tokens=True)
-        caption = " I know the answer, inside the image " + caption
-        return caption
-    
+        try: 
+            image = Image.open(requests.get(url, stream=True).raw).convert('RGB')
+            # preprocess the image
+            inputs = processor(image, return_tensors="pt").to(device)
+            # generate the caption
+            out = model.generate(**inputs, max_new_tokens=20)
+            # get the caption
+            caption = processor.decode(out[0], skip_special_tokens=True)
+            caption = " I know the answer, inside the image " + caption
+            return caption
+        except Exception as e:
+            return "An error occurred while processing the image URL: " + str(e)
     def _arun(self, query: str):
         raise NotImplementedError("This tool does not support async")
 
 
 
+#embeddings = OpenAIEmbeddings()
+persist_directory = "./YouTube_db"
+embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl", 
+                                                      model_kwargs={"device": "cuda"})
+                
+
+
+vectorstore = Chroma("YouTube_store", embeddings, persist_directory=persist_directory)
+vectorstore.persist()
+
+
+def add_video_to_DB(url):
+    vectorstore.delete([])
+    try:
+        loader = YoutubeLoader.from_youtube_url(url, add_video_info=True)
+        result = loader.load()
+        result = loader.load()
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
+        texts = text_splitter.split_documents(result)
+        #text =[texts[0]]
+        vectorstore.add_documents(texts)
+        return "loaded"
+    except Exception as e:
+        # Handle other generic exceptions, if needed
+        return str(e)
+    
+
+def delete_db():
+    vectorstore.delete("YouTube_store")
+    
 
 desc = (
     "use this tool when given the URL of a youtube video and that you need you need to watch video to answer questions about video"
 )
-url_list = []
+video_list = []
 class YouTubeRetrival(BaseTool):
     name = "watch video"
     description = desc
 
     def _run(self, url: str):
-        if url not in url_list:
-            url_list.append(url)
-            add_video_to_DB(url)
+            result = add_video_to_DB(url)
+            if result != "loaded":
+                return result
             return "video saved into vectort database. Now use Retrieval Question Answering tool to answer question. Input to Retrieval Question Answering tool is the question you received about the video "
-        else:
-            return "video already existed in the database. Now use Retrieval Question Answering tool to answer question. Input to Retrieval Question Answering tool is the question you received about the video "        
-              
+        # else: 
+        #     return "video existed in vectort database. Now use Retrieval Question Answering tool to answer question. Input to Retrieval Question Answering tool is the question you received about the video "
         
     def _arun(self, query: str):
         raise NotImplementedError("This tool does not support async")
 
 
 
-hf_model = "Salesforce/blip-image-captioning-large"
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 
 llm = ChatOpenAI(
     openai_api_key=env_variables['Open_API'],
@@ -143,30 +186,6 @@ llm = ChatOpenAI(
 )
 
 
-embeddings = OpenAIEmbeddings()
-vectorstore = Chroma("YouTube_store", embeddings, persist_directory="./YouTube_db")
-
-
-def add_video_to_DB(url):
-    loader = YoutubeLoader.from_youtube_url(url, add_video_info=True)
-    result = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=20)
-    texts = text_splitter.split_documents(result)
-    text =[texts[0]]
-    vectorstore.add_documents(text)
-    vectorstore.persist()
-
-
-processor = BlipProcessor.from_pretrained(hf_model)
-model = BlipForConditionalGeneration.from_pretrained(hf_model).to(device)
-
-hf_model = "Salesforce/blip-image-captioning-large"
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-processor = BlipProcessor.from_pretrained(hf_model)
-model = BlipForConditionalGeneration.from_pretrained(hf_model).to(device)
-
-from langchain.tools import BaseTool, StructuredTool, Tool, tool
 
 image_cap = ImageCaptionTool()
 calcu = CircumferenceTool()
@@ -195,7 +214,7 @@ tools = [
     Tool.from_function(
         func=QA.run,
         name="Retrieval Question Answering tool",
-        description= "Use this tool only after Watch Youtube video tool. It is designed to answer questions about the video using the URL provided."
+        description= "Use this tool only after Watch Youtube video tool. It is designed to answer questions about the video using the URL provided chat_history"
         
     )
 ]
@@ -211,15 +230,19 @@ from langchain.schema import AgentAction, AgentFinish
 
 from langchain.agents import initialize_agent
 from langchain.chains.conversation.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferWindowMemory
 
-memory = ConversationBufferMemory(memory_key="chat_history")
+memory = ConversationBufferWindowMemory(
+    memory_key="chat_history", k=5, return_messages=True
+)
+#memory = ConversationBufferMemory(memory_key="chat_history")
 from langchain.agents import AgentType
 llm=OpenAI(temperature=0)
 agent_chain = initialize_agent(tools, llm, agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION, verbose= False, memory=memory)
-
+def clear_mem():
+    agent_chain.memory.clear()
 def inference(prompt):
     return agent_chain(prompt)
-
 
 app = FastAPI()
 
