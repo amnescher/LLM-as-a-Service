@@ -21,7 +21,8 @@ from typing import List, Dict
 from fastapi import FastAPI
 import uvicorn
 from pydantic import BaseModel
-
+import json
+from fastapi import FastAPI, File, UploadFile
 # env_variables = dotenv_values('env.env')
 # os.environ['OPENAI_API_KEY'] = env_variables['Open_API']
 
@@ -77,15 +78,71 @@ vectorstore.persist()
 
 
 
+def load_processed_files():
+    if os.path.exists("processed_files.json"):
+        with open("processed_files.json", "r") as f:
+            return json.load(f)
+    else:
+        return []
+
+def save_processed_file(filename):
+    processed_files = load_processed_files()
+    processed_files.append(filename)
+    with open("processed_files.json", "w") as f:
+        json.dump(processed_files, f)
+
+def is_file_processed(filename):
+    processed_files = load_processed_files()
+    return filename in processed_files
+
 def add_pdf_to_DB(pdf_path):
     vectorstore = Chroma(persist_directory=persist_directory, 
                   embedding_function=embeddings)
     loader = PyPDFLoader(pdf_path)
     pages = loader.load_and_split()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=20)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
     texts = text_splitter.split_documents(pages)
+    print('the texts', texts)
     vectorstore.add_documents(texts)
+
+def save_uploadpdf(uploadfile):
+        if is_file_processed(uploadfile.filename):
+            return (None, False)
+        with open(os.path.join("data_pdf", uploadfile.filename), 'wb') as f:
+            f.write(uploadfile.file.read())
+        return (os.path.join("data_pdf", uploadfile.filename), True)
+
+def choose_search_mode(mode):
+    #---------------------
+    sys_msg2 = None
+    #---------------------
+    if mode == "Database Search":
+        new_prompt = agent.agent.create_prompt(
+            system_message=sys_msg,
+            tools=tools
+        )
+        agent.agent.llm_chain.prompt = new_prompt
+
+        instruction = B_INST + " Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
+        human_msg = instruction + "\nUser: {input}"
+
+        agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
+        print('check template: ', agent.agent.llm_chain.prompt)
     
+    elif mode == "Normal Search":
+        new_prompt = agent.agent.create_prompt(
+            system_message=sys_msg2,
+            tools=tools
+        )
+        agent.agent.llm_chain.prompt = new_prompt
+
+        instruction = B_INST + " Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
+        human_msg = instruction + "\nUser: {input}"
+
+        agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
+        print('check template: ', agent.agent.llm_chain.prompt)
+        
+        
 
 
 QA = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever())
@@ -113,6 +170,7 @@ agent = initialize_agent(
     llm=llm,
     verbose=True,
     early_stopping_method="generate",
+    max_iterations=4,
     memory=memory,
     #agent_kwargs={"output_parser": parser}
 )
@@ -127,12 +185,13 @@ Assistant is able to respond to the User and use tools using JSON strings that c
 All of Assistant's communication is performed using this JSON format.
 
 Assistant can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to Assistant are:
-- "Retrieval Question Answering tool": Use this tool only when given a document you need to answer questions about the document.
+- "Retrieval Question Answering tool": Use this tool only when the question explicitly states "according to database"; otherwise. Use all contexts from database to answer question.
   - To use the Retrieval Question Answering tool, Assistant should write like so:
     ```json
     {{"action": "Retrieval Question Answering tool",
       "action_input": give me a summary of document }}
     ```
+When you have  multiple contexts and table aggregate all of them to response to questions.
 
 Here are some previous conversations between the Assistant and User:
 
@@ -142,11 +201,6 @@ Assistant: ```json
  "action_input": "I'm good thanks, how are you?"}}
 ```
 
-User: 3.0  What is the title of the document?
-Assistant: ```json
-{{"action": "Retrieval Question Answering tool",
- "action_input": "What is the title of the document?" }}
-```
 User4: where is the capital of Iran?
 Assistant: ```json
 {{"action": "Final Answer",
@@ -157,20 +211,13 @@ Assistant: ```json
 {{"action": "Final Answer",
  "action_input": "According tho the document world war 1 started in 1941"}}
 ```
-User: Thanks could you tell me the circumference of a circle that has a radius of 4 mm?
-Assistant: ```json
-{{"action": "circumference",
- "action_input": "4" }}
-```
 User: 16.0
+Context:  The document is a research paper.
+Context:  The research paper explores the impact of global waming on mental health.
+Context:  The paper was written by Dr. Smith and published in a Nature journal.
 Assistant: ```json
 {{"action": "Final Answer",
- "action_input": "according to docuemnt the inflation between 1931-2000 wa 11%"}}
-```
-User: 16.0
-Assistant: ```json
-{{"action": "Final Answer",
- "action_input": "the document is about the global warming"}}
+ "action_input": "According to above context document is about theglobal warming and its consequesnces"}}
 ```
 
 Here is the latest conversation between Assistant and User.""" + E_SYS
@@ -180,7 +227,7 @@ new_prompt = agent.agent.create_prompt(
 )
 agent.agent.llm_chain.prompt = new_prompt
 
-instruction = B_INST + " Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
+instruction = B_INST + " You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'. Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
 human_msg = instruction + "\nUser: {input}"
 
 agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
@@ -190,6 +237,7 @@ agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
 # ------------------------------------------------------------------------------
 
 def inference(prompt):
+    print('check template: ', agent.agent.llm_chain.prompt)
     return agent(prompt)
 
 app = FastAPI()
@@ -197,6 +245,9 @@ app = FastAPI()
 class Input(BaseModel):
       prompt:str
       messages: List[Dict[str, str]]
+
+class SearchModeInput(BaseModel):
+    search_mode: str
 
 @app.get("/")
 def test_root():
@@ -206,9 +257,21 @@ def test_root():
 def clearMemory():
     agent.memory.clear()
 
+@app.post("/search_mode")
+def search_modes(input: SearchModeInput):
+    choose_search_mode(input.search_mode)
+
 @app.post("/document_loading")
-def document_loading():
-    add_pdf_to_DB("")
+def document_loading(file: UploadFile = File(...)):
+    file_path, is_new = save_uploadpdf(file)
+    if is_new:
+        #file_path = save_uploadpdf(file)
+        add_pdf_to_DB(file_path)
+        save_processed_file(file.filename)
+        os.remove(file_path)
+        return is_new
+    else: 
+        return is_new
 
 @app.post("/predict")
 def make_prediction(prompt_input:Input):
