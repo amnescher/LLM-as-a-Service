@@ -41,6 +41,10 @@ import io
 def clear_chat_history():
     requests.post(url="http://127.0.0.1:5000/clearMem")
     st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
+
+def clear_database():
+    requests.post(url="http://127.0.0.1:5000/clearDatabase")
+    st.sidebar.success = "Cleared database."
     
 st.title('EscherCloud AI LLM service - Demo ')
 #st.image("Eschercloud.png", caption=None, width=None, use_column_width=None, clamp=False, channels="RGB", output_format="auto")
@@ -49,8 +53,14 @@ if "messages" not in st.session_state.keys():
         st.session_state.messages = [{"role": "assistant", "content": "How may I assist you today?"}]
 
 st.sidebar.button('Clear Chat History', on_click=clear_chat_history)
+st.sidebar.button('Clear Database', on_click=clear_database)
 st.sidebar.markdown("<br>", unsafe_allow_html=True)
 st.sidebar.markdown("---")  
+
+
+
+
+
 st.sidebar.markdown("<br>", unsafe_allow_html=True)
 
 
@@ -79,6 +89,7 @@ if st.sidebar.button("Confirm"):
 
 
 
+
 for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
@@ -92,8 +103,13 @@ if prompt := st.chat_input():#(disabled=not replicate_api):
 if st.session_state.messages[-1]["role"] != "assistant":
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
+                if search_choice == "Database Search":
+                    prompt = " Using Retrieval Question Answering tool " + prompt
+                else:
+                    prompt = "Without using Retrieval Question Answering tool or any other tools + " + prompt 
                 response = requests.post(url="http://127.0.0.1:5000/predict", json={'prompt': prompt,'messages': st.session_state.messages})#data=json.dumps(prompt))#generate_llama2_response(llm,prompt)
                 print('resp', response)
+                print('Response content:', response.content)
                 response=response.json()
                 if response:
                 

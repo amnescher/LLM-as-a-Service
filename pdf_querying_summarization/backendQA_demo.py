@@ -17,11 +17,16 @@ from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.agents import initialize_agent
 from langchain.tools import BaseTool, StructuredTool, Tool, tool
 from langchain.embeddings import HuggingFaceInstructEmbeddings
-from typing import List, Dict
+from typing import List, Dict,Union
 from fastapi import FastAPI, File, UploadFile
 import uvicorn
 from pydantic import BaseModel
 import json
+
+from langchain.agents import AgentOutputParser
+from langchain.agents.conversational_chat.prompt import FORMAT_INSTRUCTIONS
+from langchain.output_parsers.json import parse_json_markdown
+from langchain.schema import AgentAction, AgentFinish
 
 # env_variables = dotenv_values('env.env')
 # os.environ['OPENAI_API_KEY'] = env_variables['Open_API']
@@ -146,14 +151,40 @@ memory = ConversationBufferMemory(
     memory_key="chat_history", return_messages=True, output_key="output"
 )
 
+class OutputParser(AgentOutputParser):
+    def get_format_instructions(self) -> str:
+        return FORMAT_INSTRUCTIONS
 
+    def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
+        try:
+            # this will work IF the text is a valid JSON with action and action_input
+            response = parse_json_markdown(text)
+            action, action_input = response["action"], response["action_input"]
+            if action == "Final Answer":
+                # this means the agent is finished so we call AgentFinish
+                return AgentFinish({"output": action_input}, text)
+            else:
+                # otherwise the agent wants to use an action, so we call AgentAction
+                return AgentAction(action, action_input, text)
+        except Exception:
+            # sometimes the agent will return a string that is not a valid JSON
+            # often this happens when the agent is finished
+            # so we just return the text as the output
+            return AgentFinish({"output": text}, text)
+
+    @property
+    def _type(self) -> str:
+        return "conversational_chat"
+
+# initialize output parser for agent
+parser = OutputParser()
 
 
 tools = [
     Tool.from_function(
         func=QA.run,
         name="Retrieval Question Answering tool",
-        description= "Use this tool only when a document is uploaded and you want to answer questions about document."  
+        description= "Always use this tool first when the user sends an input to answer a question related to a document parsed and stored in the vector database. Always use this tool first and if you cannot get an answer then rely on your general knowledge."  
     )
 ]
 
@@ -169,117 +200,56 @@ agent = initialize_agent(
 )
 
 B_INST, E_INST = "[INST]", "[/INST]"
-B_SYS, E_SYS = "<>\n", "\n<>\n\n"
+B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
 
-sys_msg = B_SYS + """Assistant is a expert JSON builder designed to assist with a wide range of tasks.
-
-Assistant is able to respond to the User and use tools using JSON strings that contain "action" and "action_input" parameters.
-
-All of Assistant's communication is performed using this JSON format.
-
-Assistant can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to Assistant are:
-- "Retrieval Question Answering tool": Use this tool only when given a document you need to answer questions about the document.
-  - To use the Retrieval Question Answering tool, Assistant should write like so:
-    ```json
-    {{"action": "Retrieval Question Answering tool",
-      "action_input": give me a summary of document }}
-    ```
-
-Here are some previous conversations between the Assistant and User:
-
-User: 1.0 how are you?
-Assistant: ```json
-{{"action": "Final Answer",
- "action_input": "I'm good thanks, how are you?"}}
-```
-
-User: 3.0  What is the title of the document?
-Assistant: ```json
-{{"action": "Retrieval Question Answering tool",
- "action_input": "What is the title of the document?" }}
-```
-User4: where is the capital of Iran?
-Assistant: ```json
-{{"action": "Final Answer",
- "action_input": "The capital of Iran is Tehran"}}
-```
-User: 2.0
-Assistant: ```json
-{{"action": "Final Answer",
- "action_input": "According tho the document world war 1 started in 1941"}}
-```
-User: Thanks could you tell me the circumference of a circle that has a radius of 4 mm?
-Assistant: ```json
-{{"action": "circumference",
- "action_input": "4" }}
-```
-User: 16.0
-Assistant: ```json
-{{"action": "Final Answer",
- "action_input": "according to docuemnt the inflation between 1931-2000 wa 11%"}}
-```
-User: 16.0
-Assistant: ```json
-{{"action": "Final Answer",
- "action_input": "the document is about the global warming"}}
-```
-
-Here is the latest conversation between Assistant and User.""" + E_SYS
-
-sys_msg2 = B_SYS + """Assistantasdxva asf asgds is a expert JSON builder designed to assist with a wide range of tasks.
+# create the system message
+sys_msg = "<s>" + B_SYS + """Assistant is a expert JSON builder designed to assist with a wide range of tasks.
 
 Assistant is able to respond to the User and use tools using JSON strings that contain "action" and "action_input" parameters.
 
 All of Assistant's communication is performed using this JSON format.
 
-Assistant can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to Assistant are:
-- "Retrieval Question Answering tool": Use this tool only when given a document you need to answer questions about the document.
-  - To use the Retrieval Question Answering tool, Assistant should write like so:
-    ```json
+Assistant can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. Tools available to Assistant are:
+
+- "Retrieval Question Answering tool": Always use this tool first when the user sends an {input}. Always use this tool first and if you cannot get an answer then rely on your general knowledge. If you can find an answer then it is the final answer and you should give it to the user.
+  - To use the Retrieval Question Answering tool, AI should write like so:
+    AI: ```json
     {{"action": "Retrieval Question Answering tool",
-      "action_input": give me a summary of document }}
+      "action_input": Processing the user {input} to answer the question.}}
+      User:
     ```
 
 Here are some previous conversations between the Assistant and User:
 
-User: 1.0 how are you?
+User: Hey how are you today?
 Assistant: ```json
 {{"action": "Final Answer",
  "action_input": "I'm good thanks, how are you?"}}
 ```
-
-User: 3.0  What is the title of the document?
+User: I'm great, what is the square root of 4?
 Assistant: ```json
-{{"action": "Retrieval Question Answering tool",
- "action_input": "What is the title of the document?" }}
-```
-User4: where is the capital of Iran?
-Assistant: ```json
-{{"action": "Final Answer",
- "action_input": "The capital of Iran is Tehran"}}
+{{"action": "Calculator",
+ "action_input": "sqrt(4)"}}
 ```
 User: 2.0
 Assistant: ```json
 {{"action": "Final Answer",
- "action_input": "According tho the document world war 1 started in 1941"}}
+ "action_input": "It looks like the answer is 2!"}}
 ```
-User: Thanks could you tell me the circumference of a circle that has a radius of 4 mm?
+User: Thanks could you tell me what 4 to the power of 2 is?
 Assistant: ```json
-{{"action": "circumference",
- "action_input": "4" }}
-```
-User: 16.0
-Assistant: ```json
-{{"action": "Final Answer",
- "action_input": "according to docuemnt the inflation between 1931-2000 wa 11%"}}
+{{"action": "Calculator",
+ "action_input": "4**2"}}
 ```
 User: 16.0
 Assistant: ```json
 {{"action": "Final Answer",
- "action_input": "the document is about the global warming"}}
+ "action_input": "It looks like the answer is 16!"}}
 ```
 
 Here is the latest conversation between Assistant and User.""" + E_SYS
+
+sys_msg2 = "ouioui"
 
 
 new_prompt = agent.agent.create_prompt(
@@ -288,9 +258,9 @@ new_prompt = agent.agent.create_prompt(
 )
 agent.agent.llm_chain.prompt = new_prompt
 
-instruction = B_INST + " Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
+instruction = B_INST + " Respond to the following in JSON with 'action' and 'action_input' values. " + E_INST
 human_msg = instruction + "\nUser: {input}"
-
+print("the user input: ","{input}")
 agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
 
 
@@ -299,6 +269,7 @@ agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
 
 def inference(prompt):
     print('check template: ', agent.agent.llm_chain.prompt)
+    print(agent(prompt))
     return agent(prompt)
 
 app = FastAPI()
@@ -317,6 +288,13 @@ def test_root():
 @app.post("/clearMem")
 def clearMemory():
     agent.memory.clear()
+
+@app.post("/clearDatabase")
+def clearDatabase():
+    vectorstore.delete([])
+    with open("processed_files.json", "w") as f:
+        json.dump([], f)
+
 
 @app.post("/search_mode")
 def search_modes(input: SearchModeInput):
