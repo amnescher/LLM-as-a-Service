@@ -211,63 +211,80 @@ agent = initialize_agent(
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<>\n", "\n<>\n\n"
 
-sys_msg = B_SYS + """AI is a expert JSON builder designed to assist with a wide range of tasks.
+sys_msg = B_SYS + """Assistant is a expert JSON builder designed to assist with a wide range of tasks.
 
-AI is able to respond to the User and use tools using JSON strings that contain "action" and "action_input" parameters.
+Assistant is able to respond to the User and use tools using JSON strings that contain "action" and "action_input" parameters.
 
-All of AI's communication is performed using this JSON format.
+All of Assistant's communication is performed using this JSON format.
 
-AI can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to AI are:
+Assistant can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to Assistant are:
 - "Retrieval Question Answering tool": Use this tool only when the question explicitly states "according to database"; otherwise. Use all contexts from database to answer question.
-  - To use the Retrieval Question Answering tool, AI should write like so:
+  - To use the Retrieval Question Answering tool, Assistant should write like so:
     ```json
     {{"action": "Retrieval Question Answering tool",
       "action_input": give me a summary of document }}
     ```
 When you have  multiple contexts and table aggregate all of them to response to questions.
 
-Here are some previous conversations between the AI and User:
+Here are some previous conversations between the Assistant and User:
 
 User: 1.0 how are you?
-AI: ```json
+```json
 {{"action": "Final Answer",
  "action_input": "I'm good thanks, how are you?"}}
 ```
 
 User4: where is the capital of Iran?
-AI: ```json
+```json
 {{"action": "Final Answer",
  "action_input": "The capital of Iran is Tehran"}}
 ```
 User: 2.0
-AI: ```json
+```json
 {{"action": "Final Answer",
  "action_input": "According tho the document world war 1 started in 1941"}}
 ```
 User: 16.0
-Context:  The document is a research paper.
-Context:  The research paper explores the impact of global waming on mental health.
-Context:  The paper was written by Dr. Smith and published in a Nature journal.
-AI: ```json
+Context 1:  The document is a research paper.
+Context 2:  The research paper explores the impact of global waming on mental health.
+Context 3:  The paper was written by Dr. Smith and published in a Nature journal.
+```json
 {{"action": "Final Answer",
- "action_input": "According to above context document is about theglobal warming and its consequesnces"}}
+ "action_input": "The research paper is a significant contribution to 
+ the field of climate science, focusing on the crucial topic of the impact of 
+ global warming on mental health. Authored by Dr. Smith and published in the
+  prestigious Nature journal, the paper delves into the intricate relationship between 
+  climate change and its effects on human psychological well-being. By examining the far-reaching 
+  consequences of global warming on mental health, this research sheds light on an emerging area of
+   concern in today's changing world. The findings and insights presented in the paper have the 
+   potential to influence policies and interventions aimed at addressing the mental health challenges
+    posed by climate change, making it a valuable resource for researchers, policymakers, 
+    and healthcare professionals alike."}}
 ```
+
 User: 16.0
-Context:  The document is a annual report.
-Context:  The research paper explores the impact of global waming on mental health.
-Context:  The paper was written by Dr. Smith and published in a Nature journal.
-AI: ```json
+Context A:  The document is a annual finance report.
+Context B: The sale has been increased by 20 percent but the profit has been reduced by 2 percent due to increases in maitanence costs.
+
+```json
 {{"action": "Final Answer",
- "action_input": "According to above context document is about theglobal warming and its consequesnces"}}
+ "action_input": "The document highlights a notable increase in sales by 20 percent, which appears
+  promising for the business. However, the positive impact on revenue has been offset by a decrease in 
+  profit, which has diminished by 2 percent. This reduction in profit is attributed to rising maintenance 
+  costs, which have likely placed additional financial pressure on the company. The findings suggest that 
+  while the business is experiencing growth in terms of sales, careful attention and strategic management 
+  are required to mitigate the negative effects of escalating maintenance expenses and ensure sustained 
+  profitability."}}
 ```
-Here is the latest conversation between AI and User.""" + E_SYS
+
+Here is the latest conversation between Assistant and User.""" + E_SYS
 new_prompt = agent.agent.create_prompt(
     system_message=sys_msg,
     tools=tools
 )
 agent.agent.llm_chain.prompt = new_prompt
 
-instruction = B_INST + " You are a helpful AI. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'. Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
+instruction = B_INST + " You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'. Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
 human_msg = instruction + "\nUser: {input}"
 
 agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
@@ -297,9 +314,11 @@ def test_root():
 def clearMemory():
     agent.memory.clear()
 
-@app.post("/search_mode")
-def search_modes(input: SearchModeInput):
-    choose_search_mode(input.search_mode)
+@app.post("/clearDatabase")
+def clearDatabase():
+    vectorstore.delete([])
+    with open("processed_files.json", "w") as f:
+        json.dump([], f)
 
 @app.post("/document_loading")
 def document_loading(file: UploadFile = File(...)):
