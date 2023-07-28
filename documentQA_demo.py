@@ -152,7 +152,40 @@ memory = ConversationBufferMemory(
     memory_key="chat_history", return_messages=True, output_key="output"
 )
 
+#------------------------------------------------
+from langchain.agents import AgentOutputParser
+from langchain.agents.conversational_chat.prompt import FORMAT_INSTRUCTIONS
+from langchain.output_parsers.json import parse_json_markdown
+from langchain.schema import AgentAction, AgentFinish
 
+class OutputParser(AgentOutputParser):
+    def get_format_instructions(self) -> str:
+        return FORMAT_INSTRUCTIONS
+
+    def parse(self, text: str) -> AgentAction | AgentFinish:
+        try:
+            # this will work IF the text is a valid JSON with action and action_input
+            response = parse_json_markdown(text)
+            action, action_input = response["action"], response["action_input"]
+            if action == "Final Answer":
+                # this means the agent is finished so we call AgentFinish
+                return AgentFinish({"output": action_input}, text)
+            else:
+                # otherwise the agent wants to use an action, so we call AgentAction
+                return AgentAction(action, action_input, text)
+        except Exception:
+            # sometimes the agent will return a string that is not a valid JSON
+            # often this happens when the agent is finished
+            # so we just return the text as the output
+            return AgentFinish({"output": text}, text)
+
+    @property
+    def _type(self) -> str:
+        return "conversational_chat"
+
+# initialize output parser for agent
+parser = OutputParser()
+#-----------------------------------------------
 
 
 tools = [
@@ -172,42 +205,42 @@ agent = initialize_agent(
     early_stopping_method="generate",
     max_iterations=4,
     memory=memory,
-    #agent_kwargs={"output_parser": parser}
+    agent_kwargs={"output_parser": parser}
 )
 
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<>\n", "\n<>\n\n"
 
-sys_msg = B_SYS + """Assistant is a expert JSON builder designed to assist with a wide range of tasks.
+sys_msg = B_SYS + """AI is a expert JSON builder designed to assist with a wide range of tasks.
 
-Assistant is able to respond to the User and use tools using JSON strings that contain "action" and "action_input" parameters.
+AI is able to respond to the User and use tools using JSON strings that contain "action" and "action_input" parameters.
 
-All of Assistant's communication is performed using this JSON format.
+All of AI's communication is performed using this JSON format.
 
-Assistant can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to Assistant are:
+AI can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to AI are:
 - "Retrieval Question Answering tool": Use this tool only when the question explicitly states "according to database"; otherwise. Use all contexts from database to answer question.
-  - To use the Retrieval Question Answering tool, Assistant should write like so:
+  - To use the Retrieval Question Answering tool, AI should write like so:
     ```json
     {{"action": "Retrieval Question Answering tool",
       "action_input": give me a summary of document }}
     ```
 When you have  multiple contexts and table aggregate all of them to response to questions.
 
-Here are some previous conversations between the Assistant and User:
+Here are some previous conversations between the AI and User:
 
 User: 1.0 how are you?
-Assistant: ```json
+AI: ```json
 {{"action": "Final Answer",
  "action_input": "I'm good thanks, how are you?"}}
 ```
 
 User4: where is the capital of Iran?
-Assistant: ```json
+AI: ```json
 {{"action": "Final Answer",
  "action_input": "The capital of Iran is Tehran"}}
 ```
 User: 2.0
-Assistant: ```json
+AI: ```json
 {{"action": "Final Answer",
  "action_input": "According tho the document world war 1 started in 1941"}}
 ```
@@ -215,19 +248,26 @@ User: 16.0
 Context:  The document is a research paper.
 Context:  The research paper explores the impact of global waming on mental health.
 Context:  The paper was written by Dr. Smith and published in a Nature journal.
-Assistant: ```json
+AI: ```json
 {{"action": "Final Answer",
  "action_input": "According to above context document is about theglobal warming and its consequesnces"}}
 ```
-
-Here is the latest conversation between Assistant and User.""" + E_SYS
+User: 16.0
+Context:  The document is a annual report.
+Context:  The research paper explores the impact of global waming on mental health.
+Context:  The paper was written by Dr. Smith and published in a Nature journal.
+AI: ```json
+{{"action": "Final Answer",
+ "action_input": "According to above context document is about theglobal warming and its consequesnces"}}
+```
+Here is the latest conversation between AI and User.""" + E_SYS
 new_prompt = agent.agent.create_prompt(
     system_message=sys_msg,
     tools=tools
 )
 agent.agent.llm_chain.prompt = new_prompt
 
-instruction = B_INST + " You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'. Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
+instruction = B_INST + " You are a helpful AI. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'. Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
 human_msg = instruction + "\nUser: {input}"
 
 agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
