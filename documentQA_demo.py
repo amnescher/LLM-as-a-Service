@@ -218,8 +218,9 @@ Assistant is able to respond to the User and use tools using JSON strings that c
 All of Assistant's communication is performed using this JSON format.
 
 Assistant can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to Assistant are:
-- "Retrieval Question Answering tool": Use this tool only when the question explicitly states "according to database"; otherwise. Use all contexts from database to answer question.
+- "Retrieval Question Answering tool": Use this tool to retriev data from database";
   - To use the Retrieval Question Answering tool, Assistant should write like so:
+
     ```json
     {{"action": "Retrieval Question Answering tool",
       "action_input": give me a summary of document }}
@@ -284,7 +285,10 @@ new_prompt = agent.agent.create_prompt(
 )
 agent.agent.llm_chain.prompt = new_prompt
 
-instruction = B_INST + " You are a helpful assistant. You do not respond as 'User' or pretend to be 'User'. You only respond once as 'Assistant'. Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
+instruction = B_INST + """ Respond to the following in JSON format with ```json
+    {{"action": ,
+      "action_input": }}
+    ```   """ + E_INST
 human_msg = instruction + "\nUser: {input}"
 
 agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
