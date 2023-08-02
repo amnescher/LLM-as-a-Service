@@ -15,11 +15,9 @@ RUN  ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone 
     apt-get install -y python3 python3-pip git libsqlite3-dev curl unzip gcc g++ make cmake
 
 RUN pip install --upgrade pip && \
+    pip install git+https://github.com/huggingface/transformers \
+    pip install pypdf \
     pip install --no-cache-dir --upgrade -r backend_requirements.txt
-
-RUN pip install pypdf
-RUN pip install --upgrade transformers
-RUN pip install git+https://github.com/huggingface/transformers
 
 COPY ./backendQA_demo.py /app/
 COPY ./data_pdf/ /app/data_pdf/
