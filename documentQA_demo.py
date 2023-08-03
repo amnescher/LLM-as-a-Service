@@ -23,8 +23,144 @@ import uvicorn
 from pydantic import BaseModel
 import json
 from fastapi import FastAPI, File, UploadFile
-# env_variables = dotenv_values('env.env')
-# os.environ['OPENAI_API_KEY'] = env_variables['Open_API']
+from langchain import HuggingFacePipeline
+from langchain import PromptTemplate,  LLMChain
+from langchain.memory import ConversationBufferMemory
+from langchain import LLMChain, PromptTemplate
+import langchain
+from langchain.llms import HuggingFacePipeline
+from langchain.chains.conversation.memory import ConversationBufferWindowMemory
+from langchain import PromptTemplate, LLMChain
+import json
+import textwrap
+import torch
+import re
+import transformers
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+env_variables = dotenv_values('env.env')
+os.environ['OPENAI_API_KEY'] = env_variables['Open_API']
+
+
+import os
+
+
+
+
+B_INST, E_INST = "[INST]", "[/INST]"
+B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
+DEFAULT_SYSTEM_PROMPT = """\
+You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+
+instruction = "Chat History:\n\n{chat_history} \n\nUser: {user_input}"
+system_prompt = "You are a helpful assistant, you always only answer for the assistant then you stop. read the chat history to get context"
+
+prompt_template = \
+"""The following is a friendly conversation between a human and an AI. The AI is talkative and provides lots of specific details from its context. If the AI does not know the answer to a question, it truthfully says it does not know.
+
+Current conversation:
+{chat_history}
+Human: {input}
+AI:"""
+
+
+def get_prompt(instruction, new_system_prompt=DEFAULT_SYSTEM_PROMPT ):
+    SYSTEM_PROMPT = B_SYS + new_system_prompt + E_SYS
+    prompt_template =  B_INST + SYSTEM_PROMPT + instruction + E_INST
+    return prompt_template
+
+def cut_off_text(text, prompt):
+    cutoff_phrase = prompt
+    index = text.find(cutoff_phrase)
+    if index != -1:
+        return text[:index]
+    else:
+        return text
+
+def remove_substring(string, substring):
+    return string.replace(substring, "")
+
+
+
+def generate(text):
+    prompt = get_prompt(text)
+    with torch.autocast('cuda', dtype=torch.bfloat16):
+        inputs = tokenizer(prompt, return_tensors="pt").to('cuda')
+        outputs = model.generate(**inputs,
+                                 max_new_tokens=512,
+                                 eos_token_id=tokenizer.eos_token_id,
+                                 pad_token_id=tokenizer.eos_token_id,
+                                 )
+        final_outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
+        final_outputs = cut_off_text(final_outputs, '</s>')
+        final_outputs = remove_substring(final_outputs, prompt)
+
+    return final_outputs#, outputs
+
+def parse_text(text):
+    pattern = r"\s*Assistant:\s*"
+    cleaned_text = re.sub(pattern, "", text)
+    wrapped_text = textwrap.fill(cleaned_text, width=100)
+    return wrapped_text + '\n\n'
+
+def add_video_to_DB(url):
+        loader = YoutubeLoader.from_youtube_url(url, add_video_info=True)
+        result = loader.load()
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=400)
+        texts = text_splitter.split_documents(result)
+        vectorstore_video.add_documents(texts)
+
+
+def load_processed_files():
+    if os.path.exists("processed_files.json"):
+        with open("processed_files.json", "r") as f:
+            return json.load(f)
+    else:
+        return []
+
+def save_processed_file(filename):
+    processed_files = load_processed_files()
+    processed_files.append(filename)
+    with open("processed_files.json", "w") as f:
+        json.dump(processed_files, f)
+
+def is_file_processed(filename):
+    processed_files = load_processed_files()
+    return filename in processed_files
+
+
+
+def save_uploadpdf(uploadfile):
+        if is_file_processed(uploadfile.filename):
+            return (None, False)
+        with open(os.path.join("data_pdf", uploadfile.filename), 'wb') as f:
+            f.write(uploadfile.file.read())
+        return (os.path.join("data_pdf", uploadfile.filename), True)
+
+
+def save_video(video_url):
+    if os.path.exists("processed_videos.json"):
+        with open("processed_videos.json", "r") as f:
+            video_list = json.load(f)
+            if video_url not in video_list:
+                add_video_to_DB(video_url)
+                video_list.append(video_url)
+                with open("processed_videos.json", "w") as f:
+                    json.dump(video_list, f)
+                return True
+            else:
+                return False
+    else:
+        # If the file doesn't exist, create it and add the first video URL
+        video_list = [video_url]
+        with open("processed_videos.json", "w") as f:
+            json.dump(video_list, f)
+            add_video_to_DB(video_url)
+        return True
+    
+
 
 
 model_id = 'meta-llama/Llama-2-70b-chat-hf'
@@ -70,259 +206,122 @@ generate_text = transformers.pipeline(
 
 llm = HuggingFacePipeline(pipeline=generate_text)
 #embeddings = OpenAIEmbeddings()
-persist_directory = "./PDF_db"
-embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl", 
-                                                      model_kwargs={"device": "cuda"})
-vectorstore = Chroma("PDF_store", embeddings, persist_directory=persist_directory)
-vectorstore.persist()
-
-
-
-def load_processed_files():
-    if os.path.exists("processed_files.json"):
-        with open("processed_files.json", "r") as f:
-            return json.load(f)
-    else:
-        return []
-
-def save_processed_file(filename):
-    processed_files = load_processed_files()
-    processed_files.append(filename)
-    with open("processed_files.json", "w") as f:
-        json.dump(processed_files, f)
-
-def is_file_processed(filename):
-    processed_files = load_processed_files()
-    return filename in processed_files
-
-def add_pdf_to_DB(pdf_path):
-    vectorstore = Chroma(persist_directory=persist_directory, 
-                  embedding_function=embeddings)
-    loader = PyPDFLoader(pdf_path)
-    pages = loader.load_and_split()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
-    texts = text_splitter.split_documents(pages)
-    print('the texts', texts)
-    vectorstore.add_documents(texts)
-
-def save_uploadpdf(uploadfile):
-        if is_file_processed(uploadfile.filename):
-            return (None, False)
-        with open(os.path.join("data_pdf", uploadfile.filename), 'wb') as f:
-            f.write(uploadfile.file.read())
-        return (os.path.join("data_pdf", uploadfile.filename), True)
-
-def choose_search_mode(mode):
-    #---------------------
-    sys_msg2 = None
-    #---------------------
-    if mode == "Database Search":
-        new_prompt = agent.agent.create_prompt(
-            system_message=sys_msg,
-            tools=tools
-        )
-        agent.agent.llm_chain.prompt = new_prompt
-
-        instruction = B_INST + " Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
-        human_msg = instruction + "\nUser: {input}"
-
-        agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
-        print('check template: ', agent.agent.llm_chain.prompt)
-    
-    elif mode == "Normal Search":
-        new_prompt = agent.agent.create_prompt(
-            system_message=sys_msg2,
-            tools=tools
-        )
-        agent.agent.llm_chain.prompt = new_prompt
-
-        instruction = B_INST + " Respond to the following in JSON with 'action' and 'action_input' values " + E_INST
-        human_msg = instruction + "\nUser: {input}"
-
-        agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
-        print('check template: ', agent.agent.llm_chain.prompt)
-        
-        
-
-
-QA = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever())
-
 
 memory = ConversationBufferMemory(
     memory_key="chat_history", return_messages=True, output_key="output"
 )
 
-#------------------------------------------------
-from langchain.agents import AgentOutputParser
-from langchain.agents.conversational_chat.prompt import FORMAT_INSTRUCTIONS
-from langchain.output_parsers.json import parse_json_markdown
-from langchain.schema import AgentAction, AgentFinish
-
-class OutputParser(AgentOutputParser):
-    def get_format_instructions(self) -> str:
-        return FORMAT_INSTRUCTIONS
-
-    def parse(self, text: str) -> AgentAction | AgentFinish:
-        try:
-            # this will work IF the text is a valid JSON with action and action_input
-            response = parse_json_markdown(text)
-            action, action_input = response["action"], response["action_input"]
-            if action == "Final Answer":
-                # this means the agent is finished so we call AgentFinish
-                return AgentFinish({"output": action_input}, text)
-            else:
-                # otherwise the agent wants to use an action, so we call AgentAction
-                return AgentAction(action, action_input, text)
-        except Exception:
-            # sometimes the agent will return a string that is not a valid JSON
-            # often this happens when the agent is finished
-            # so we just return the text as the output
-            return AgentFinish({"output": text}, text)
-
-    @property
-    def _type(self) -> str:
-        return "conversational_chat"
-
-# initialize output parser for agent
-parser = OutputParser()
-#-----------------------------------------------
 
 
-tools = [
-    Tool.from_function(
-        func=QA.run,
-        name="Retrieval Question Answering tool",
-        description= "Use this tool only when a document is uploaded and you want to answer questions about document."  
-    )
-]
+Doc_persist_directory = "./Document_db"
+video_persist_directory = "./YouTube_db"
+# Check if DB1 directory exists, and if not, create it
+if not os.path.exists(Doc_persist_directory):
+    os.makedirs(Doc_persist_directory)
+    print(f"Directory '{Doc_persist_directory}' created successfully.")
 
-# initialize agent
-agent = initialize_agent(
-    agent="chat-conversational-react-description",
-    tools=tools,
+# Check if DB2 directory exists, and if not, create it
+if not os.path.exists(video_persist_directory):
+    os.makedirs(video_persist_directory)
+    print(f"Directory '{video_persist_directory}' created successfully.")
+
+
+
+embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl", 
+                                                      model_kwargs={"device": "cuda"})
+vectorstore_doc = Chroma("PDF_store", embeddings, persist_directory=Doc_persist_directory)
+vectorstore_doc.persist()
+
+
+
+vectorstore_video = Chroma("YouTube_store", embeddings, persist_directory=video_persist_directory)
+vectorstore_video.persist()
+
+
+def add_pdf_to_DB(pdf_path):
+    
+    loader = PyPDFLoader(pdf_path)
+    pages = loader.load_and_split()
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=400)
+    texts = text_splitter.split_documents(pages)
+    print('the texts', texts)
+    vectorstore_doc.add_documents(texts)
+
+QA_video = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore_video.as_retriever(),memory = memory,output_key= "output")
+QA_document = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore_doc.as_retriever(),memory = memory,output_key= "output")
+
+
+
+
+
+
+#------------------------------------------------------------------------------------
+
+
+prompt = PromptTemplate(
+    input_variables=['chat_history', "input"],
+    template=prompt_template,
+)
+
+from langchain.chains import ConversationChain
+llm = HuggingFacePipeline(pipeline=generate_text)
+chat = ConversationChain(
     llm=llm,
-    verbose=True,
-    early_stopping_method="generate",
-    max_iterations=4,
     memory=memory,
-    agent_kwargs={"output_parser": parser}
+    verbose=True,
+    prompt=prompt
 )
 
-B_INST, E_INST = "[INST]", "[/INST]"
-B_SYS, E_SYS = "<>\n", "\n<>\n\n"
-
-sys_msg = B_SYS + """Assistant is a expert JSON builder designed to assist with a wide range of tasks.
-
-Assistant is able to respond to the User and use tools using JSON strings that contain "action" and "action_input" parameters.
-
-All of Assistant's communication is performed using this JSON format.
-
-Assistant can also use tools by responding to the user with tool use instructions in the same "action" and "action_input" JSON format. the Only tools available to Assistant are:
-- "Retrieval Question Answering tool": Use this tool to retriev data from database";
-  - To use the Retrieval Question Answering tool, Assistant should write like so:
-
-    ```json
-    {{"action": "Retrieval Question Answering tool",
-      "action_input": give me a summary of document }}
-    ```
-When you have  multiple contexts and table aggregate all of them to response to questions.
-
-Here are some previous conversations between the Assistant and User:
-
-User: 1.0 how are you?
-```json
-{{"action": "Final Answer",
- "action_input": "I'm good thanks, how are you?"}}
-```
-
-User4: where is the capital of Iran?
-```json
-{{"action": "Final Answer",
- "action_input": "The capital of Iran is Tehran"}}
-```
-User: 2.0
-```json
-{{"action": "Final Answer",
- "action_input": "According tho the document world war 1 started in 1941"}}
-```
-User: 16.0
-Context 1:  The document is a research paper.
-Context 2:  The research paper explores the impact of global waming on mental health.
-Context 3:  The paper was written by Dr. Smith and published in a Nature journal.
-```json
-{{"action": "Final Answer",
- "action_input": "The research paper is a significant contribution to 
- the field of climate science, focusing on the crucial topic of the impact of 
- global warming on mental health. Authored by Dr. Smith and published in the
-  prestigious Nature journal, the paper delves into the intricate relationship between 
-  climate change and its effects on human psychological well-being. By examining the far-reaching 
-  consequences of global warming on mental health, this research sheds light on an emerging area of
-   concern in today's changing world. The findings and insights presented in the paper have the 
-   potential to influence policies and interventions aimed at addressing the mental health challenges
-    posed by climate change, making it a valuable resource for researchers, policymakers, 
-    and healthcare professionals alike."}}
-```
-
-User: 16.0
-Context A:  The document is a annual finance report.
-Context B: The sale has been increased by 20 percent but the profit has been reduced by 2 percent due to increases in maitanence costs.
-
-```json
-{{"action": "Final Answer",
- "action_input": "The document highlights a notable increase in sales by 20 percent, which appears
-  promising for the business. However, the positive impact on revenue has been offset by a decrease in 
-  profit, which has diminished by 2 percent. This reduction in profit is attributed to rising maintenance 
-  costs, which have likely placed additional financial pressure on the company. The findings suggest that 
-  while the business is experiencing growth in terms of sales, careful attention and strategic management 
-  are required to mitigate the negative effects of escalating maintenance expenses and ensure sustained 
-  profitability."}}
-```
-
-Here is the latest conversation between Assistant and User.""" + E_SYS
-new_prompt = agent.agent.create_prompt(
-    system_message=sys_msg,
-    tools=tools
-)
-agent.agent.llm_chain.prompt = new_prompt
-
-instruction = B_INST + """ Respond to the following in JSON format with ```json
-    {{"action": ,
-      "action_input": }}
-    ```   """ + E_INST
-human_msg = instruction + "\nUser: {input}"
-
-agent.agent.llm_chain.prompt.messages[2].prompt.template = human_msg
 
 
 # -----------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 
-def inference(prompt):
-    print('check template: ', agent.agent.llm_chain.prompt)
-    return agent(prompt)
+
+
+template = get_prompt(instruction, system_prompt)
+
+prompt = PromptTemplate(
+    input_variables=["chat_history", "user_input"], template=template
+)
+
+llm_chain = LLMChain(
+    llm=llm,
+    prompt=prompt,
+    verbose=True,
+    memory=memory,
+    output_key= "output"
+)
+
 
 app = FastAPI()
 
 class Input(BaseModel):
       prompt:str
       messages: List[Dict[str, str]]
+      mode: str
 
 class SearchModeInput(BaseModel):
     search_mode: str
+
+class VideoURLs(BaseModel):
+    url: str
 
 @app.get("/")
 def test_root():
      return {"backend","backend for Falcon"}
 
+
 @app.post("/clearMem")
 def clearMemory():
-    agent.memory.clear()
+    memory.clear()
 
-@app.post("/clearDatabase")
+
+@app.post("/clearDocs")
 def clearDatabase():
-    vectorstore.delete([])
+    vectorstore_doc.delete([])
     with open("processed_files.json", "w") as f:
         json.dump([], f)
+
 
 @app.post("/document_loading")
 def document_loading(file: UploadFile = File(...)):
@@ -336,11 +335,32 @@ def document_loading(file: UploadFile = File(...)):
     else: 
         return is_new
 
+
 @app.post("/predict")
 def make_prediction(prompt_input:Input):
-    output = inference(prompt_input.prompt)
-    return output
+    msg =None
+    if prompt_input.mode == "Document Search": 
+        resp =QA_document.run(prompt_input.prompt)
+        return {'output':resp}
+    elif prompt_input.mode == "Video Search":
+        resp = QA_video.run(prompt_input.prompt)
+        return {'output':resp}
+    else: 
+        resp = llm_chain.predict(user_input=prompt_input.prompt)
+        resp = parse_text(resp)
+        output = {'output':resp}
+        return output
+    
 
+@app.post("/video_loading")
+def add_video_to_db(input:VideoURLs):
+    save_video(input.url)
+
+@app.post("/clearvideos")
+def clear_video_db():
+    vectorstore_video.delete([])
+    with open("processed_videos.json", "w") as f:
+            json.dump([], f)
 
 if __name__=="__backend__":
      uvicorn.run(app, port=8002)
