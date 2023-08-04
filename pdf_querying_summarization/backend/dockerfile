@@ -19,8 +19,9 @@ RUN pip install --upgrade pip && \
     pip install pypdf \
     pip install --no-cache-dir --upgrade -r backend_requirements.txt
 
+RUN mkdir -p /app/data_pdf/
 COPY ./documentQA_demo.py /app/
-COPY ./data_pdf/ /app/data_pdf/
+
 
 EXPOSE 5000
 
