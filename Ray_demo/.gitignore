@@ -1,0 +1,8 @@
+./.env
+./ray_env/
+./config.yaml
+./txt.txt
+./test.ipynb
+./PDF_dir
+./Youtube_db
+./Document_db
