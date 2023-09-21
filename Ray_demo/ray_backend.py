@@ -12,6 +12,7 @@ import json
 from ray.serve.drivers import DAGDriver
 import re
 import textwrap
+from langchain.chains import RetrievalQA
 # ------------------- Initialize Ray Cluster --------------------
 
 #------------------------------ LLM Deployment -------------------------------
@@ -127,14 +128,17 @@ class PredictDeployment:
 
         self.embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl",
                                                       model_kwargs={"device": "cuda"})
-        Doc_persist_directory = "./Document_db"
+        self.Doc_persist_directory = "./Document_db"
         video_persist_directory = "./YouTube_db"
-        self.vectorstore_video = Chroma("YouTube_store", persist_directory=video_persist_directory, embedding_function=self.embeddings)
-        self.vectorstore_doc = Chroma("PDF_store",persist_directory=Doc_persist_directory, embedding_function=self.embeddings)
-
-        self.QA_video = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.vectorstore_video.as_retriever(),memory = self.memory,output_key= "output")
+        #self.vectorstore_video = Chroma("YouTube_store", persist_directory=video_persist_directory, embedding_function=self.embeddings)
+        self.vectorstore_doc = Chroma(persist_directory=self.Doc_persist_directory, embedding_function=self.embeddings)
         self.QA_document = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.vectorstore_doc.as_retriever(),memory = self.memory,output_key= "output")
-
+        #self.QA_video = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.vectorstore_video.as_retriever(),memory = self.memory,output_key= "output")
+    
+    def get_collection_based_retriver(self, collection):    
+        vectorstore_doc = Chroma(str(collection),persist_directory=self.Doc_persist_directory, embedding_function=self.embeddings)
+        self.QA_document = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=vectorstore_doc.as_retriever(),memory = self.memory,output_key= "output")
+        return self.QA_document    
 
     def get_prompt(self, instruction):
         SYSTEM_PROMPT = self.B_SYS + self.DEFAULT_SYSTEM_PROMPT +self.E_SYS
@@ -191,11 +195,15 @@ class PredictDeployment:
     async def __call__(self, request: Request):
         text = request.query_params["text"]
         mode = request.query_params["mode"]
-
         if mode == "Document Search":
             print("Document Search")
             response = self._run_docSearch(text)
             return response #self.parse_text(response)
+        elif mode == "Collection choice":
+            print('chaning collection')
+            
+            print('collection name:', text)
+            response = self.get_collection_based_retriver(text)
         elif mode == "Video Search":
             print("video Search")
             response = self._run_vidSearch(text)
