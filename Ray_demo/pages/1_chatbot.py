@@ -44,6 +44,7 @@ def get_collections():
     collections_data = response.json()
         #selected_collections = st.multiselect("Select Collections:", response)
     collections_list = collections_data.get("collections", [])
+    collections_list.append('all_documents')
     return collections_list
 
 st.title('EscherCloud AI LLM service - Demo ')
@@ -82,11 +83,9 @@ if prompt := st.chat_input():#(disabled=not replicate_api):
         with st.chat_message("user"):
             st.write(prompt)
         
-    
 if st.session_state.messages[-1]["role"] != "assistant":
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-
                 PORT_NUMBER = 8000
                 URL = f"http://localhost:{PORT_NUMBER}/predict/?text={prompt}&mode={search_choice}&messages={st.session_state.messages}"
                 response = requests.post(URL)
@@ -95,6 +94,5 @@ if st.session_state.messages[-1]["role"] != "assistant":
                     placeholder = st.empty()
                     full_response = response
                     placeholder.markdown(full_response)
-                
         message = {"role": "assistant", "content": full_response}
         st.session_state.messages.append(message)

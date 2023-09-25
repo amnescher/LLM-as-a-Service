@@ -54,7 +54,6 @@ class VectorDataBase:
     def is_file_processed(self, filename):
         processed_files = self.load_processed_files()
         return filename in processed_files
-
         
     def add_pdf_to_DB(self, pdf_path):
         if not self.is_file_processed(pdf_path):
@@ -126,8 +125,8 @@ class VectorDataBase:
             return True
 
     def create_new_collection(self, name):
-        print('test if it works///')   
         final_name = str(name)
+        print('final name', final_name)
         collection = self.vectorstore_doc._client.get_or_create_collection(final_name)
         print('collection created? ', collection)
 
@@ -150,9 +149,6 @@ class VectorDataBase:
             prefix = id.split('_')[0]
             if prefix not in id_prefixe:
                 id_prefixe.append(prefix)
-        #id_prefixe = set(id.split('_')[0] for id in all_ids)
-        #retval = 'returned value'
-        #print(id_prefixe)
         return id_prefixe
 
     def delete_document(self, collection, name):
@@ -185,15 +181,11 @@ class VectorDataBase:
         )
         self.vectorstore_doc.persist()
 
-
-
     def adding_documents(self, pdf, collection, id):
-
         loader = PyPDFLoader(pdf)
         pages = loader.load_and_split()
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=100)
         texts = text_splitter.split_documents(pages)
-
         selected_collection = self.vectorstore_doc._client.get_collection(collection)
         selected_collection.add(
             documents = [doc.page_content for doc in texts],
@@ -261,7 +253,5 @@ class VectorDataBase:
                 self.add_pdf_to_DB(file_path)
                 self.save_processed_file(file_path)
                 os.remove(file_path)
-                
-
 
 app = VectorDataBase.bind()
