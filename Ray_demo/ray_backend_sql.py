@@ -160,14 +160,8 @@ class PredictDeployment:
             persist_directory=self.Doc_persist_directory,
             embedding_function=self.embeddings,
         )
-        self.QA_document = RetrievalQA.from_chain_type(
-            llm=self.llm,
-            chain_type="stuff",
-            retriever=vectorstore_doc.as_retriever(),
-            memory=self.memory,
-            output_key="output",
-        )
-        return self.QA_document
+        
+        return vectorstore_doc
 
     def get_prompt(self, instruction):
         SYSTEM_PROMPT = self.B_SYS + self.DEFAULT_SYSTEM_PROMPT + self.E_SYS
@@ -216,9 +210,9 @@ class PredictDeployment:
         wrapped_text = textwrap.fill(cleaned_text, width=100)
         return wrapped_text
 
+
     def AI_assistance(
-        self, username, new_chat, conversation_number, input_prompt, mode
-    ):
+        self,username, new_chat, conversation_number, input_prompt, mode,collection_name):
         # Initialize memory based on whether it's a new chat or not
         if new_chat == "newchat":
             memory = ConversationBufferMemory(
@@ -251,7 +245,7 @@ class PredictDeployment:
 
         # Create an LLM chain with the appropriate mode
 
-        if mode == "ai_assistance":
+        if mode == "AI Assistance":
             llm_chain = LLMChain(
                 llm=self.llm,
                 prompt=self.prompt,
@@ -259,25 +253,20 @@ class PredictDeployment:
                 memory=memory,
                 output_key="output",
             )
-        elif mode == "document_search":
+        elif mode == "Document Search":
+            print("Document search")
+            retriever = self.get_collection_based_retriver(collection_name)
             llm_chain = RetrievalQA.from_chain_type(
                 llm=self.llm,
                 chain_type="stuff",
-                retriever=self.vectorstore_doc.as_retriever(),
+                retriever=retriever.as_retriever(),
                 memory=memory,
                 output_key="output",
             )
-        elif mode == "video_search":
-            llm_chain = RetrievalQA.from_chain_type(
-                llm=self.llm,
-                chain_type="stuff",
-                retriever=self.vectorstore_video.as_retriever(),
-                memory=memory,
-                output_key="output",
-            )
+        
 
         # Generate a response based on the mode
-        if mode == "ai_assistance":
+        if mode == "AI Assistance":
             response = llm_chain.predict(user_input=input_prompt)
         else:
             response = llm_chain.run(input_prompt)
@@ -285,30 +274,22 @@ class PredictDeployment:
         # Store the conversation
         extracted_messages = llm_chain.memory.chat_memory.messages
         ingest_to_db = messages_to_dict(extracted_messages)
-
-        if new_chat == "newchat":
-            add_conversation(username, ingest_to_db)
-        else:
-            update_conversation(username, conversation_number, ingest_to_db)
+        update_conversation(username, conversation_number, ingest_to_db)
 
         return {"output": response}
 
     async def __call__(self, request: Request):
         text = request.query_params["text"]
-        mode = "ai_assistance"#request.query_params["mode"]
+        mode = request.query_params["mode"]
         username = request.query_params["username"]
         newchat = request.query_params["newchat"]
         conversation_number = int(request.query_params["conversation_number"])
-
-        if mode == "Collection choice":
-            print("chaning collection")
-            print("collection name:", text)
-            response = self.get_collection_based_retriver(text)
-        else:
-            response = self.AI_assistance(
-                username, newchat, conversation_number, text, mode
+        collection_name = request.query_params['collection']
+        print("Collection Name ----- >", collection_name)
+        response = self.AI_assistance(
+                username,newchat,conversation_number,text,mode,collection_name
             )
-            return self.parse_text(response["output"])
+        return self.parse_text(response["output"])
 
 
 app = PredictDeployment.bind()
