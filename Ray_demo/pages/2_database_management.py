@@ -139,6 +139,8 @@ with col1_2:
                         # Save the uploaded PDF to the specified directory
                         with open(pdf_filename, "wb") as f:
                             f.write(uploaded_pdf.read())
+                        if document_name == "" or document_name == None:
+                              document_name = uploaded_pdf.name
                         PORT_NUMBER = 8000
                         mode = "add"
                         data_type = "Document"

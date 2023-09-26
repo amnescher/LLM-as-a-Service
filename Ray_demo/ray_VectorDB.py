@@ -78,6 +78,8 @@ class VectorDataBase:
     def add_video_to_DB(self, url, collection,id):
         loader = YoutubeLoader.from_youtube_url(url, add_video_info=True)
         result = loader.load()
+        if id == "" or id == " " or id == None:
+            id= result[0].metadata['title']
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1500, chunk_overlap=400
         )
@@ -169,6 +171,8 @@ class VectorDataBase:
     def adding_webpage(self, url, collection, id):
         loader= WebBaseLoader(str(url))
         result = loader.load()
+        if id == "" or id == " " or id == None:
+            id = result[0].metadata['title']
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1500, chunk_overlap=400
         )
