@@ -59,8 +59,7 @@ def create_buttons(username):
     # Add a default "New Chat" choice with an empty value
     if buttons > 0:
         return list(range(1, int(buttons) + 1))
-    else:
-        return None
+
 
 port = 5001
 pdf_directory = "./PDF_dir"
@@ -204,14 +203,6 @@ else:
                 st.success("New user added successfully!")
         else:
             button_labels = create_buttons(st.session_state.username)
-            if button_labels == None:
-                history = StreamlitChatMessageHistory(key="langchain_messages")
-                history.clear()
-                history.add_ai_message("How can I help you?")
-                ingest_to_db = messages_to_dict(history.messages)
-                add_conversation(st.session_state.username, ingest_to_db)
-            button_labels = create_buttons(st.session_state.username)
-
 
             # Display the buttons
             st.sidebar.markdown("---")
@@ -225,15 +216,15 @@ else:
                 history.add_ai_message("How can I help you?")
                 ingest_to_db = messages_to_dict(history.messages)
                 add_conversation(st.session_state.username, ingest_to_db)
-                button_labels = create_buttons(st.session_state.username)
-                
 
-            
-            selected_button_label = st.sidebar.radio(
+            if button_labels:
+                selected_button_label = st.sidebar.radio(
                     "Select a conversation:",
                     button_labels,
                     index=len(button_labels) - 1,
                 )
+            else:
+                selected_button_label = None
 
             # st.sidebar.markdown("<br>", unsafe_allow_html=True)
             st.sidebar.markdown("---")
