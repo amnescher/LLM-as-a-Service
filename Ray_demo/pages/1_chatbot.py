@@ -36,6 +36,11 @@ def check_user_existence(username):
     response = requests.get(url, json=data)
     return response.json()
 
+def get_user_tokens():
+    endpoint = "/get_user_tokens/"
+    url = BASE_URL + endpoint
+    response = requests.get(url)
+    return response.json()
 
 def retrieve_conversation(username, conversation_number):
     endpoint = "/retrieve_conversation/"
@@ -150,6 +155,11 @@ else:
                 # Add the new user to the list of valid users
                 add_user(new_user)
                 st.success("New user added successfully!")
+            if st.button("Show Data"):
+                # Get the tokens
+                tokens = get_user_tokens()
+                st.table(tokens)
+
         else:
             button_labels = create_buttons(st.session_state.username)
             if button_labels == None:

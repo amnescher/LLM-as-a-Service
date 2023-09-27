@@ -19,6 +19,8 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
+    prompt_token_number = Column(Integer, default=0)  
+    gen_token_number = Column(Integer, default=0)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -37,6 +39,8 @@ class Input(BaseModel):
     content: Optional[str]
     conversation_number: Optional[int]
     user_id: Optional[int]
+    prompt_token_number: Optional[int]
+    gen_token_number: Optional[int]
 
 
 app = FastAPI()
@@ -49,7 +53,7 @@ Base.metadata.create_all(bind=engine)
 @app.post("/add_user/")
 def add_user(input: Input):
     db = SessionLocal()
-    user = User(username=input.username)
+    user = User(username=input.username, prompt_token_number=0, gen_token_number=0)
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -139,7 +143,13 @@ def get_all_data():
     data = []
 
     for user in users:
-        user_data = {"user_id": user.id, "username": user.username, "conversations": []}
+        user_data = {
+            "user_id": user.id,
+            "username": user.username,
+            "prompt_token_number": user.prompt_token_number,
+            "gen_token_number": user.gen_token_number,
+            "conversations": [],
+        }
 
         conversations = (
             db.query(Conversation)
@@ -160,6 +170,7 @@ def get_all_data():
 
     db.close()
     return data
+
 
 
 @app.get("/check_user_existence/")
@@ -237,6 +248,7 @@ def retrieve_latest_conversation(input: Input):
 def update_conversation(input: Input):
     db = SessionLocal()
     user = db.query(User).filter(User.username == input.username).first()
+    
     if not user:
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
@@ -250,35 +262,62 @@ def update_conversation(input: Input):
         .first()
     )
 
-    if conversation:
-        conversation.content = input.content
-    else:
+    if not conversation:
         db.close()
         raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Update conversation content
+    conversation.content = input.content
+
+    # Increment prompt_token_number and gen_token_number if provided in the input
+    if input.prompt_token_number is not None:
+        user.prompt_token_number += input.prompt_token_number
+
+    if input.gen_token_number is not None:
+        user.gen_token_number += input.gen_token_number
 
     db.commit()
     db.close()
 
     return {"message": "Conversation updated"}
 
+
 @app.get("/retrieve_all_conversations/")
 def retrieve_all_conversations(input: Input):
     db = SessionLocal()
-    
+
     # Check if the user exists by username
     user = db.query(User).filter(User.username == input.username).first()
-    
+
     if not user:
         db.close()
         return None  # User not found, return None
-    
+
     # Retrieve all conversations for the user
     conversations = db.query(Conversation).filter(Conversation.user_id == user.id).all()
-    
+
     # Create a dictionary to store conversations (key: conversation_number, value: conversation_content)
     db.close()
-    
+
     return len(conversations)
+
+@app.get("/get_user_tokens/")
+def get_user_tokens():
+    db = SessionLocal()
+    users = db.query(User).all()
+    user_tokens = []
+
+    for user in users:
+        user_tokens.append(
+            {
+                "username": user.username,
+                "prompt_token_number": user.prompt_token_number,
+                "gen_token_number": user.gen_token_number,
+            }
+        )
+
+    db.close()
+    return user_tokens
 
 
 # Define other endpoints similarly
