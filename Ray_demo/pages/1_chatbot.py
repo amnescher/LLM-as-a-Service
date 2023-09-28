@@ -29,6 +29,13 @@ def retrieve_all_conversations(username):
     return response.json()
 
 
+def get_user_conversations(username):
+    endpoint = "/get_user_conversations/"
+    url = BASE_URL + endpoint
+    data = {"username": username}
+    response = requests.get(url, json=data)
+    return response.json()
+
 def check_user_existence(username):
     endpoint = "/check_user_existence/"
     url = BASE_URL + endpoint
@@ -41,7 +48,12 @@ def get_user_tokens():
     url = BASE_URL + endpoint
     response = requests.get(url)
     return response.json()
-
+def delete_conversation(username,conversation_number):
+    endpoint = "/delete_conversation/"
+    url = BASE_URL + endpoint
+    data = {"username": username,"conversation_number":conversation_number}
+    response = requests.delete(url, json=data)
+    return response.json()
 def retrieve_conversation(username, conversation_number):
     endpoint = "/retrieve_conversation/"
     url = BASE_URL + endpoint
@@ -60,10 +72,10 @@ def add_conversation(username, content):
 
 # Function to create buttons based on the username
 def create_buttons(username):
-    buttons = retrieve_all_conversations(username)
+    buttons = get_user_conversations(username)['conversation_numbers']
     # Add a default "New Chat" choice with an empty value
-    if buttons > 0:
-        return list(range(1, int(buttons) + 1))
+    if buttons :
+        return buttons
     else:
         return None
 
@@ -184,7 +196,10 @@ else:
                 ingest_to_db = messages_to_dict(history.messages)
                 add_conversation(st.session_state.username, ingest_to_db)
                 button_labels = create_buttons(st.session_state.username)
-                
+
+            if st.sidebar.button("Delete Chat"):
+                     delete_conversation(st.session_state.username,st.session_state.selected_button_label )
+                     button_labels = create_buttons(st.session_state.username)
 
             
             selected_button_label = st.sidebar.radio(
@@ -194,15 +209,11 @@ else:
                 )
 
             # st.sidebar.markdown("<br>", unsafe_allow_html=True)
-            st.sidebar.markdown("---")
-            st.sidebar.markdown("<br>", unsafe_allow_html=True)
+            
 
-            search_choice = st.sidebar.radio(
-                options=["AI Assistance", "Document Search"], label="Type of search"
-            )
-
-            if selected_button_label:
+            if selected_button_label:     
                 st.session_state.newchat = "False"
+                st.session_state.selected_button_label = selected_button_label
                 st.session_state.conversation_number = selected_button_label
                 st.empty()  # Clear the page content
                 selected_value = retrieve_conversation(
@@ -220,9 +231,15 @@ else:
                 st.session_state.messages = [
                     {"role": "assistant", "content": "let's continue our chat"}
                 ]
+            
 
             # st.image("Eschercloud.png", caption=None, width=None, use_column_width=None, clamp=False, channels="RGB", output_format="auto")
+            st.sidebar.markdown("---")
+            st.sidebar.markdown("<br>", unsafe_allow_html=True)
 
+            search_choice = st.sidebar.radio(
+                options=["AI Assistance", "Document Search"], label="Type of search"
+            )
             if search_choice == "Document Search":
                 collection_list = get_collections()
                 selected_collection = st.sidebar.selectbox(

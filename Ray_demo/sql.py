@@ -300,25 +300,28 @@ def retrieve_all_conversations(input: Input):
     db.close()
 
     return len(conversations)
-
-@app.get("/get_user_tokens/")
-def get_user_tokens():
+@app.get("/get_user_conversations/")
+def get_user_conversations(input: Input):
     db = SessionLocal()
-    users = db.query(User).all()
-    user_tokens = []
+    
+    # Check if the user exists by username
+    user = db.query(User).filter(User.username == input.username).first()
+    if not user:
+        db.close()
+        raise HTTPException(status_code=404, detail="User not found")
 
-    for user in users:
-        user_tokens.append(
-            {
-                "username": user.username,
-                "prompt_token_number": user.prompt_token_number,
-                "gen_token_number": user.gen_token_number,
-            }
-        )
+    # Retrieve conversation numbers for the user
+    conversation_numbers = (
+        db.query(Conversation.conversation_number)
+        .filter(Conversation.user_id == user.id)
+        .all()
+    )
+
+    # Extract the conversation numbers from the result
+    conversation_numbers = [cnv[0] for cnv in conversation_numbers]
 
     db.close()
-    return user_tokens
-
+    return {"conversation_numbers": conversation_numbers}
 
 # Define other endpoints similarly
 # Remember to handle exceptions and error cases
