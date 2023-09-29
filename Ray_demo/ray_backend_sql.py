@@ -264,7 +264,6 @@ class PredictDeployment:
                 output_key="output",
             )
         
-
         # Generate a response based on the mode
         if mode == "AI Assistance":
             response = llm_chain.predict(user_input=input_prompt)
