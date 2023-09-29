@@ -273,7 +273,9 @@ class PredictDeployment:
         # Store the conversation
         extracted_messages = llm_chain.memory.chat_memory.messages
         ingest_to_db = messages_to_dict(extracted_messages)
-        update_conversation(username, conversation_number, ingest_to_db)
+        prompt_token_number = len(self.tokenizer.tokenize(input_prompt))
+        gen_token_number = len(self.tokenizer.tokenize(response))
+        update_conversation(username, conversation_number, ingest_to_db,prompt_token_number,gen_token_number)
 
         return {"output": response}
 

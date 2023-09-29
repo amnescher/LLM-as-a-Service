@@ -57,9 +57,15 @@ def retrieve_latest_conversation(username):
     response = requests.get(url, json=data)
     return response.json()
     
-def update_conversation(username, conversation_number, conversation_content):
+def update_conversation(username, conversation_number, conversation_content,prompt_token_number,gen_token_number):
     endpoint = "/update_conversation/"
     url = BASE_URL + endpoint
-    data = {"username": username,"conversation_number":conversation_number,"content": json.dumps(conversation_content)}
+    data = {"username": username,"conversation_number":conversation_number,"content": json.dumps(conversation_content),"prompt_token_number":prompt_token_number,"gen_token_number":gen_token_number}
     response = requests.post(url, json=data)
+    return response.json()
+
+def get_user_tokens():
+    endpoint = "/get_user_tokens/"
+    url = BASE_URL + endpoint
+    response = requests.get(url)
     return response.json()
