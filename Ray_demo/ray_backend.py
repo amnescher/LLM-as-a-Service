@@ -12,6 +12,7 @@ import json
 from ray.serve.drivers import DAGDriver
 import re
 import textwrap
+from langchain.chains import RetrievalQA
 # ------------------- Initialize Ray Cluster --------------------
 
 #------------------------------ LLM Deployment -------------------------------
@@ -25,7 +26,6 @@ import textwrap
 class PredictDeployment:
     def __init__(self):
         import os
-
         from dotenv import dotenv_values
         from langchain.document_loaders import YoutubeLoader
         from langchain.chat_models import ChatOpenAI
@@ -39,15 +39,9 @@ class PredictDeployment:
         from torch import cuda, bfloat16
         import transformers
         from langchain.chains import RetrievalQA
-        
-        
-
         from langchain import PromptTemplate, LLMChain
         from typing import List, Dict
-        
-        
         import json
-        
 
         self.access_token = os.getenv('Hugging_ACCESS_TOKEN')
         self.model_id = 'meta-llama/Llama-2-70b-chat-hf'
@@ -127,14 +121,19 @@ class PredictDeployment:
 
         self.embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl",
                                                       model_kwargs={"device": "cuda"})
-        Doc_persist_directory = "./Document_db"
-        video_persist_directory = "./YouTube_db"
-        self.vectorstore_video = Chroma("YouTube_store", persist_directory=video_persist_directory, embedding_function=self.embeddings)
-        self.vectorstore_doc = Chroma("PDF_store",persist_directory=Doc_persist_directory, embedding_function=self.embeddings)
-
-        self.QA_video = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.vectorstore_video.as_retriever(),memory = self.memory,output_key= "output")
+        self.Doc_persist_directory = "./Document_db"
+        self.vectorstore_doc = Chroma(persist_directory=self.Doc_persist_directory, embedding_function=self.embeddings)
         self.QA_document = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.vectorstore_doc.as_retriever(),memory = self.memory,output_key= "output")
-
+        #self.QA_video = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.vectorstore_video.as_retriever(),memory = self.memory,output_key= "output")
+    
+    def get_collection_based_retriver(self, collection):    
+        if collection is "all_documents":
+            vectorstore_doc = Chroma(persist_directory=self.Doc_persist_directory, embedding_function=self.embeddings)
+            self.QA_document = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=vectorstore_doc.as_retriever(),memory = self.memory,output_key= "output")
+        else:
+            vectorstore_doc = Chroma(str(collection),persist_directory=self.Doc_persist_directory, embedding_function=self.embeddings)
+            self.QA_document = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=vectorstore_doc.as_retriever(),memory = self.memory,output_key= "output")
+        return self.QA_document    
 
     def get_prompt(self, instruction):
         SYSTEM_PROMPT = self.B_SYS + self.DEFAULT_SYSTEM_PROMPT +self.E_SYS
@@ -169,14 +168,13 @@ class PredictDeployment:
             final_outputs = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
             final_outputs = self.cut_off_text(final_outputs, '</s>')
             final_outputs = self.remove_substring(final_outputs, prompt)
-
         return final_outputs#, outputs
+    
     def parse_text(self,text):
         pattern = r"\s*Assistant:\s*"
         cleaned_text = re.sub(pattern, "", text)
         wrapped_text = textwrap.fill(cleaned_text, width=100)
         return wrapped_text 
-
 
     def _run_chain(self, text: str):
         return self.llm_chain(text)
@@ -187,15 +185,17 @@ class PredictDeployment:
     def _run_vidSearch(self, text: str):
         return self.QA_video.run(text)
 
-
     async def __call__(self, request: Request):
         text = request.query_params["text"]
         mode = request.query_params["mode"]
-
         if mode == "Document Search":
             print("Document Search")
             response = self._run_docSearch(text)
             return response #self.parse_text(response)
+        elif mode == "Collection choice":
+            print('chaning collection')            
+            print('collection name:', text)
+            response = self.get_collection_based_retriver(text)
         elif mode == "Video Search":
             print("video Search")
             response = self._run_vidSearch(text)
