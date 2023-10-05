@@ -11,7 +11,15 @@ from langchain.schema import messages_from_dict, messages_to_dict
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 
 BASE_URL = "http://localhost:5000"
-
+def process_text(text):
+    # Remove quotes from the beginning and end of the text, if present
+    if text.startswith('"') and text.endswith('"'):
+        text = text[1:-1]
+    
+    # Replace \n with an actual new line
+    text = text.replace('\\n', '\n')
+    
+    return text
 
 def add_user(username):
     endpoint = "/add_user/"
@@ -36,6 +44,7 @@ def get_user_conversations(username):
     response = requests.get(url, json=data)
     return response.json()
 
+
 def check_user_existence(username):
     endpoint = "/check_user_existence/"
     url = BASE_URL + endpoint
@@ -43,17 +52,22 @@ def check_user_existence(username):
     response = requests.get(url, json=data)
     return response.json()
 
+
 def get_user_tokens():
     endpoint = "/get_user_tokens/"
     url = BASE_URL + endpoint
     response = requests.get(url)
     return response.json()
-def delete_conversation(username,conversation_number):
+
+
+def delete_conversation(username, conversation_number):
     endpoint = "/delete_conversation/"
     url = BASE_URL + endpoint
-    data = {"username": username,"conversation_number":conversation_number}
+    data = {"username": username, "conversation_number": conversation_number}
     response = requests.delete(url, json=data)
     return response.json()
+
+
 def retrieve_conversation(username, conversation_number):
     endpoint = "/retrieve_conversation/"
     url = BASE_URL + endpoint
@@ -72,12 +86,13 @@ def add_conversation(username, content):
 
 # Function to create buttons based on the username
 def create_buttons(username):
-    buttons = get_user_conversations(username)['conversation_numbers']
+    buttons = get_user_conversations(username)["conversation_numbers"]
     # Add a default "New Chat" choice with an empty value
-    if buttons :
+    if buttons:
         return buttons
     else:
         return None
+
 
 port = 5001
 pdf_directory = "./PDF_dir"
@@ -182,7 +197,6 @@ else:
                 add_conversation(st.session_state.username, ingest_to_db)
             button_labels = create_buttons(st.session_state.username)
 
-
             # Display the buttons
             st.sidebar.markdown("---")
             st.sidebar.markdown("<br>", unsafe_allow_html=True)
@@ -198,20 +212,20 @@ else:
                 button_labels = create_buttons(st.session_state.username)
 
             if st.sidebar.button("Delete Chat"):
-                     delete_conversation(st.session_state.username,st.session_state.selected_button_label )
-                     button_labels = create_buttons(st.session_state.username)
-
-            
-            selected_button_label = st.sidebar.radio(
-                    "Select a conversation:",
-                    button_labels,
-                    index=len(button_labels) - 1,
+                delete_conversation(
+                    st.session_state.username, st.session_state.selected_button_label
                 )
+                button_labels = create_buttons(st.session_state.username)
+
+            selected_button_label = st.sidebar.radio(
+                "Select a conversation:",
+                button_labels,
+                index=len(button_labels) - 1,
+            )
 
             # st.sidebar.markdown("<br>", unsafe_allow_html=True)
-            
 
-            if selected_button_label:     
+            if selected_button_label:
                 st.session_state.newchat = "False"
                 st.session_state.selected_button_label = selected_button_label
                 st.session_state.conversation_number = selected_button_label
@@ -231,12 +245,11 @@ else:
                 st.session_state.messages = [
                     {"role": "assistant", "content": "let's continue our chat"}
                 ]
-            
 
             # st.image("Eschercloud.png", caption=None, width=None, use_column_width=None, clamp=False, channels="RGB", output_format="auto")
             st.sidebar.markdown("---")
             st.sidebar.markdown("<br>", unsafe_allow_html=True)
-
+            st.session_state.AI_Assistance = True
             search_choice = st.sidebar.radio(
                 options=["AI Assistance", "Document Search"], label="Type of search"
             )
@@ -245,8 +258,10 @@ else:
                 selected_collection = st.sidebar.selectbox(
                     "select collection", collection_list
                 )
+                st.session_state.AI_Assistance = False
             else:
-                selected_collection = "None"
+                selected_collection = None
+                st.session_state.AI_Assistance = True
 
             for message in st.session_state.messages:
                 with st.chat_message(message["role"]):
@@ -264,12 +279,20 @@ else:
                         username = st.session_state.username
                         conversation_number = st.session_state.conversation_number
                         newchat = st.session_state.newchat
-                        URL = f"http://localhost:{PORT_NUMBER}/predict/?text={prompt}&mode={search_choice}&username={username}&newchat={newchat}&conversation_number={conversation_number}&collection={selected_collection}&messages={st.session_state.messages}"
-                        response = requests.post(URL)
+                        params = {
+                            "username": st.session_state.username, 
+                            "prompt": prompt,    
+                            "newchat": st.session_state.newchat, 
+                            "conversation_number": st.session_state.conversation_number, 
+                            "AI_assistance": st.session_state.AI_Assistance,       
+                            "collection_name": selected_collection       
+                        }
+                        URL = f"http://localhost:{PORT_NUMBER}/inference"
+                        response = requests.post(URL, json=params)
                         response = response.content.decode()
                         if response:
                             placeholder = st.empty()
-                            full_response = response
+                            full_response = process_text(response)
                             placeholder.markdown(full_response)
 
                 message = {"role": "assistant", "content": full_response}

@@ -11,8 +11,12 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import json
 from ray.serve.drivers import DAGDriver
 import re
+from typing import Optional
+from pydantic import BaseModel
 import textwrap
+from fastapi import FastAPI, HTTPException
 from langchain.chains import RetrievalQA
+import logging
 from backend_utils import (
     add_user,
     add_conversation,
@@ -29,22 +33,31 @@ from backend_utils import (
 from langchain.schema import messages_from_dict, messages_to_dict
 from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
 from langchain import PromptTemplate, LLMChain
+from typing import List
+
 
 # ------------------- Initialize Ray Cluster --------------------
+class Input(BaseModel):
 
+    username: Optional[str]
+    prompt: Optional[str]
+    newchat: Optional[bool]
+    conversation_number: Optional[int]
+    AI_assistance: Optional[bool]
+    collection_name: Optional[str]
 # ------------------------------ LLM Deployment -------------------------------
 
+app = FastAPI()
 
 @serve.deployment(
-    ray_actor_options={"num_gpus": 0.5},
+    ray_actor_options={"num_gpus": 0.45},
     autoscaling_config={
         "min_replicas": 1,
         "initial_replicas": 1,
-        "max_replicas": 10,
-        "target_num_ongoing_requests_per_replica": 10,
-    },
-    route_prefix="/predict",
-)
+        "max_replicas": 2,
+        "target_num_ongoing_requests_per_replica": 5,
+    })
+@serve.ingress(app)
 class PredictDeployment:
     def __init__(self):
         import os
@@ -87,7 +100,14 @@ class PredictDeployment:
         {chat_history}
         Human: {input}
         AI:"""
-
+        logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename='app.log',  # specify the file name if you want logging to be stored in a file
+                    filemode='a'  # append to the log file if it exists
+                    )
+        
+        self.logger = logging.getLogger(__name__)
+        self.logger.propagate = True
         model_id = "meta-llama/Llama-2-70b-chat-hf"
         self.device = f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
 
@@ -212,86 +232,124 @@ class PredictDeployment:
 
 
     def AI_assistance(
-        self,username, new_chat, conversation_number, input_prompt, mode,collection_name):
-        # Initialize memory based on whether it's a new chat or not
-        if new_chat == "newchat":
-            memory = ConversationBufferMemory(
-                memory_key="chat_history", return_messages=True, output_key="output"
-            )
-        else:
-            # Retrieve the previous conversation from the database
-            if conversation_number == 0:
-                latest_chat = retrieve_latest_conversation(username)
-                chat_history = latest_chat["content"]
-                conversation_number = latest_chat["conversation_number"]
-                print(
-                    f" the latest conversation for {username} with the conversation_number of {conversation_number} retrieved from database"
-                )
-            else:
-                chat_history = retrieve_conversation(username, conversation_number)[
-                    "content"
-                ]
-                print(
-                    f"chat histroy for {username} with the conversation_number of {conversation_number} retrieved from database"
-                )
-
-            # Initialize memory from the retrieved conversation
-            retrieve_from_db = json.loads(chat_history)
-            retrieved_messages = messages_from_dict(retrieve_from_db)
-            retrieved_chat_history = ChatMessageHistory(messages=retrieved_messages)
-            memory = ConversationBufferMemory(
-                chat_memory=retrieved_chat_history, memory_key="chat_history"
-            )
-
-        # Create an LLM chain with the appropriate mode
-
-        if mode == "AI Assistance":
-            llm_chain = LLMChain(
-                llm=self.llm,
-                prompt=self.prompt,
-                verbose=False,
-                memory=memory,
-                output_key="output",
-            )
-        elif mode == "Document Search":
-            print("Document search")
-            retriever = self.get_collection_based_retriver(collection_name)
-            llm_chain = RetrievalQA.from_chain_type(
-                llm=self.llm,
-                chain_type="stuff",
-                retriever=retriever.as_retriever(),
-                memory=memory,
-                output_key="output",
-            )
+        self,request: Input):
         
+            try:
+                self.logger.info("Received request: %s", request.dict())
+                input_prompt = request.prompt
+                AI_assistance = request.AI_assistance
+                username = request.username
+                new_chat = request.newchat
+                conversation_number = request.conversation_number
+                collection_name = request.collection_name
+                # Initialize memory based on whether it's a new chat or not
+                if new_chat:
+                    memory = ConversationBufferMemory(
+                        memory_key="chat_history", return_messages=True, output_key="output"
+                    )
+                else:
+                    # Retrieve the previous conversation from the database
+                    if conversation_number == 0:
+                        latest_chat = retrieve_latest_conversation(username)
+                        chat_history = latest_chat["content"]
+                        conversation_number = latest_chat["conversation_number"]
+                        print(
+                            f" the latest conversation for {username} with the conversation_number of {conversation_number} retrieved from database"
+                        )
+                    else:
+                        chat_history = retrieve_conversation(username, conversation_number)[
+                            "content"
+                        ]
+                        print(
+                            f"chat histroy for {username} with the conversation_number of {conversation_number} retrieved from database"
+                        )
 
-        # Generate a response based on the mode
-        if mode == "AI Assistance":
-            response = llm_chain.predict(user_input=input_prompt)
-        else:
-            response = llm_chain.run(input_prompt)
+                    # Initialize memory from the retrieved conversation
+                    retrieve_from_db = json.loads(chat_history)
+                    retrieved_messages = messages_from_dict(retrieve_from_db)
+                    retrieved_chat_history = ChatMessageHistory(messages=retrieved_messages)
+                    memory = ConversationBufferMemory(
+                        chat_memory=retrieved_chat_history, memory_key="chat_history"
+                    )
 
-        # Store the conversation
-        extracted_messages = llm_chain.memory.chat_memory.messages
-        ingest_to_db = messages_to_dict(extracted_messages)
-        prompt_token_number = len(self.tokenizer.tokenize(input_prompt))
-        gen_token_number = len(self.tokenizer.tokenize(response))
-        update_conversation(username, conversation_number, ingest_to_db,prompt_token_number,gen_token_number)
+                # Create an LLM chain with the appropriate mode
 
-        return {"output": response}
+                if AI_assistance:
+                    llm_chain = LLMChain(
+                        llm=self.llm,
+                        prompt=self.prompt,
+                        verbose=False,
+                        memory=memory,
+                        output_key="output",
+                    )
+                else:
+                    print("Document search")
+                    retriever = self.get_collection_based_retriver(collection_name)
+                    llm_chain = RetrievalQA.from_chain_type(
+                        llm=self.llm,
+                        chain_type="stuff",
+                        retriever=retriever.as_retriever(),
+                        memory=memory,
+                        output_key="output",
+                    )
+                
 
-    async def __call__(self, request: Request):
-        text = request.query_params["text"]
-        mode = request.query_params["mode"]
-        username = request.query_params["username"]
-        newchat = request.query_params["newchat"]
-        conversation_number = int(request.query_params["conversation_number"])
-        collection_name = request.query_params['collection']
-        print("Collection Name ----- >", collection_name)
-        response = self.AI_assistance(
-                username,newchat,conversation_number,text,mode,collection_name
-            )
-        return self.parse_text(response["output"])
+                # Generate a response based on the mode
+                if AI_assistance:
+                    response = llm_chain.predict(user_input=input_prompt)
+                else:
+                    response = llm_chain.run(input_prompt)
+
+                # Store the conversation
+                extracted_messages = llm_chain.memory.chat_memory.messages
+                ingest_to_db = messages_to_dict(extracted_messages)
+                prompt_token_number = len(self.tokenizer.tokenize(input_prompt))
+                gen_token_number = len(self.tokenizer.tokenize(response))
+                update_conversation(username, conversation_number, ingest_to_db,prompt_token_number,gen_token_number)
+                response = self.parse_text(response)
+                self.logger.info("Successfully processed the request")
+                return {"output": response}
+            except ConnectionError as ce:
+                self.logger.error("Error processing the request: %s", str(ce))
+                # Handle connection errors (for example, interacting with the database or calling APIs)
+                return {"output": "An error occurred while processing the request"}
+                
+            except KeyError as ke:
+                # Handle key errors (for example, accessing a key in a dictionary that doesn’t exist)
+                self.logger.error("Error processing the request: %s", str(ke))
+                return {"output": "An error occurred while processing the request"}
+                
+            except Exception as e:
+                # General exception to catch any other unforeseen errors
+                self.logger.error("Error processing the request: %s", str(e))
+                return {"output": "An error occurred while processing the request"}
+                
+
+            
+                
+    
+    @serve.batch(max_batch_size=2, batch_wait_timeout_s=0.1)
+    async def handle_batch(self, requests: List) -> List[str]:
+        results = []
+        try:
+            for request in requests:
+                results.append(self.AI_assistance(request)["output"])
+        except Exception as e:
+            print(f"An error occurred while handling batch: {str(e)}")
+            # Optionally, log the error
+        return results
+    
+    @app.post("/inference")
+    async def root(self, request: Input):
+        try:
+            self.logger.info("Received a request to /inference endpoint")
+            response = await self.handle_batch(request)
+            self.logger.info("Processed the request successfully")
+            return response
+        except Exception as e:
+            self.logger.error("Error in /inference endpoint: %s", str(e))
+            return {"output": "An error occurred while processing the request"}
 
 
 app = PredictDeployment.bind()
+serve.api.run(app,route_prefix="/")
