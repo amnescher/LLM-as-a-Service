@@ -17,6 +17,11 @@ import textwrap
 from fastapi import FastAPI, HTTPException
 from langchain.chains import RetrievalQA
 import logging
+import yaml
+import time
+
+
+
 from backend_utils import (
     add_user,
     add_conversation,
@@ -36,27 +41,41 @@ from langchain import PromptTemplate, LLMChain
 from typing import List
 
 
+class Config:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+
+with open("cluster_conf.yaml", "r") as file:
+    config = yaml.safe_load(file)
+    config = Config(**config)
+
+
 # ------------------- Initialize Ray Cluster --------------------
 class Input(BaseModel):
-
     username: Optional[str]
     prompt: Optional[str]
     newchat: Optional[bool]
     conversation_number: Optional[int]
     AI_assistance: Optional[bool]
     collection_name: Optional[str]
+
+
 # ------------------------------ LLM Deployment -------------------------------
 
 app = FastAPI()
 
+
 @serve.deployment(
-    ray_actor_options={"num_gpus": 0.45},
+    ray_actor_options={"num_gpus": config.num_gpus},
     autoscaling_config={
-        "min_replicas": 1,
-        "initial_replicas": 1,
-        "max_replicas": 2,
-        "target_num_ongoing_requests_per_replica": 5,
-    })
+        "min_replicas": config.min_replicas,
+        "initial_replicas": config.initial_replicas,
+        "max_replicas": config.max_replicas,
+        "target_num_ongoing_requests_per_replica": config.target_num_ongoing_requests_per_replica,
+        "graceful_shutdown_wait_loop_s": config.graceful_shutdown_wait_loop_s,
+        "max_concurrent_queries": config.max_concurrent_queries,}, route_prefix="/inference"
+)
 @serve.ingress(app)
 class PredictDeployment:
     def __init__(self):
@@ -81,6 +100,10 @@ class PredictDeployment:
         import json
         from langchain import PromptTemplate, LLMChain
 
+        with open("cluster_conf.yaml", "r") as self.file:
+            self.config = yaml.safe_load(self.file)
+            self.config = Config(**self.config)
+
         self.access_token = os.getenv("Hugging_ACCESS_TOKEN")
         self.model_id = "meta-llama/Llama-2-70b-chat-hf"
         self.device = f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
@@ -100,12 +123,13 @@ class PredictDeployment:
         {chat_history}
         Human: {input}
         AI:"""
-        logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s',
-                    filename='app.log',  # specify the file name if you want logging to be stored in a file
-                    filemode='a'  # append to the log file if it exists
-                    )
-        
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            filename="app.log",  # specify the file name if you want logging to be stored in a file
+            filemode="a",  # append to the log file if it exists
+        )
+
         self.logger = logging.getLogger(__name__)
         self.logger.propagate = True
         model_id = "meta-llama/Llama-2-70b-chat-hf"
@@ -132,7 +156,9 @@ class PredictDeployment:
         )
         self.model.eval()
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(model_id)
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            model_id, padding_side="left"
+        )
         self.generate_text = transformers.pipeline(
             model=self.model,
             tokenizer=self.tokenizer,
@@ -140,11 +166,13 @@ class PredictDeployment:
             task="text-generation",
             # we pass model parameters here too
             # stopping_criteria=stopping_criteria,  # without this model rambles during chat
-            temperature=0.01,  # 'randomness' of outputs, 0.0 is the min and 1.0 the max
-            max_new_tokens=512,  # mex number of tokens to generate in the output
-            repetition_penalty=1.1,  # without this output begins repeating
+            temperature=self.config.temperature,  # 'randomness' of outputs, 0.0 is the min and 1.0 the max
+            max_new_tokens=self.config.max_new_tokens,  # mex number of tokens to generate in the output
+            repetition_penalty=self.config.repetition_penalty,  # without this output begins repeating
+            batch_size=self.config.batch_size,  # number of independent sequences to generate
         )
         self.llm = HuggingFacePipeline(pipeline=self.generate_text)
+        self.generate_text.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         # embeddings = OpenAIEmbeddings()
 
         self.memory = ConversationBufferMemory(
@@ -159,7 +187,6 @@ class PredictDeployment:
             model_name="hkunlp/instructor-xl", model_kwargs={"device": "cuda"}
         )
         self.Doc_persist_directory = "./Document_db"
-        video_persist_directory = "./YouTube_db"
         # self.vectorstore_video = Chroma("YouTube_store", persist_directory=video_persist_directory, embedding_function=self.embeddings)
         self.vectorstore_doc = Chroma(
             persist_directory=self.Doc_persist_directory,
@@ -180,7 +207,7 @@ class PredictDeployment:
             persist_directory=self.Doc_persist_directory,
             embedding_function=self.embeddings,
         )
-        
+
         return vectorstore_doc
 
     def get_prompt(self, instruction):
@@ -230,115 +257,142 @@ class PredictDeployment:
         wrapped_text = textwrap.fill(cleaned_text, width=100)
         return wrapped_text
 
-
-    def AI_assistance(
-        self,request: Input):
-        
-            try:
-                self.logger.info("Received request: %s", request.dict())
-                input_prompt = request.prompt
-                AI_assistance = request.AI_assistance
-                username = request.username
-                new_chat = request.newchat
-                conversation_number = request.conversation_number
-                collection_name = request.collection_name
-                # Initialize memory based on whether it's a new chat or not
-                if new_chat:
-                    memory = ConversationBufferMemory(
-                        memory_key="chat_history", return_messages=True, output_key="output"
+    def AI_assistance(self, request: Input):
+        try:
+            self.logger.info("Received request: %s", request.dict())
+            input_prompt = request.prompt
+            AI_assistance = request.AI_assistance
+            username = request.username
+            new_chat = request.newchat
+            conversation_number = request.conversation_number
+            collection_name = request.collection_name
+            # Initialize memory based on whether it's a new chat or not
+            if new_chat:
+                memory = ConversationBufferMemory(
+                    memory_key="chat_history", return_messages=True, output_key="output"
+                )
+            else:
+                # Retrieve the previous conversation from the database
+                if conversation_number == 0:
+                    latest_chat = retrieve_latest_conversation(username)
+                    chat_history = latest_chat["content"]
+                    conversation_number = latest_chat["conversation_number"]
+                    print(
+                        f" the latest conversation for {username} with the conversation_number of {conversation_number} retrieved from database"
                     )
                 else:
-                    # Retrieve the previous conversation from the database
-                    if conversation_number == 0:
-                        latest_chat = retrieve_latest_conversation(username)
-                        chat_history = latest_chat["content"]
-                        conversation_number = latest_chat["conversation_number"]
-                        print(
-                            f" the latest conversation for {username} with the conversation_number of {conversation_number} retrieved from database"
-                        )
-                    else:
-                        chat_history = retrieve_conversation(username, conversation_number)[
-                            "content"
-                        ]
-                        print(
-                            f"chat histroy for {username} with the conversation_number of {conversation_number} retrieved from database"
-                        )
-
-                    # Initialize memory from the retrieved conversation
-                    retrieve_from_db = json.loads(chat_history)
-                    retrieved_messages = messages_from_dict(retrieve_from_db)
-                    retrieved_chat_history = ChatMessageHistory(messages=retrieved_messages)
-                    memory = ConversationBufferMemory(
-                        chat_memory=retrieved_chat_history, memory_key="chat_history"
+                    chat_history = retrieve_conversation(username, conversation_number)[
+                        "content"
+                    ]
+                    print(
+                        f"chat histroy for {username} with the conversation_number of {conversation_number} retrieved from database"
                     )
 
-                # Create an LLM chain with the appropriate mode
+                # Initialize memory from the retrieved conversation
+                retrieve_from_db = json.loads(chat_history)
+                retrieved_messages = messages_from_dict(retrieve_from_db)
+                retrieved_chat_history = ChatMessageHistory(messages=retrieved_messages)
+                memory = ConversationBufferMemory(
+                    chat_memory=retrieved_chat_history, memory_key="chat_history"
+                )
 
-                if AI_assistance:
-                    llm_chain = LLMChain(
-                        llm=self.llm,
-                        prompt=self.prompt,
-                        verbose=False,
-                        memory=memory,
-                        output_key="output",
-                    )
-                else:
-                    print("Document search")
-                    retriever = self.get_collection_based_retriver(collection_name)
-                    llm_chain = RetrievalQA.from_chain_type(
-                        llm=self.llm,
-                        chain_type="stuff",
-                        retriever=retriever.as_retriever(),
-                        memory=memory,
-                        output_key="output",
-                    )
-                
+            # Create an LLM chain with the appropriate mode
 
-                # Generate a response based on the mode
-                if AI_assistance:
-                    response = llm_chain.predict(user_input=input_prompt)
-                else:
-                    response = llm_chain.run(input_prompt)
+            if AI_assistance:
+                llm_chain = LLMChain(
+                    llm=self.llm,
+                    prompt=self.prompt,
+                    verbose=False,
+                    memory=memory,
+                    output_key="output",
+                )
+            else:
+                print("Document search")
+                retriever = self.get_collection_based_retriver(collection_name)
+                llm_chain = RetrievalQA.from_chain_type(
+                    llm=self.llm,
+                    chain_type="stuff",
+                    retriever=retriever.as_retriever(),
+                    memory=memory,
+                    output_key="output",
+                )
+            pre_inference_memo = llm_chain.memory.chat_memory.messages
+            pre_inference_memo = ' '.join(message.content for message in pre_inference_memo)
+            pre_inference_memo_token_len = len(self.tokenizer.tokenize(pre_inference_memo))
+            # Generate a response based on the mode
+            inference_start_time = time.time()
 
-                # Store the conversation
-                extracted_messages = llm_chain.memory.chat_memory.messages
-                ingest_to_db = messages_to_dict(extracted_messages)
-                prompt_token_number = len(self.tokenizer.tokenize(input_prompt))
-                gen_token_number = len(self.tokenizer.tokenize(response))
-                update_conversation(username, conversation_number, ingest_to_db,prompt_token_number,gen_token_number)
-                response = self.parse_text(response)
-                self.logger.info("Successfully processed the request")
-                return {"output": response}
-            except ConnectionError as ce:
-                self.logger.error("Error processing the request: %s", str(ce))
-                # Handle connection errors (for example, interacting with the database or calling APIs)
-                return {"output": "An error occurred while processing the request"}
-                
-            except KeyError as ke:
-                # Handle key errors (for example, accessing a key in a dictionary that doesn’t exist)
-                self.logger.error("Error processing the request: %s", str(ke))
-                return {"output": "An error occurred while processing the request"}
-                
-            except Exception as e:
-                # General exception to catch any other unforeseen errors
-                self.logger.error("Error processing the request: %s", str(e))
-                return {"output": "An error occurred while processing the request"}
-                
+            # Generate a response based on the mode
+            if AI_assistance:
+                response = llm_chain.predict(user_input = input_prompt)
+            else:
+                response = llm_chain.run(input_prompt)
 
-            
-                
-    
-    @serve.batch(max_batch_size=2, batch_wait_timeout_s=0.1)
+            # End measuring time after inference
+            inference_end_time = time.time()
+
+            # Calculate and log the elapsed time
+            inference_elapsed_time = inference_end_time - inference_start_time
+            self.logger.info(
+                f"Inference time for request: {inference_elapsed_time:.4f} seconds"
+            )
+
+
+            # Store the conversation
+            extracted_messages = llm_chain.memory.chat_memory.messages
+            ingest_to_db = messages_to_dict(extracted_messages)
+            input_token_number = len(self.tokenizer.tokenize(input_prompt)) + pre_inference_memo_token_len
+            gen_token_number = len(self.tokenizer.tokenize(response))
+            update_conversation(
+                username,
+                conversation_number,
+                ingest_to_db,
+                input_token_number,
+                gen_token_number,
+            )
+            response = self.parse_text(response)
+
+            self.logger.info("Successfully processed the request")
+            self.logger.info("The number of input tokest: %s", input_token_number)
+            self.logger.info("The number of generated tokens: %s", gen_token_number)
+
+            return {"output": response, "elapsed_time": inference_elapsed_time}
+
+        except ConnectionError as ce:
+            self.logger.error("Error processing the request: %s", str(ce))
+            # Handle connection errors (for example, interacting with the database or calling APIs)
+            return {"output": "An error occurred while processing the request"}
+
+        except KeyError as ke:
+            # Handle key errors (for example, accessing a key in a dictionary that doesn’t exist)
+            self.logger.error("Error processing the request: %s", str(ke))
+            return {"output": "An error occurred while processing the request"}
+
+        except Exception as e:
+            # General exception to catch any other unforeseen errors
+            self.logger.error("Error processing the request: %s", str(e))
+            return {"output": "An error occurred while processing the request"}
+
+    @serve.batch(
+        max_batch_size=config.max_batch_size,
+        batch_wait_timeout_s=config.batch_wait_timeout_s,
+    )
     async def handle_batch(self, requests: List) -> List[str]:
         results = []
+        request_start_time = time.time()
         try:
             for request in requests:
                 results.append(self.AI_assistance(request)["output"])
         except Exception as e:
             print(f"An error occurred while handling batch: {str(e)}")
             # Optionally, log the error
+        request_end_time = time.time()
+        request_elapsed_time = request_end_time - request_start_time
+        self.logger.info(
+            f"Total response time for the bach requests: {request_elapsed_time:.4f} seconds"
+        )
         return results
-    
+
     @app.post("/inference")
     async def root(self, request: Input):
         try:
@@ -352,4 +406,4 @@ class PredictDeployment:
 
 
 app = PredictDeployment.bind()
-serve.api.run(app,route_prefix="/")
+
