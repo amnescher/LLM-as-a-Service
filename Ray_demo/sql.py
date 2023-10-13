@@ -32,12 +32,14 @@ class Conversation(Base):
     conversation_number = Column(Integer)  # Add conversation number column
     content = Column(String)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    conversation_name = Column(String)
 
 
 class Input(BaseModel):
     username: Optional[str]
     content: Optional[str]
     conversation_number: Optional[int]
+    conversation_name: Optional[str] 
     user_id: Optional[int]
     prompt_token_number: Optional[int]
     gen_token_number: Optional[int]
@@ -83,7 +85,10 @@ def add_conversation(input: Input):
 
     # Add the conversation
     conversation = Conversation(
-        user_id=user.id, conversation_number=conversation_number, content=input.content
+        user_id=user.id,
+        conversation_number=conversation_number,
+        content=input.content,
+        conversation_name=input.conversation_name  # Save the name of the conversation
     )
     db.add(conversation)
     db.commit()
@@ -212,6 +217,7 @@ def retrieve_conversation(input: Input):
         "conversation_id": conversation.conversation_number,
         "content": conversation.content,
         "timestamp": conversation.timestamp,
+        "conversation_name": conversation.conversation_name,
     }
 
 
@@ -281,6 +287,39 @@ def update_conversation(input: Input):
 
     return {"message": "Conversation updated"}
 
+@app.post("/update_conversation_name/")
+def update_conversation_name(input: Input):
+    db = SessionLocal()
+
+    # Check if the user exists by username
+    user = db.query(User).filter(User.username == input.username).first()
+    
+    if not user:
+        db.close()
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Find the conversation for the user with the given conversation_number
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            Conversation.conversation_number == input.conversation_number,
+            Conversation.user_id == user.id,
+        )
+        .first()
+    )
+
+    if not conversation:
+        db.close()
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Update the name of the conversation
+    conversation.conversation_name = input.conversation_name
+    db.commit()
+    db.close()
+
+    return {"message": "Conversation name updated successfully"}
+
+
 
 @app.get("/retrieve_all_conversations/")
 def retrieve_all_conversations(input: Input):
@@ -303,25 +342,26 @@ def retrieve_all_conversations(input: Input):
 @app.get("/get_user_conversations/")
 def get_user_conversations(input: Input):
     db = SessionLocal()
-    
+
     # Check if the user exists by username
     user = db.query(User).filter(User.username == input.username).first()
     if not user:
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Retrieve conversation numbers for the user
-    conversation_numbers = (
-        db.query(Conversation.conversation_number)
+    # Retrieve conversation numbers and names for the user
+    conversations = (
+        db.query(Conversation.conversation_number, Conversation.conversation_name)
         .filter(Conversation.user_id == user.id)
         .all()
     )
 
-    # Extract the conversation numbers from the result
-    conversation_numbers = [cnv[0] for cnv in conversation_numbers]
+    # Extract the conversation numbers and names from the result and store them in a list of dictionaries
+    conversation_data = [{"number": cnv[0], "name": cnv[1]} for cnv in conversations]
 
     db.close()
-    return {"conversation_numbers": conversation_numbers}
+    return {"conversations": conversation_data}
+
 
 # Define other endpoints similarly
 # Remember to handle exceptions and error cases
