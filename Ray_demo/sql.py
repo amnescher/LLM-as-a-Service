@@ -8,6 +8,9 @@ from sqlalchemy.orm import sessionmaker
 from pydantic import BaseModel
 from typing import List, Dict
 from typing import Optional
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 DATABASE_URL = "sqlite:///./test.db"
 
@@ -22,6 +25,7 @@ class User(Base):
     prompt_token_number = Column(Integer, default=0)  
     gen_token_number = Column(Integer, default=0)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    hashed_password = Column(String)
 
 
 class Conversation(Base):
@@ -37,6 +41,7 @@ class Conversation(Base):
 
 class Input(BaseModel):
     username: Optional[str]
+    password: Optional[str]
     content: Optional[str]
     conversation_number: Optional[int]
     conversation_name: Optional[str] 
@@ -55,7 +60,9 @@ Base.metadata.create_all(bind=engine)
 @app.post("/add_user/")
 def add_user(input: Input):
     db = SessionLocal()
-    user = User(username=input.username, prompt_token_number=0, gen_token_number=0)
+    hashed_password = pwd_context.hash(input.password) 
+    user = User(username=input.username, hashed_password=hashed_password,prompt_token_number=0, gen_token_number=0) 
+    
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -185,7 +192,7 @@ def check_user_existence(input: Input):
     db.close()
 
     if user:
-        return {"user_exists": True}
+        return {"user_exists": True, "hashed_password": user.hashed_password}  # Return the hashed password
     else:
         return {"user_exists": False}
 
