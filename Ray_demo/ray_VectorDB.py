@@ -1,3 +1,7 @@
+import binascii
+from typing import Any, List
+
+import pypdf
 import ray
 from langchain.chains.conversation.memory import ConversationBufferMemory
 import pandas as pd
@@ -11,13 +15,43 @@ from langchain.document_loaders import YoutubeLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import json
 from langchain.document_loaders import PyPDFLoader, WebBaseLoader
+import io
+from ray.data.datasource import FileExtensionFilter
+import weaviate
+from langchain.vectorstores import Weaviate
+from langchain.text_splitter import CharacterTextSplitter
+import yaml
 
 # ---------------------Document Loading
+class HFEmbeddings:
+    def __init__(self):
+        self.embedding = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl", model_kwargs={"device": "cuda"})
+    def __call__(self, text_batch: List[str]):
+        embeddings = self.embedding.embed_query(text_batch)
+        return list(zip(text_batch, embeddings))
+
+class Config:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
 
 
-@serve.deployment(ray_actor_options={"num_gpus": 0.1}, route_prefix="/VectoreDataBase")
+with open("vdb_conf.yaml", "r") as file:
+    config = yaml.safe_load(file)
+    config = Config(**config)
+
+@serve.deployment(ray_actor_options={"num_gpus": 0.2}, autoscaling_config={
+        "min_replicas": config.min_replicas,
+        "initial_replicas": config.initial_replicas,
+        "max_replicas": config.max_replicas,
+        "max_concurrent_queries": config.max_concurrent_queries,}, route_prefix="/VectoreDataBase")
+
 class VectorDataBase:
     def __init__(self):
+        self.embed = HFEmbeddings()
+
+        self.weaviate_client = weaviate.Client(
+            url="http://localhost:8080",   
+        )
         self.Doc_persist_directory = "./Document_db"
         self.video_persist_directory = "./YouTube_db"
 
@@ -33,16 +67,15 @@ class VectorDataBase:
         if not os.path.exists(self.video_persist_directory):
             os.makedirs(self.video_persist_directory)
             print(f"Directory '{self.video_persist_directory}' created successfully.")
-        self.vectorstore_doc = Chroma(
-            persist_directory=self.Doc_persist_directory, embedding_function=self.embeddings 
-        )
-        self.vectorstore_doc.persist()
+
         self.vectorstore_video = Chroma(
             "YouTube_store",
             self.embeddings,
             persist_directory=self.video_persist_directory,
         )
         self.vectorstore_video.persist()
+
+        self.weaviate_vectorstore = Weaviate(self.weaviate_client, 'Chatbot', 'page_content', attributes=['page_content'])
 
     def load_processed_files(self):
         if os.path.exists("processed_files.json"):
@@ -163,6 +196,140 @@ class VectorDataBase:
             ids = filtered_ids
         )
 
+    def weaviate_serialize_document(self, doc, title):
+        
+        return {
+            "page_content": doc.page_content,
+            "document_title": title,
+        }
+
+    def create_weaviate_class(self, name, embedding_model):
+        class_name = str(name)
+        #class_description = str(description)
+        vectorizer = str(embedding_model)
+        
+        schema = {'classes': [ 
+            {
+                    'class': class_name,
+                    'description': 'normal description',
+                    'vectorizer': vectorizer,
+                    'moduleConfig': {
+                        vectorizer: {
+                            'vectorizerClassName': False,
+                            }
+                    },
+                    'properties': [{
+                        'dataType': ['text'],
+                        'description': 'the text from the documents parsed',
+                        'moduleConfig': {
+                            vectorizer: {
+                                'skip': False,
+                                'vectorizePropertyName': False,
+                                }
+                        },
+                        'name': 'page_content',
+                    },
+                    {
+                        'name': 'document_title',
+                        'dataType': ['text'],
+                    }],      
+                    },
+        ]}
+        self.weaviate_client.schema.create(schema)
+
+    ############ Test Ray Function for embedding ############
+    def process_document_batch_ray(self, docs, collection_name, doc_name):
+        #df = ray.data.read_binary("../pdf_querying_summarization/temp_file/doc.pdf", FileExtensionFilter(".pdf"))
+        #df = df.flat_map(self.convert_to_text)
+        #df = df.flat_map(self.split_text)
+        df = df.map_batches(
+            self.adding_weaviate_document(),
+            compute = ray.data.ActorPollStrategy(min_size=1, max_size=2),
+            num_gpus=0.1
+        )
+        print('process function called')
+
+    def convert_to_text(self,pdf_bytes: bytes):
+        pdf_bytes_io = io.BytesIO(pdf_bytes)
+
+        try:
+            pdf_doc = pypdf.PdfReader(pdf_bytes_io)
+        except pypdf.errors.PdfStreamError:
+            # Skip pdfs that are not readable.
+            # We still have over 30,000 pages after skipping these.
+            return []
+
+        text = []
+        for page in pdf_doc.pages:
+            try:
+                text.append(page.extract_text())
+            except binascii.Error:
+                # Skip all pages that are not parseable due to malformed characters.
+                print("parsing failed")
+        return text
+
+    def split_text(self, page_text: str):
+
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000, chunk_overlap=100, length_function=len
+        )
+        split_text: List[str] = text_splitter.split_text(page_text)
+
+        split_text = [text.replace("\n", " ") for text in split_text]
+        return split_text
+
+
+
+    def adding_weaviate_document(self, docs, collection_name, doc_name):
+        loader = PyPDFLoader(docs)
+
+        documents = loader.load()
+
+        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+
+        text_docs = text_splitter.split_documents(documents)
+        serialized_docs = [
+            self.weaviate_serialize_document(doc,doc_name) 
+            for doc in text_docs
+            ]
+        self.weaviate_client.batch.configure(batch_size=50)
+
+        with self.weaviate_client.batch as batch:
+            for text in serialized_docs:
+                    batch.add_data_object(
+                        text,
+                        class_name=collection_name, 
+        )
+
+    def delete_weaviate_class(self, name):
+        class_name = name
+        self.weaviate_client.schema.delete_class(class_name)
+
+    def delete_weaviate_document(self, name, cls_name):
+        document_name = str(name)
+        self.weaviate_client.batch.delete_objects(
+            class_name=cls_name,
+            where={
+                "path": ["document_title"],
+                "operator": "Like",
+                "valueText": document_name,
+            }
+        )
+
+    def query_weaviate_document_names(self,cls):
+        class_properties = ["document_title"]
+        query = self.weaviate_client.query.get(cls, class_properties)
+        query = query.do()
+
+        document_title_set = set()
+        documents = query.get('data', {}).get('Get', {}).get(str(cls), [])
+
+        for document in documents:
+            document_title = document.get('document_title')
+            if document_title is not None:
+                document_title_set.add(document_title)
+        return list(document_title_set)
+
     def get_embeddings(self, text):
         #string_text = [doc.page_content for doc in text]
         embeddings_vec = self.embeddings.embed_query(text)
@@ -185,20 +352,6 @@ class VectorDataBase:
         )
         self.vectorstore_doc.persist()
 
-    def adding_documents(self, pdf, collection, id):
-        loader = PyPDFLoader(pdf)
-        pages = loader.load_and_split()
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=100)
-        texts = text_splitter.split_documents(pages)
-        selected_collection = self.vectorstore_doc._client.get_collection(collection)
-        selected_collection.add(
-            documents = [doc.page_content for doc in texts],
-            embeddings=[self.get_embeddings(text) for text in [doc.page_content for doc in texts]],
-            metadatas = [{'test32':"test"+str(i)} for i in range(1, len(texts) + 1)],
-            ids=[(str(id)+ "_" +str(i)) for i in range(1, len(texts) + 1)],
-        )
-        selected_collection.get()['ids']   
-
     async def __call__(self, request):
         data_type = request.query_params["data_type"]
         mode = request.query_params["mode"]
@@ -212,6 +365,34 @@ class VectorDataBase:
                 print("recieved Video ----->", video_url)
                 self.save_video(video_url,collection, video_name)
                 print("video Uploaded Successfully")
+        elif data_type == "Weaviate":
+            if mode == "create_class":
+                class_name = request.query_params["class_name"]	
+                embedding_name = request.query_params["embedding_name"]
+                #description = request.query_params["description"]
+                #class_description = request.query_params["class_description"]
+                self.create_weaviate_class(class_name, embedding_name)
+            elif mode == "get_all":
+                classes = self.weaviate_client.schema.get()
+                class_names = [cls['class'] for cls in classes['classes']]
+                return JSONResponse(content={"weaviate": class_names})
+            elif mode == "delete_class":
+                class_name = request.query_params["class_name"]
+                self.delete_weaviate_class(class_name)
+            elif mode == "add_pdf":
+                pdf_path = request.query_params["pdf_path"]
+                class_name = request.query_params["class_name"]
+                document_name = request.query_params["document_name"]
+                #pdf_name = request.query_params["pdf_name"]
+                self.adding_weaviate_document(pdf_path, class_name, document_name)
+            elif mode == "get_all_document_per_class":
+                cls = request.query_params["class_name"]
+                class_documents = self.query_weaviate_document_names(cls)
+                return JSONResponse(content={"weaviate": class_documents})
+            elif mode == "delete_document":
+                document_name = request.query_params["document_name"]
+                cls = request.query_params["class_name"]
+                self.delete_weaviate_document(document_name, cls)
         elif data_type == "Collection":
             if mode == "remove":
                 removed_collection = request.query_params["data_path"]
