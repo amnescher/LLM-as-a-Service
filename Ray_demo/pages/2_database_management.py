@@ -65,6 +65,45 @@ def display_colleciton_in_table():
     #collections_list = ', '.join(collections_list) + ", all_collections"
     return collections_list
      
+def weaviate_get_classes():
+    PORT = 8000
+    data_type = 'Weaviate'
+    mode='get_all'
+    POST_URL = f"http://localhost:{PORT}/VectoreDataBase/?data_type={data_type}&mode={mode}"
+    response = requests.post(POST_URL)
+    if response.status_code == 200:
+        try:
+            weaviate_data = response.json()
+            weaviate_list = weaviate_data.get("weaviate", [])
+            print('weaviate list', weaviate_list)
+            return weaviate_list
+        except requests.exceptions.JSONDecodeError:
+            print(f"Failed to decode JSON. Response content: {response.text}")
+            return []
+    else:
+        print(f"Error {response.status_code}: {response.text}")
+        return []
+
+def weaviate_get_class_documents(cls):
+    PORT = 8000
+    class_name = cls
+    data_type = 'Weaviate'
+    mode='get_all_document_per_class'
+    POST_URL = f"http://localhost:{PORT}/VectoreDataBase/?data_type={data_type}&class_name={class_name}&mode={mode}"
+    response = requests.post(POST_URL)
+    if response.status_code == 200:
+        try:
+            weaviate_data = response.json()
+            weaviate_list = weaviate_data.get("weaviate", [])
+            print('weaviate list', weaviate_list)
+            return weaviate_list
+        except requests.exceptions.JSONDecodeError:
+            print(f"Failed to decode JSON. Response content: {response.text}")
+            return []
+    else:
+        print(f"Error {response.status_code}: {response.text}")
+        return []
+
 st.title("Vector Database Management Dashboard")
 
 # Fetch and display collections
@@ -73,116 +112,88 @@ st.sidebar.header("Collections")
 # Display documents in the main area
 st.header("Documents")
 
-col1, col2 = st.columns(2)
-PORT = 8000
-data_type = 'Collection'
-mode='get_all'
-POST_URL = f"http://localhost:{PORT}/VectoreDataBase/?data_type={data_type}&mode={mode}"
-response = requests.post(POST_URL)
+weaviate_row1_col1, weaviate_row1_col2 = st.columns(2)
 
-collections_data = response.json()
-
-collections_list = collections_data.get("collections", [])
-
-with col1:
-        collection_name = st.text_input("Enter collection name:")
-        collection_name = collection_name.replace(" ", "-")
-        if st.button("Create Collection"):
-                if collection_name is not None:
-                    print('col name', collection_name)
-                    data_type = "Collection"
-                    mode = "add"
+with weaviate_row1_col1:
+    st.subheader('Create a class')
+    class_name = st.text_input("Enter class name:")
+    class_name = class_name.replace(" ", "-")
+    class_description = st.text_input("Enter a class description (optional):")
+    class_vectorizer = st.selectbox("Select vectorizer:", ['text2vec-transformers', "Instructor-XL", "BERT"])
+    if st.button("Create Class"):
+              if class_name is not None:
+                    print('class name', class_name)
+                    data_type = "Weaviate"
+                    mode = "create_class"
                     PORT_NUMBER = 8000
-                    POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&data_path={collection_name}&mode={mode}"
+                    POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&class_name={class_name}&embedding_name={class_vectorizer}&description={class_description}&mode={mode}"
                     response = requests.post(POST_URL)
-                    st.success(f"Collection {collection_name} added!")
-                    documents = display_colleciton_in_table()
+                    st.success(f"Class {class_name} added!")
+                    weaviate_classes = weaviate_get_classes()
 
-        collection_to_delete = st.text_input("Collection to delete:")
-        if st.button("Delete Collection"):
-            if collection_to_delete is not None:
-                PORT_NUMBER = 8000
-                mode = "remove"
-                data_type = "Collection"
-                POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&data_path={collection_to_delete}&mode={mode}"
-                response = requests.post(POST_URL)
-                st.success(f"Collection {collection_to_delete} deleted!")
-                documents = display_colleciton_in_table()
-    
-with col2:
-        #selected_collections = st.multiselect("Select Collections:", collections_list)
-        documents = display_colleciton_in_table()  # Fetch actual documents
-        st.table(documents)
 
-st.header("Select collections to use")
-selected_collections = st.selectbox("Select Collections:", documents)
 
-doc_list = display_documents(selected_collections)
-
-st.header("Collection selected", selected_collections)
-
-col1_2, col2_2 = st.columns(2)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-with col1_2:
-    management_mode = st.radio(options=["Upload Document","Upload Video", "Upload Webpage"], label="Type upload")
-    if management_mode == 'Upload Document':      
-        st.subheader("Add Document")
-        uploaded_pdf = st.file_uploader("Add PDF",type=['pdf'])
-        document_name = st.text_input("Enter document name:")
-        document_name = document_name.replace(" ", "-")
-        document_metadata = st.text_input("Enter document metadata:")
-        if st.button("Upload document"):
-                if uploaded_pdf is not None: 
-                        pdf_filename = os.path.join(pdf_directory, uploaded_pdf.name)
-                        # Save the uploaded PDF to the specified directory
-                        with open(pdf_filename, "wb") as f:
-                            f.write(uploaded_pdf.read())
-                        if document_name == "" or document_name == None:
-                              document_name = uploaded_pdf.name
-                        PORT_NUMBER = 8000
-                        mode = "add"
-                        data_type = "Document"
-                        collection_ = selected_collections
-                        doc_name = document_name
-                        POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&data_path={pdf_filename}&mode={mode}&collection={collection_}&doc_name={doc_name}"
-                        response = requests.post(POST_URL)
-                        st.text('Document Uploaded!' + " ✅")
-                        doc_list = display_documents(selected_collections)
-    elif management_mode == 'Upload Video':
-        st.subheader("Upload Videos")
-        st.write("Enter YouTube video URLs below:")
-        video_name = st.text_input("name of the video")
-        video_name = video_name.replace(" ", "-")
-        user_input = st.text_input("Video URL:")
-        if st.button("Upload Videos"):
-            upload_videos(user_input, port, selected_collections, video_name)
-    elif management_mode == 'Upload Webpage':
-        st.subheader("Upload Webpage")
-        st.write("Enter a webpage URLs below:")
-        page_name = st.text_input("name of the page")
-        page_name = page_name.replace(" ", "-")
-        url = st.text_input("page URL:")
-        if st.button("Upload Webpage"):
-            upload_webpage(url, port, selected_collections, page_name)
-    st.subheader("Remove Document")
-    selected_document = st.selectbox("Select document:", doc_list)
-    print('selected doc', selected_document)
-    if st.button('Remove document'):
-              if selected_document is not None:
+    st.subheader("Delete Class")
+    remove_class_name = st.text_input("Enter class to delete:")
+    remove_class_name = remove_class_name.replace(" ", "-")
+    if st.button("Delete Class"):
+        if class_name is not None:
+                    print('class name', remove_class_name)
+                    data_type = "Weaviate"
+                    mode = "delete_class"
                     PORT_NUMBER = 8000
-                    mode = "remove"
-                    data_type = "Document"
-                    collection_rm = selected_collections
-                    doc_rm_name = selected_document
-                    POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&mode={mode}&remove={collection_rm}&doc={doc_rm_name}"
+                    POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&class_name={remove_class_name}&mode={mode}"
                     response = requests.post(POST_URL)
-                    st.text('Document Removed!' + " ✅")
-with col2_2:
-            doc_list = display_documents(selected_collections)
-            st.header("Available documents in the collection")
-            if doc_list:
-                st.table(doc_list)
-            else:
-                  st.write('No documents to display')
+                    st.success(f"Class {remove_class_name} deleted!")
+                    weaviate_classes = weaviate_get_classes()
+
+with weaviate_row1_col2:
+    weaviate_classes = weaviate_get_classes()
+    st.table(weaviate_classes)
+
+weaviate_row2_col1, weaviate_row2_col2 = st.columns(2)
+
+with weaviate_row2_col1:
+       ########## Create a class ##########
+        st.subheader("Select class to add documents to")
+        weaviate_classes = weaviate_get_classes()
+        class_name = st.selectbox("Select class:", weaviate_classes)
+        document_name = st.text_input("Enter document name:") #TODO add control for empty strings and such.
+        st.subheader("Add document to the class")
+        weaviate_uploaded_pdf = st.file_uploader("Weaviate add PDF",type=['pdf'])
+        #class_to_add_document = st.text_input("Enter PDF name:")
+        #class_to_add_document = class_to_add_document.replace(" ", "-")
+        if st.button("Add document to class"):
+                if weaviate_uploaded_pdf is not None:
+                    weaviate_pdf_filename = os.path.join(pdf_directory, weaviate_uploaded_pdf.name)
+                    with open(weaviate_pdf_filename, "wb") as f:
+                            f.write(weaviate_uploaded_pdf.read())
+                    print('pdf filename', weaviate_pdf_filename)
+                    #print('class name', class_to_add_document)
+                    data_type = "Weaviate"
+                    mode = "add_pdf"
+                    PORT_NUMBER = 8000
+                    print('class name', class_name)
+                    POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&document_name={document_name}&pdf_path={weaviate_pdf_filename}&class_name={class_name}&mode={mode}"
+                    response = requests.post(POST_URL)
+                    st.success(f"Document {weaviate_pdf_filename} added to class {class_name}!")
+                    weaviate_classes = weaviate_get_classes()
+
+        st.subheader("Remove document from class")
+        weaviate_document_to_remove = st.text_input("Enter document name:", key='remove_doc_weaviate')
+        if st.button("Remove document from class"):
+              if weaviate_document_to_remove is not None:
+                    data_type = "Weaviate"	
+                    mode = "delete_document"
+                    PORT_NUMBER = 8000
+                    POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&document_name={weaviate_document_to_remove}&class_name={class_name}&mode={mode}"
+                    response = requests.post(POST_URL)
+                    st.success(f"Document {weaviate_document_to_remove} removed from class {class_name}!")
+
+with weaviate_row2_col2:
+    st.subheader(f"Document available in {class_name}")
+    class_documents = weaviate_get_class_documents(class_name)
+    print('class documents', class_documents)
+    st.table(class_documents)
+
+

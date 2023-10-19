@@ -20,6 +20,8 @@ import yaml
 import time
 from langchain.vectorstores import Weaviate
 
+import time
+import wandb
 
 
 from backend_utils import (
@@ -101,6 +103,13 @@ class PredictDeployment:
         from langchain import PromptTemplate, LLMChain
         import weaviate
 
+        wandb.login()
+        wandb.init(project="Service Metrics", notes="custom step")
+        # Define the custom x axis metric
+        wandb.define_metric("The number of input tokens")
+        wandb.define_metric("The number of generated tokens")
+        wandb.define_metric("Inference Time")
+        wandb.define_metric("token/second")
         with open("cluster_conf.yaml", "r") as self.file:
             self.config = yaml.safe_load(self.file)
             self.config = Config(**self.config)
@@ -324,6 +333,8 @@ class PredictDeployment:
                     memory=memory,
                     output_key="output",
                 )
+           
+            # Generate a response based on the mode
             pre_inference_memo = llm_chain.memory.chat_memory.messages
             pre_inference_memo = ' '.join(message.content for message in pre_inference_memo)
             pre_inference_memo_token_len = len(self.tokenizer.tokenize(pre_inference_memo))
@@ -341,11 +352,7 @@ class PredictDeployment:
 
             # Calculate and log the elapsed time
             inference_elapsed_time = inference_end_time - inference_start_time
-            self.logger.info(
-                f"Inference time for request: {inference_elapsed_time:.4f} seconds"
-            )
-
-
+            
             # Store the conversation
             extracted_messages = llm_chain.memory.chat_memory.messages
             ingest_to_db = messages_to_dict(extracted_messages)
@@ -360,26 +367,28 @@ class PredictDeployment:
             )
             response = self.parse_text(response)
 
-            self.logger.info("Successfully processed the request")
-            self.logger.info("The number of input tokest: %s", input_token_number)
-            self.logger.info("The number of generated tokens: %s", gen_token_number)
-
-            return {"output": response, "elapsed_time": inference_elapsed_time}
+            wandb_log ={"The number of input tokens": input_token_number, 
+                        "The number of generated tokens": gen_token_number,
+                        "Inference Time":inference_elapsed_time,
+                        "token/second":gen_token_number/inference_elapsed_time,}
+            wandb.log(wandb_log)
+            self.logger.info("Processed the request successfully")
+            return {"output": response}
 
         except ConnectionError as ce:
             self.logger.error("Error processing the request: %s", str(ce))
             # Handle connection errors (for example, interacting with the database or calling APIs)
-            return {"output": "An error occurred while processing the request1"}
+            return {"output": "An error occurred while processing the request"}
 
         except KeyError as ke:
             # Handle key errors (for example, accessing a key in a dictionary that doesn’t exist)
             self.logger.error("Error processing the request: %s", str(ke))
-            return {"output": "An error occurred while processing the request2"}
+            return {"output": "An error occurred while processing the request"}
 
-       # except Exception as e:
+        except Exception as e:
             # General exception to catch any other unforeseen errors
-            #self.logger.error("Error processing the request: %s", str(e))
-           # return {"output": f"An error occurred while processing the request3, what is the error: {str(e)}, what is collection name: {collection_name} and {type(collection_name)} and inout: {input_prompt} and {type(input_prompt)} finally"}
+            self.logger.error("Error processing the request: %s", str(e))
+            return {"output": "An error occurred while processing the request"}
 
     @serve.batch(
         max_batch_size=config.max_batch_size,
@@ -387,26 +396,21 @@ class PredictDeployment:
     )
     async def handle_batch(self, requests: List) -> List[str]:
         results = []
-        request_start_time = time.time()
+        self.logger.info("Received a batch of request with batch size of: %s ", len(requests))
         try:
             for request in requests:
                 results.append(self.AI_assistance(request)["output"])
         except Exception as e:
             print(f"An error occurred while handling batch: {str(e)}")
             # Optionally, log the error
-        request_end_time = time.time()
-        request_elapsed_time = request_end_time - request_start_time
-        self.logger.info(
-            f"Total response time for the bach requests: {request_elapsed_time:.4f} seconds"
-        )
+        
         return results
 
     @app.post("/inference")
     async def root(self, request: Input):
         try:
-            self.logger.info("Received a request to /inference endpoint")
+            self.logger.info("Received requests to /inference endpoint")
             response = await self.handle_batch(request)
-            self.logger.info("Processed the request successfully")
             return response
         except Exception as e:
             self.logger.error("Error in /inference endpoint: %s", str(e))
@@ -414,3 +418,4 @@ class PredictDeployment:
 
 
 app = PredictDeployment.bind()
+
