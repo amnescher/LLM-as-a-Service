@@ -301,6 +301,32 @@ class VectorDataBase:
                         class_name=collection_name, 
         )
 
+    def adding_weaviate_webpage(self, url, collection_name, doc_name):
+        # Load content from the webpage
+        loader = WebBaseLoader(str(url))
+        result = loader.load()
+        
+        # Extracting the ID (title) if not provided
+        if not doc_name or doc_name.isspace():
+            doc_name = result[0].metadata['title']
+            
+        # Split the content into manageable chunks
+        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+        texts = text_splitter.split_documents(result)
+        
+        # Serialize the documents for Weaviate
+        # Assuming the function weaviate_serialize_document serializes the document for Weaviate
+        serialized_docs = [self.weaviate_serialize_document(doc, doc_name) for doc in texts]
+        
+        # Configure batch and add to Weaviate
+        self.weaviate_client.batch.configure(batch_size=50)
+        with self.weaviate_client.batch as batch:
+            for text in serialized_docs:
+                batch.add_data_object(
+                    text,
+                    class_name=collection_name
+                )
+
     def delete_weaviate_class(self, name):
         class_name = name
         self.weaviate_client.schema.delete_class(class_name)
@@ -383,8 +409,12 @@ class VectorDataBase:
                 pdf_path = request.query_params["pdf_path"]
                 class_name = request.query_params["class_name"]
                 document_name = request.query_params["document_name"]
-                #pdf_name = request.query_params["pdf_name"]
                 self.adding_weaviate_document(pdf_path, class_name, document_name)
+            elif mode == "add_webpage":
+                page_name = request.query_params['doc_name']
+                collection = request.query_params['collection']
+                page_url = request.query_params['data_path']
+                self.adding_weaviate_webpage(page_url, collection, page_name)
             elif mode == "get_all_document_per_class":
                 cls = request.query_params["class_name"]
                 class_documents = self.query_weaviate_document_names(cls)

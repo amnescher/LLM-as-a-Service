@@ -158,31 +158,46 @@ with weaviate_row2_col1:
         st.subheader("Select class to add documents to")
         weaviate_classes = weaviate_get_classes()
         class_name = st.selectbox("Select class:", weaviate_classes)
-        document_name = st.text_input("Enter document name:") #TODO add control for empty strings and such.
-        st.subheader("Add document to the class")
-        weaviate_uploaded_pdf = st.file_uploader("Weaviate add PDF",type=['pdf'])
-        #class_to_add_document = st.text_input("Enter PDF name:")
-        #class_to_add_document = class_to_add_document.replace(" ", "-")
-        if st.button("Add document to class"):
-                if weaviate_uploaded_pdf is not None:
-                    weaviate_pdf_filename = os.path.join(pdf_directory, weaviate_uploaded_pdf.name)
-                    with open(weaviate_pdf_filename, "wb") as f:
-                            f.write(weaviate_uploaded_pdf.read())
-                    print('pdf filename', weaviate_pdf_filename)
-                    #print('class name', class_to_add_document)
-                    data_type = "Weaviate"
-                    mode = "add_pdf"
-                    PORT_NUMBER = 8000
-                    print('class name', class_name)
-                    POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&document_name={document_name}&pdf_path={weaviate_pdf_filename}&class_name={class_name}&mode={mode}"
-                    response = requests.post(POST_URL)
-                    st.success(f"Document {weaviate_pdf_filename} added to class {class_name}!")
-                    weaviate_classes = weaviate_get_classes()
+        document_type = st.radio("Select document type:", ('Webpage', 'PDF'))
+        if document_type == 'Webpage':
+            weaviate_webpage_uploader = st.text_input("Enter webpage URL:")
+            weaviate_webpage_name = st.text_input("Enter webpage name:", key='webpage_name')
+            if st.button("Add webpage to class"):
+                    if weaviate_webpage_uploader is not None:
+                        data_type = "Weaviate"
+                        mode = "add_webpage"
+                        PORT_NUMBER = 8000
+                        POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&doc_name={weaviate_webpage_name}&data_path={weaviate_webpage_uploader}&collection={class_name}&mode={mode}"
+                        response = requests.post(POST_URL)
+                        st.success(f"Webpage {weaviate_webpage_uploader} added to class {class_name}!")
+                        weaviate_classes = weaviate_get_classes()
+
+        elif document_type == 'PDF':
+            document_name = st.text_input("Enter document name:") #TODO add control for empty strings and such.
+            st.subheader("Add document to the class")
+            weaviate_uploaded_pdf = st.file_uploader("Weaviate add PDF",type=['pdf'])
+            #class_to_add_document = st.text_input("Enter PDF name:")
+            #class_to_add_document = class_to_add_document.replace(" ", "-")
+            if st.button("Add document to class"):
+                    if weaviate_uploaded_pdf is not None:
+                        weaviate_pdf_filename = os.path.join(pdf_directory, weaviate_uploaded_pdf.name)
+                        with open(weaviate_pdf_filename, "wb") as f:
+                                f.write(weaviate_uploaded_pdf.read())
+                        print('pdf filename', weaviate_pdf_filename)
+                        #print('class name', class_to_add_document)
+                        data_type = "Weaviate"
+                        mode = "add_pdf"
+                        PORT_NUMBER = 8000
+                        print('class name', class_name)
+                        POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&document_name={document_name}&pdf_path={weaviate_pdf_filename}&class_name={class_name}&mode={mode}"
+                        response = requests.post(POST_URL)
+                        st.success(f"Document {weaviate_pdf_filename} added to class {class_name}!")
+                        weaviate_classes = weaviate_get_classes()
 
         st.subheader("Remove document from class")
         weaviate_document_to_remove = st.text_input("Enter document name:", key='remove_doc_weaviate')
         if st.button("Remove document from class"):
-              if weaviate_document_to_remove is not None:
+            if weaviate_document_to_remove is not None:
                     data_type = "Weaviate"	
                     mode = "delete_document"
                     PORT_NUMBER = 8000
