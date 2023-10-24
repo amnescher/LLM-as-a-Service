@@ -5,6 +5,7 @@ from ray import serve
 import os
 from langchain.embeddings import HuggingFaceInstructEmbeddings
 from starlette.requests import Request
+from langchain.vectorstores import Chroma
 from langchain.document_loaders import YoutubeLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import json
@@ -18,30 +19,14 @@ from langchain.chains import RetrievalQA
 import logging
 import yaml
 import time
-from langchain.vectorstores import Weaviate
-
 import time
 import wandb
-
-
-from backend_utils import (
-    add_user,
-    add_conversation,
-    get_all_data,
-    delete_user,
-    delete_conversation,
-)
-from backend_utils import (
-    check_user_existence,
-    retrieve_conversation,
-    retrieve_latest_conversation,
-    update_conversation,
-)
+from final_sql import Database
 from langchain.schema import messages_from_dict, messages_to_dict
 from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
 from langchain import PromptTemplate, LLMChain
 from typing import List
-
+import json
 
 class Config:
     def __init__(self, **entries):
@@ -76,7 +61,9 @@ app = FastAPI()
         "max_replicas": config.max_replicas,
         "target_num_ongoing_requests_per_replica": config.target_num_ongoing_requests_per_replica,
         "graceful_shutdown_wait_loop_s": config.graceful_shutdown_wait_loop_s,
-        "max_concurrent_queries": config.max_concurrent_queries,}, route_prefix="/"
+        "max_concurrent_queries": config.max_concurrent_queries,
+    },
+    route_prefix="/",
 )
 @serve.ingress(app)
 class PredictDeployment:
@@ -98,10 +85,9 @@ class PredictDeployment:
         from langchain.chains import RetrievalQA
 
         from typing import List, Dict
-        from langchain.vectorstores import Weaviate
+
         import json
         from langchain import PromptTemplate, LLMChain
-        import weaviate
 
         wandb.login()
         wandb.init(project="Service Metrics", notes="custom step")
@@ -196,36 +182,30 @@ class PredictDeployment:
         self.embeddings = HuggingFaceInstructEmbeddings(
             model_name="hkunlp/instructor-xl", model_kwargs={"device": "cuda"}
         )
-
-        self.weaviate_client = weaviate.Client(
-            url="http://localhost:8080",   
+        self.Doc_persist_directory = "./Document_db"
+        # self.vectorstore_video = Chroma("YouTube_store", persist_directory=video_persist_directory, embedding_function=self.embeddings)
+        self.vectorstore_doc = Chroma(
+            persist_directory=self.Doc_persist_directory,
+            embedding_function=self.embeddings,
         )
-
-        self.weaviate_vectorstore = Weaviate(
-            self.weaviate_client, 
-            "New_class_to_test_delete",
-            'page_content', 
-            attributes=['page_content']
-        )
-        
         self.QA_document = RetrievalQA.from_chain_type(
             llm=self.llm,
             chain_type="stuff",
-            retriever=self.weaviate_vectorstore.as_retriever(),
+            retriever=self.vectorstore_doc.as_retriever(),
             memory=self.memory,
             output_key="output",
         )
         # self.QA_video = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.vectorstore_video.as_retriever(),memory = self.memory,output_key= "output")
+        self.database = Database()
 
-    def get_weaviate_retriever(self, client, collection):
-        content = ['page_content']
-        weaviate_vectorstore = Weaviate(
-            client,
+    def get_collection_based_retriver(self, collection):
+        vectorstore_doc = Chroma(
             str(collection),
-            'page_content', 
-            attributes=['page_content']
+            persist_directory=self.Doc_persist_directory,
+            embedding_function=self.embeddings,
         )
-        return weaviate_vectorstore
+
+        return vectorstore_doc
 
     def get_prompt(self, instruction):
         SYSTEM_PROMPT = self.B_SYS + self.DEFAULT_SYSTEM_PROMPT + self.E_SYS
@@ -291,23 +271,32 @@ class PredictDeployment:
             else:
                 # Retrieve the previous conversation from the database
                 if conversation_number == 0:
-                    latest_chat = retrieve_latest_conversation(username)
+                    latest_chat = self.database.retrieve_conversation(
+                        {
+                            "username": username,
+                        }
+                    )
+
                     chat_history = latest_chat["content"]
                     conversation_number = latest_chat["conversation_number"]
                     print(
                         f" the latest conversation for {username} with the conversation_number of {conversation_number} retrieved from database"
                     )
                 else:
-                    chat_history = retrieve_conversation(username, conversation_number)[
-                        "content"
-                    ]
+                    chat_history = self.database.retrieve_conversation(
+                        {
+                            "username": username,
+                            "conversation_number": conversation_number,
+                        }
+                    )
+                    chat_history = chat_history["content"]
                     print(
                         f"chat histroy for {username} with the conversation_number of {conversation_number} retrieved from database"
                     )
 
                 # Initialize memory from the retrieved conversation
-                retrieve_from_db = json.loads(chat_history)
-                retrieved_messages = messages_from_dict(retrieve_from_db)
+                
+                retrieved_messages = messages_from_dict(json.loads(chat_history))
                 retrieved_chat_history = ChatMessageHistory(messages=retrieved_messages)
                 memory = ConversationBufferMemory(
                     chat_memory=retrieved_chat_history, memory_key="chat_history"
@@ -325,25 +314,27 @@ class PredictDeployment:
                 )
             else:
                 print("Document search")
-                new_weaviate_retriever = self.get_weaviate_retriever(self.weaviate_client, str(collection_name))
+                retriever = self.get_collection_based_retriver(collection_name)
                 llm_chain = RetrievalQA.from_chain_type(
                     llm=self.llm,
                     chain_type="stuff",
-                    retriever=new_weaviate_retriever.as_retriever(),
+                    retriever=retriever.as_retriever(),
                     memory=memory,
                     output_key="output",
                 )
-           
-            # Generate a response based on the mode
             pre_inference_memo = llm_chain.memory.chat_memory.messages
-            pre_inference_memo = ' '.join(message.content for message in pre_inference_memo)
-            pre_inference_memo_token_len = len(self.tokenizer.tokenize(pre_inference_memo))
+            pre_inference_memo = " ".join(
+                message.content for message in pre_inference_memo
+            )
+            pre_inference_memo_token_len = len(
+                self.tokenizer.tokenize(pre_inference_memo)
+            )
             # Generate a response based on the mode
             inference_start_time = time.time()
 
             # Generate a response based on the mode
             if AI_assistance:
-                response = llm_chain.predict(user_input = input_prompt)
+                response = llm_chain.predict(user_input=input_prompt)
             else:
                 response = llm_chain.run(input_prompt)
 
@@ -352,25 +343,32 @@ class PredictDeployment:
 
             # Calculate and log the elapsed time
             inference_elapsed_time = inference_end_time - inference_start_time
-            
+
             # Store the conversation
             extracted_messages = llm_chain.memory.chat_memory.messages
             ingest_to_db = messages_to_dict(extracted_messages)
-            input_token_number = len(self.tokenizer.tokenize(input_prompt)) + pre_inference_memo_token_len
+            input_token_number = (
+                len(self.tokenizer.tokenize(input_prompt))
+                + pre_inference_memo_token_len
+            )
             gen_token_number = len(self.tokenizer.tokenize(response))
-            update_conversation(
-                username,
-                conversation_number,
-                ingest_to_db,
-                input_token_number,
-                gen_token_number,
+            db_response = self.database.update_conversation(
+                {
+                    "username": username,
+                    "content": json.dumps(ingest_to_db),
+                    "gen_token_number": gen_token_number,
+                    "prompt_token_number": input_token_number,
+                    "conversation_number": conversation_number,
+                }
             )
             response = self.parse_text(response)
 
-            wandb_log ={"The number of input tokens": input_token_number, 
-                        "The number of generated tokens": gen_token_number,
-                        "Inference Time":inference_elapsed_time,
-                        "token/second":gen_token_number/inference_elapsed_time,}
+            wandb_log = {
+                "The number of input tokens": input_token_number,
+                "The number of generated tokens": gen_token_number,
+                "Inference Time": inference_elapsed_time,
+                "token/second": gen_token_number / inference_elapsed_time,
+            }
             wandb.log(wandb_log)
             self.logger.info("Processed the request successfully")
             return {"output": response}
@@ -378,17 +376,17 @@ class PredictDeployment:
         except ConnectionError as ce:
             self.logger.error("Error processing the request: %s", str(ce))
             # Handle connection errors (for example, interacting with the database or calling APIs)
-            return {"output": "An error occurred while processing the request"}
+            return {"output": "ConnectionError: An error occurred while processing the request"}
 
         except KeyError as ke:
             # Handle key errors (for example, accessing a key in a dictionary that doesn’t exist)
             self.logger.error("Error processing the request: %s", str(ke))
-            return {"output": "An error occurred while processing the request"}
+            return {"output": " KeyError: An error occurred while processing the request"}
 
         except Exception as e:
             # General exception to catch any other unforeseen errors
             self.logger.error("Error processing the request: %s", str(e))
-            return {"output": "An error occurred while processing the request"}
+            return {"output": "Exception : An error occurred while processing the request"}
 
     @serve.batch(
         max_batch_size=config.max_batch_size,
@@ -396,14 +394,16 @@ class PredictDeployment:
     )
     async def handle_batch(self, requests: List) -> List[str]:
         results = []
-        self.logger.info("Received a batch of request with batch size of: %s ", len(requests))
+        self.logger.info(
+            "Received a batch of request with batch size of: %s ", len(requests)
+        )
         try:
             for request in requests:
                 results.append(self.AI_assistance(request)["output"])
         except Exception as e:
             print(f"An error occurred while handling batch: {str(e)}")
             # Optionally, log the error
-        
+
         return results
 
     @app.post("/inference")
@@ -418,4 +418,3 @@ class PredictDeployment:
 
 
 app = PredictDeployment.bind()
-
