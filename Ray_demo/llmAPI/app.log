@@ -1,0 +1,5 @@
+2023-10-27 13:19:52,649 - INFO - Created a temporary directory at /tmp/tmpzuwt_k1_
+2023-10-27 13:19:52,650 - INFO - Writing /tmp/tmpzuwt_k1_/_remote_module_non_scriptable.py
+2023-10-27 13:19:54,803 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-10-27 13:20:12,461 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-10-27 13:20:21,289 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.

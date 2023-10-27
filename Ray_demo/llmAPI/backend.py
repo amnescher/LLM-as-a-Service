@@ -10,26 +10,32 @@ import textwrap
 from fastapi import FastAPI
 from langchain.chains import RetrievalQA
 import logging
-import yaml
-import time
-import time
 import wandb
-from final_sql import Database
+from backend_database import Database
 from langchain.schema import messages_from_dict, messages_to_dict
 from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
 from langchain import PromptTemplate, LLMChain
 from typing import List
 import json
+import os
+import yaml
+
+
+
+config_path = os.environ.get('CONFIG_PATH')
+if not config_path:
+    raise ValueError("CONFIG_PATH environment variable is not set.")
+
+
 
 class Config:
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
 
-with open("cluster_conf.yaml", "r") as file:
+with open(config_path, 'r') as file:
     config = yaml.safe_load(file)
     config = Config(**config)
-
 
 # ------------------- Initialize Ray Cluster --------------------
 class Input(BaseModel):
@@ -67,20 +73,23 @@ class PredictDeployment:
         import transformers
         from langchain.chains import RetrievalQA
         from langchain import PromptTemplate, LLMChain
-
-
-        wandb.login()
-        wandb.init(project="Service Metrics", notes="custom step")
-        # Define the custom x axis metric
-        wandb.define_metric("The number of input tokens")
-        wandb.define_metric("The number of generated tokens")
-        wandb.define_metric("Inference Time")
-        wandb.define_metric("token/second")
+        self.wandb_logging_enabled = True
+        try:
+            wandb.login()
+            wandb.init(project="Service Metrics", notes="custom step")
+            # Define the custom x axis metric
+            wandb.define_metric("The number of input tokens")
+            wandb.define_metric("The number of generated tokens")
+            wandb.define_metric("Inference Time")
+            wandb.define_metric("token/second")
+        except:
+            self.wandb_logging_enabled = False
+            pass
         with open("cluster_conf.yaml", "r") as self.file:
             self.config = yaml.safe_load(self.file)
             self.config = Config(**self.config)
 
-        self.access_token = os.getenv("Hugging_ACCESS_TOKEN")
+        self.access_token = config.Hugging_ACCESS_TOKEN
         self.model_id = "meta-llama/Llama-2-70b-chat-hf"
         self.device = f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
         self.B_INST, self.E_INST = "[INST]", "[/INST]"
@@ -349,7 +358,8 @@ class PredictDeployment:
                 "Inference Time": inference_elapsed_time,
                 "token/second": gen_token_number / inference_elapsed_time,
             }
-            wandb.log(wandb_log)
+            if self.wandb_logging_enabled:   
+                wandb.log(wandb_log)
             self.logger.info("Processed the request successfully")
             return {"output": response}
 

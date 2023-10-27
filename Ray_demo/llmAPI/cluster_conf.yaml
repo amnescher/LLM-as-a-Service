@@ -1,0 +1,26 @@
+#----------------------- Hugging Configuration
+Hugging_ACCESS_TOKEN : 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
+#----------------------- Database Configuration
+SECRET_KEY: 09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7 # Database secret Key
+ALGORITHM: HS256
+ACCESS_TOKEN_EXPIRE_MINUTES: 3000
+DB_SERVICE_URL : http://localhost:8080
+DB_DIR: CURRENT_DIR
+Ray_service_URL : "http://localhost:8000"
+API_service_URL : "http://localhost:8081"
+#----------------------- Ray Cluster Configuration
+num_gpus: 0.45
+min_replicas: 1
+initial_replicas: 1
+max_replicas: 2
+target_num_ongoing_requests_per_replica: 2
+max_concurrent_queries: 2
+graceful_shutdown_wait_loop_s: 15
+#----------------------- LLM Configuration
+model_id: "meta-llama/Llama-2-70b-chat-hf"
+temperature: 0.01
+max_new_tokens: 512
+repetition_penalty: 1.1
+batch_size: 2
+max_batch_size : 2
+batch_wait_timeout_s: 0.1
