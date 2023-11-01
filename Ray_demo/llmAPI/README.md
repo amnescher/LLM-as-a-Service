@@ -1,4 +1,4 @@
-export CONFIG_PATH=/path/to/your/config.yaml
+export CONFIG_PATH=/path/to/your/cluster_conf.yaml
 cd API
 uvicorn app:app --reload --port 8080
 
