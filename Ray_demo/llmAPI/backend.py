@@ -73,18 +73,19 @@ class PredictDeployment:
         import transformers
         from langchain.chains import RetrievalQA
         from langchain import PromptTemplate, LLMChain
-        self.wandb_logging_enabled = True
-        try:
-            wandb.login()
-            wandb.init(project="Service Metrics", notes="custom step")
-            # Define the custom x axis metric
-            wandb.define_metric("The number of input tokens")
-            wandb.define_metric("The number of generated tokens")
-            wandb.define_metric("Inference Time")
-            wandb.define_metric("token/second")
-        except:
-            self.wandb_logging_enabled = False
-            pass
+        self.wandb_logging_enabled = config.WANDB_ENABLE
+        if self.wandb_logging_enabled:
+            try:
+                wandb.login(key = config.WANDB_KEY)
+                wandb.init(project="Service Metrics", notes="custom step")
+                # Define the custom x axis metric
+                wandb.define_metric("The number of input tokens")
+                wandb.define_metric("The number of generated tokens")
+                wandb.define_metric("Inference Time")
+                wandb.define_metric("token/second")
+            except:
+                self.wandb_logging_enabled = False
+                pass
         with open("cluster_conf.yaml", "r") as self.file:
             self.config = yaml.safe_load(self.file)
             self.config = Config(**self.config)
@@ -119,7 +120,7 @@ class PredictDeployment:
         self.logger.propagate = True
         model_id = "meta-llama/Llama-2-70b-chat-hf"
         self.device = f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
-
+     
         # set quantization configuration to load large model with less GPU memory
         # this requires the `bitsandbytes` library
         bnb_config = transformers.BitsAndBytesConfig(
@@ -130,7 +131,7 @@ class PredictDeployment:
         )
 
         # begin initializing HF items, need auth token for these
-        model_config = transformers.AutoConfig.from_pretrained(model_id)
+        model_config = transformers.AutoConfig.from_pretrained(model_id, use_auth_token = self.access_token)
 
         self.model = transformers.AutoModelForCausalLM.from_pretrained(
             model_id,
@@ -138,6 +139,7 @@ class PredictDeployment:
             config=model_config,
             quantization_config=bnb_config,
             device_map="auto",
+            use_auth_token = self.access_token
         )
         self.model.eval()
 
