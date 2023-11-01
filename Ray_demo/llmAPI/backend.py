@@ -119,7 +119,7 @@ class PredictDeployment:
         self.logger.propagate = True
         model_id = "meta-llama/Llama-2-70b-chat-hf"
         self.device = f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
-
+     
         # set quantization configuration to load large model with less GPU memory
         # this requires the `bitsandbytes` library
         bnb_config = transformers.BitsAndBytesConfig(
@@ -130,7 +130,7 @@ class PredictDeployment:
         )
 
         # begin initializing HF items, need auth token for these
-        model_config = transformers.AutoConfig.from_pretrained(model_id)
+        model_config = transformers.AutoConfig.from_pretrained(model_id, use_auth_token = self.access_token)
 
         self.model = transformers.AutoModelForCausalLM.from_pretrained(
             model_id,
@@ -138,6 +138,7 @@ class PredictDeployment:
             config=model_config,
             quantization_config=bnb_config,
             device_map="auto",
+            use_auth_token = self.access_token
         )
         self.model.eval()
 

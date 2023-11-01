@@ -14,7 +14,7 @@ streamlit run frontend_RAY.py
 Generate a multi-application config file 
 
 ```
-serve build  ray_backend:app ray_VectorDB:app -o  config.yaml
+serve build  ray_backend:app  -o  config.yaml
 ```
 
 start a Ray cluster
