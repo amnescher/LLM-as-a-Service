@@ -21,19 +21,12 @@ import os
 import yaml
 
 
-
-config_path = os.environ.get('CONFIG_PATH')
-if not config_path:
-    raise ValueError("CONFIG_PATH environment variable is not set.")
-
-
-
 class Config:
     def __init__(self, **entries):
         self.__dict__.update(entries)
 
 
-with open(config_path, 'r') as file:
+with open("cluster_conf.yaml", 'r') as file:
     config = yaml.safe_load(file)
     config = Config(**config)
 
@@ -61,8 +54,7 @@ app = FastAPI()
         "target_num_ongoing_requests_per_replica": config.target_num_ongoing_requests_per_replica,
         "graceful_shutdown_wait_loop_s": config.graceful_shutdown_wait_loop_s,
         "max_concurrent_queries": config.max_concurrent_queries,
-    },
-    route_prefix="/",
+    }
 )
 @serve.ingress(app)
 class PredictDeployment:
@@ -409,4 +401,6 @@ class PredictDeployment:
             return {"output": "An error occurred while processing the request"}
 
 
-app = PredictDeployment.bind()
+
+
+serve.run(PredictDeployment.bind(), route_prefix="/")

@@ -1,0 +1,263 @@
+2023-11-01 23:05:09,402 INFO    StreamThr :623586 [internal.py:wandb_internal():86] W&B internal server running at pid: 623586, started at: 2023-11-01 23:05:09.402062
+2023-11-01 23:05:09,406 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status
+2023-11-01 23:05:09,408 INFO    WriterThread:623586 [datastore.py:open_for_write():85] open: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/run-uim9r0fv.wandb
+2023-11-01 23:05:09,409 DEBUG   SenderThread:623586 [sender.py:send():380] send: header
+2023-11-01 23:05:09,410 DEBUG   SenderThread:623586 [sender.py:send():380] send: run
+2023-11-01 23:05:09,819 INFO    SenderThread:623586 [dir_watcher.py:__init__():211] watching files in: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files
+2023-11-01 23:05:09,819 INFO    SenderThread:623586 [sender.py:_start_run_threads():1122] run started: uim9r0fv with start time 1698879909.402769
+2023-11-01 23:05:09,824 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: check_version
+2023-11-01 23:05:09,825 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: check_version
+2023-11-01 23:05:09,938 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: run_start
+2023-11-01 23:05:09,961 DEBUG   HandlerThread:623586 [system_info.py:__init__():32] System info init
+2023-11-01 23:05:09,962 DEBUG   HandlerThread:623586 [system_info.py:__init__():47] System info init done
+2023-11-01 23:05:09,962 INFO    HandlerThread:623586 [system_monitor.py:start():194] Starting system monitor
+2023-11-01 23:05:09,962 INFO    SystemMonitor:623586 [system_monitor.py:_start():158] Starting system asset monitoring threads
+2023-11-01 23:05:09,963 INFO    HandlerThread:623586 [system_monitor.py:probe():214] Collecting system info
+2023-11-01 23:05:09,964 INFO    SystemMonitor:623586 [interfaces.py:start():190] Started cpu monitoring
+2023-11-01 23:05:09,965 INFO    SystemMonitor:623586 [interfaces.py:start():190] Started disk monitoring
+2023-11-01 23:05:09,966 INFO    SystemMonitor:623586 [interfaces.py:start():190] Started gpu monitoring
+2023-11-01 23:05:09,968 INFO    SystemMonitor:623586 [interfaces.py:start():190] Started memory monitoring
+2023-11-01 23:05:09,969 INFO    SystemMonitor:623586 [interfaces.py:start():190] Started network monitoring
+2023-11-01 23:05:09,982 DEBUG   HandlerThread:623586 [system_info.py:probe():196] Probing system
+2023-11-01 23:05:09,985 DEBUG   HandlerThread:623586 [system_info.py:_probe_git():181] Probing git
+2023-11-01 23:05:09,989 DEBUG   HandlerThread:623586 [system_info.py:_probe_git():189] Probing git done
+2023-11-01 23:05:09,989 DEBUG   HandlerThread:623586 [system_info.py:probe():244] Probing system done
+2023-11-01 23:05:09,989 DEBUG   HandlerThread:623586 [system_monitor.py:probe():223] {'os': 'Linux-5.15.0-25-generic-x86_64-with-glibc2.35', 'python': '3.10.12', 'heartbeatAt': '2023-11-01T23:05:09.982759', 'startedAt': '2023-11-01T23:05:09.397703', 'docker': None, 'cuda': None, 'args': ('--node-ip-address=192.168.1.65', '--node-manager-port=36759', '--object-store-name=/tmp/ray/session_2023-11-01_15-15-45_812109_30163/sockets/plasma_store', '--raylet-name=/tmp/ray/session_2023-11-01_15-15-45_812109_30163/sockets/raylet', '--redis-address=None', '--temp-dir=/tmp/ray', '--metrics-agent-port=65403', '--runtime-env-agent-port=62572', '--logging-rotate-bytes=536870912', '--logging-rotate-backup-count=5', '--runtime-env-agent-port=62572', '--gcs-address=192.168.1.65:6379', '--session-name=session_2023-11-01_15-15-45_812109_30163', '--temp-dir=/tmp/ray', '--webui=127.0.0.1:8265', '--cluster-id=8345b158dd742d1f54266f1c5174d12699f4921aadb0fe37ce54e899', '--startup-token=72', '--worker-launch-time-ms=1698879904037'), 'state': 'running', 'program': '/home/ubuntu/dev/lib/python3.10/site-packages/ray/_private/workers/default_worker.py', 'codePathLocal': None, 'git': {'remote': 'https://github.com/amnescher/LLM-as-a-Service.git', 'commit': '4760f968a8e63a98cd225b649565dbaac38e45c8'}, 'email': None, 'root': '/home/ubuntu/LLM/LLM-as-a-Service', 'host': 'llm', 'username': 'ubuntu', 'executable': '/home/ubuntu/dev/bin/python', 'cpu_count': 12, 'cpu_count_logical': 12, 'cpu_freq': {'current': 2899.9959999999996, 'min': 0.0, 'max': 0.0}, 'cpu_freq_per_core': [{'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}, {'current': 2899.996, 'min': 0.0, 'max': 0.0}], 'disk': {'/': {'total': 775.1639442443848, 'used': 154.43091583251953}}, 'gpu': 'NVIDIA A100-SXM4-80GB', 'gpu_count': 1, 'gpu_devices': [{'name': 'NVIDIA A100-SXM4-80GB', 'memory_total': 85899345920}], 'memory': {'total': 110.05593490600586}}
+2023-11-01 23:05:09,989 INFO    HandlerThread:623586 [system_monitor.py:probe():224] Finished collecting system info
+2023-11-01 23:05:09,989 INFO    HandlerThread:623586 [system_monitor.py:probe():227] Publishing system info
+2023-11-01 23:05:09,989 DEBUG   HandlerThread:623586 [system_info.py:_save_pip():52] Saving list of pip packages installed into the current environment
+2023-11-01 23:05:09,990 DEBUG   HandlerThread:623586 [system_info.py:_save_pip():68] Saving pip packages done
+2023-11-01 23:05:09,990 INFO    HandlerThread:623586 [system_monitor.py:probe():229] Finished publishing system info
+2023-11-01 23:05:09,995 DEBUG   SenderThread:623586 [sender.py:send():380] send: files
+2023-11-01 23:05:09,995 INFO    SenderThread:623586 [sender.py:_save_file():1378] saving file wandb-metadata.json with policy now
+2023-11-01 23:05:10,001 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:05:10,001 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:05:10,004 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:05:10,255 DEBUG   SenderThread:623586 [sender.py:send():380] send: telemetry
+2023-11-01 23:05:10,255 DEBUG   SenderThread:623586 [sender.py:send():380] send: metric
+2023-11-01 23:05:10,255 DEBUG   SenderThread:623586 [sender.py:send():380] send: telemetry
+2023-11-01 23:05:10,255 DEBUG   SenderThread:623586 [sender.py:send():380] send: metric
+2023-11-01 23:05:10,255 DEBUG   SenderThread:623586 [sender.py:send():380] send: metric
+2023-11-01 23:05:10,255 DEBUG   SenderThread:623586 [sender.py:send():380] send: metric
+2023-11-01 23:05:10,572 INFO    wandb-upload_0:623586 [upload_job.py:push():131] Uploaded file /tmp/tmpzis67r80wandb/tlqx4759-wandb-metadata.json
+2023-11-01 23:05:10,821 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_created():271] file/dir created: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:05:10,822 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_created():271] file/dir created: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/wandb-metadata.json
+2023-11-01 23:05:10,822 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_created():271] file/dir created: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/requirements.txt
+2023-11-01 23:05:11,233 DEBUG   SenderThread:623586 [sender.py:send():380] send: telemetry
+2023-11-01 23:05:12,821 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:05:14,802 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:05:16,823 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:05:19,803 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:05:24,804 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:05:25,001 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:05:25,002 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:05:25,005 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:05:30,198 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:05:35,199 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:05:40,001 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:05:40,002 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:05:40,004 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:05:40,212 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:05:40,832 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/config.yaml
+2023-11-01 23:05:45,371 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:05:48,836 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:05:50,513 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:05:55,001 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:05:55,002 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:05:55,005 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:05:56,212 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:01,213 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:06,214 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:09,970 DEBUG   SystemMonitor:623586 [system_monitor.py:_start():172] Starting system metrics aggregation loop
+2023-11-01 23:06:09,971 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:06:10,001 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:06:10,003 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:06:10,003 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:06:12,155 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:17,156 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:22,693 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:22,851 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:06:25,002 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:06:25,003 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:06:25,005 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:06:28,138 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:33,139 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:38,140 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:39,973 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:06:40,002 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:06:40,002 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:06:40,044 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:06:43,153 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:48,154 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:53,155 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:06:55,273 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:06:55,281 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:06:55,282 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:06:56,866 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:06:58,496 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:03,497 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:08,498 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:09,974 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:07:10,249 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:07:10,250 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:07:10,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:07:14,401 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:19,403 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:24,404 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:25,249 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:07:25,250 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:07:25,250 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:07:29,531 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:31,881 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:07:34,531 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:39,533 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:39,974 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:07:40,249 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:07:40,249 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:07:40,250 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:07:45,407 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:50,408 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:07:55,249 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:07:55,250 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:07:55,292 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:07:55,477 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:00,479 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:03,896 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:08:05,498 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:09,975 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:08:10,249 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:08:10,250 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:08:10,250 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:08:11,468 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:16,469 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:21,470 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:25,249 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:08:25,250 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:08:25,253 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:08:26,557 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:31,558 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:35,910 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:08:37,375 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:39,976 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:08:40,249 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:08:40,250 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:08:40,251 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:08:42,394 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:47,395 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:52,396 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:08:55,250 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:08:55,250 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:08:55,253 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:08:57,424 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:02,426 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:07,427 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:09,927 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:09:09,977 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:09:10,250 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:09:10,251 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:09:10,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:09:13,410 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:18,411 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:23,411 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:25,250 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:09:25,251 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:09:25,292 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:09:28,485 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:33,486 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:38,487 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:39,978 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:09:40,250 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:09:40,251 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:09:40,253 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:09:41,942 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:09:43,498 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:48,499 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:53,499 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:09:55,250 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:09:55,251 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:09:55,253 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:09:59,430 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:04,431 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:09,432 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:09,979 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:10:10,250 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:10:10,252 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:10:10,292 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:10:14,833 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:15,959 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:10:19,835 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:24,836 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:25,251 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:10:25,251 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:10:25,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:10:30,476 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:35,477 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:39,980 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:10:40,251 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:10:40,252 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:10:40,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:10:41,141 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:46,142 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:49,975 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:10:51,422 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:10:55,251 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:10:55,252 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:10:55,254 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:10:56,465 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:01,466 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:06,467 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:09,982 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:11:10,251 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:11:10,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:11:10,253 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:11:11,485 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:16,486 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:21,705 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:21,990 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:11:25,251 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:11:25,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:11:25,252 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:11:27,435 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:32,436 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:37,437 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:39,982 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:11:40,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:11:40,252 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:11:40,292 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:11:42,467 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:47,468 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:52,469 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:11:55,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:11:55,253 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:11:55,254 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:11:56,003 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:11:58,405 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:03,406 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:08,407 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:09,984 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:12:10,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:12:10,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:12:10,253 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:12:13,451 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:18,452 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:23,454 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:25,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:12:25,253 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:12:25,253 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:12:28,017 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:12:28,667 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:33,669 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:38,669 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:39,984 DEBUG   SenderThread:623586 [sender.py:send():380] send: stats
+2023-11-01 23:12:40,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:12:40,253 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:12:40,253 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:12:44,419 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:49,420 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:54,421 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:12:55,252 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: stop_status
+2023-11-01 23:12:55,253 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: internal_messages
+2023-11-01 23:12:55,254 DEBUG   SenderThread:623586 [sender.py:send_request():407] send_request: stop_status
+2023-11-01 23:12:58,031 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log
+2023-11-01 23:12:59,554 DEBUG   HandlerThread:623586 [handler.py:handle_request():146] handle_request: status_report
+2023-11-01 23:13:00,032 INFO    Thread-12 :623586 [dir_watcher.py:_on_file_modified():288] file/dir modified: /home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI/wandb/run-20231101_230509-uim9r0fv/files/output.log

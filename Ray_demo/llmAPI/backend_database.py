@@ -8,12 +8,9 @@ from passlib.context import CryptContext
 import yaml
 # from app.logging_config import setup_logger
 
-config_path = os.environ.get('CONFIG_PATH')
-if not config_path:
-    raise ValueError("CONFIG_PATH environment variable is not set.")
 
 # Environment and DB setup
-with open(config_path, 'r') as file:
+with open("cluster_conf.yaml", 'r') as file:
     config = yaml.safe_load(file)
 
 
