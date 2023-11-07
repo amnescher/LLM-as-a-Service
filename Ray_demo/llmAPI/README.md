@@ -81,9 +81,6 @@ uvicorn app:app --reload --port 8081
 
 # Use LLM service. 
 
-## Use EscherCloudAI API
-
-
 ## Use Streamlit UI
 
 Run the Streamlit UI 
@@ -91,3 +88,13 @@ Run the Streamlit UI
 ```
 streamlit run UI/main.py
 ```
+For the first time login as admin to add new users.
+Login:
+Username: admin 
+Password: admin
+
+Add new users ans start using LLM service. 
+
+## Use EscherCloudAI API
+To use API service you need to get user access tokens to be able to send request to LLMs.
+You can fine more details of API here
