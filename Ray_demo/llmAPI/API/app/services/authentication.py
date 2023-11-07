@@ -12,9 +12,13 @@ from app.database import User
 
 import yaml
 
-config_path = os.environ.get("CONFIG_PATH")
-if not config_path:
-    raise ValueError("CONFIG_PATH environment variable is not set.")
+import pathlib
+#from app.logging_config import setup_logger
+import yaml
+
+current_path = pathlib.Path(__file__).parent
+
+config_path = current_path.parent.parent.parent / 'cluster_conf.yaml'
 
 with open(config_path, "r") as file:
     config = yaml.safe_load(file)

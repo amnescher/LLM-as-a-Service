@@ -679,3 +679,6 @@ WHERE users.username = ?
 2023-11-01 09:43:27,945 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user amin
 2023-11-01 09:43:27,945 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user amin
 2023-11-01 09:43:27,945 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user amin
+2023-11-07 12:06:10,360 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-07 12:06:10,360 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-07 12:06:10,360 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin

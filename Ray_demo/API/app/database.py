@@ -12,11 +12,6 @@ from passlib.context import CryptContext
 
 
 # Environment and DB setup
-load_dotenv("/home/ubuntu/falcon/kubeflow/llm-falcon-chatbot/API/.env") # Make sure this path is correct
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")  # Provide a fallback if the env variable is missing
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-DB_SERVICE_URL = os.getenv("DB_SERVICE_URL")  # Make sure this is used somewhere in your application
 
 
 BASE_DIR = "/home/ubuntu/falcon/kubeflow/llm-falcon-chatbot"

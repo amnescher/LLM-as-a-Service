@@ -6,21 +6,19 @@ from sqlalchemy.sql import func
 from dotenv import load_dotenv
 from sqlalchemy import Boolean
 from passlib.context import CryptContext
+import pathlib
 #from app.logging_config import setup_logger
 import yaml
 
-config_path = os.environ.get("CONFIG_PATH")
-if not config_path:
-    raise ValueError("CONFIG_PATH environment variable is not set.")
+current_path = pathlib.Path(__file__).parent
+
+config_path = current_path.parent.parent / 'cluster_conf.yaml'
 
 with open(config_path, "r") as file:
     config = yaml.safe_load(file)
 
 DATABASE_URL = config.get("DATABASE_URL", "sqlite:///./test.db")  # Provide a fallback if the env variable is missing
-SECRET_KEY = config.get("SECRET_KEY")
-ALGORITHM = config.get("ALGORITHM")
-DB_SERVICE_URL = config.get("DB_SERVICE_URL")  # Make sure this is used somewhere in your application
-DB_DIR = config.get("DB_DIR")
+DB_DIR = config.get("DB_DIR","CURRENT_DIR")
 if DB_DIR == "CURRENT_DIR":
     DB_DIR = os.getcwd()
 
