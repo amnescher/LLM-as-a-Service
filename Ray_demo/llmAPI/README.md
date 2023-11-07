@@ -67,5 +67,5 @@ cd API
 ```
 Run authentication micro-service. 
 ```
-uvicorn app:app --reload --port 8080
+uvicorn app:app --reload --port 8081
 ```
