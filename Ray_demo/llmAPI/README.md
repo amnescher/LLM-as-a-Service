@@ -61,6 +61,11 @@ serve deploy config.yaml
 ```
 
 ### Run the authentication microservice
+Change the directory to API
 ```
-uvicorn API/app:app --reload --port 8080
+cd API
+```
+Run authentication micro-service. 
+```
+uvicorn app:app --reload --port 8080
 ```
