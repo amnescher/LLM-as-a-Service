@@ -12,4 +12,5 @@ setup(
     author="A.S",
     author_email="service@eschercloud.ai",
     description="Open source llm service"
+    
 )
