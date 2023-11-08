@@ -1,7 +1,10 @@
 
 # Large Langage Model As a Service
 
-![Alt text](Diagram.svg)
+
+<p align="center">
+  <img src="Diagram.svg" >
+</p>
 
 # LLM-as-a-Service Setup Guide
 
