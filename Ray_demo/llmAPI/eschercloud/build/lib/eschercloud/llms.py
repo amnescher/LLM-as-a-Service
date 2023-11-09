@@ -3,7 +3,7 @@ from typing import TypedDict
 
 class InferenceRequest(TypedDict):
     prompt: str
-    newchat: bool
+    memory: bool
     conversation_number: int
     AI_assistance: bool
     collection_name: str
