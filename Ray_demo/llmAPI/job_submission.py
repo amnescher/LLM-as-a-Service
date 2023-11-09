@@ -1,5 +1,21 @@
 from ray.job_submission import JobSubmissionClient
-runtime_env = {"working_dir": "/home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI", "pip":  [
+import yaml
+import os
+
+class Config:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+
+with open("cluster_conf.yaml", 'r') as file:
+    config = yaml.safe_load(file)
+    config = Config(**config)
+
+
+# Get the current working directory
+current_directory = os.getcwd()
+
+runtime_env = {"working_dir": f"{current_directory}", "pip":  [
         "langchain",
         "fastapi",
         "wandb",
@@ -20,7 +36,7 @@ runtime_env = {"working_dir": "/home/ubuntu/LLM/LLM-as-a-Service/Ray_demo/llmAPI
         "transformers",
         "scipy"
     ]}
-client = JobSubmissionClient("http://192.168.199.207:8265")
+client = JobSubmissionClient(config.cluster_URL)
 job_id = client.submit_job(
     entrypoint="python backend.py",
     runtime_env=runtime_env,

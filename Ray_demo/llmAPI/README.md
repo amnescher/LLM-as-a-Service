@@ -1,3 +1,11 @@
+
+# Large Langage Model As a Service
+
+
+<p align="center">
+  <img src="Diagram.svg" >
+</p>
+
 # LLM-as-a-Service Setup Guide
 
 This guide provides the steps to set up and run the LLM-as-a-Service on your machine.
@@ -35,18 +43,13 @@ Install required Python packages
 pip install -r requirements.txt
 ```
 ## Configuration
-Set the configuration path
-Export the path to your cluster_conf.yaml
-```
-export CONFIG_PATH=/path/to/your/cluster_conf.yaml
-```
-#### Important:
+
 In the cluster_conf.yaml, you must specify access tokens for both your Huggingface and Weights & Biases accounts.
 
 If you wish not to monitor deployment logging, set WANDB_ENABLE to False.
 When WANDB_ENABLE is set to False, there's no need to provide a Weights & Biases token.
 
-## Running the Service
+## Running the Inference Service Locally 
 Initialize a RAY cluster
 ```
 ray start --head
@@ -60,6 +63,17 @@ Deploy the application
 serve deploy config.yaml
 ```
 
+## Running the Inference Service on a Kubernutes Cluster
+
+First you need to set up your KubeRay Cluster. Follow the steps [here](https://docs.ray.io/en/latest/cluster/kubernetes/getting-started/raycluster-quick-start.html#kuberay-raycluster-quickstart)
+
+Once you set up the Kubernetes cluster, set the vlaue of `cluster_URL` in cluster_config.yaml.
+Submit the job tto your cluster by runing 
+```
+python job_submission.py
+```
+Modeify `Ray_service_URL` in cluster_config.yaml to your Kubernetes cluster URL address. 
+
 ### Run the authentication microservice
 Change the directory to API
 ```
@@ -69,3 +83,23 @@ Run authentication micro-service.
 ```
 uvicorn app:app --reload --port 8081
 ```
+
+# Use LLM service. 
+
+## Use Streamlit UI
+
+Run the Streamlit UI 
+
+```
+streamlit run UI/main.py
+```
+For the first time login as admin to add new users.
+Login:
+Username: admin 
+Password: admin
+
+Add new users ans start using LLM service. 
+
+## Use EscherCloudAI API
+To use API service you need to get user access tokens to be able to send request to LLMs.
+You can fine more details of API here

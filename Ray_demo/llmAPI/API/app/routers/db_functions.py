@@ -312,6 +312,46 @@ async def disable_user(
         return {"error": str(e)}
 
 
+@router.post("/update_token_number/")
+@role_required("Admin")
+async def update_token_number(
+    input: Input,
+    current_user: LoginUser = Security(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update the token number for a user.
+
+    Parameters:
+        - input: The input data for updating the token number.
+        - current_user: The currently logged-in user.
+        - db: The database session.
+
+    Returns:
+        - A dictionary with a message indicating that the token number has been updated,
+          or an error message if an exception occurs.
+    """
+    try:
+        user = db.query(User).filter(User.username == input.username).first()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Update gen_token_number and check limits
+        if input.gen_token_number is not None:
+            user.gen_token_number += input.gen_token_number
+
+            # Disable user if gen_token_number exceeds token_limit
+            if user.gen_token_number > user.token_limit:
+                user.disabled = True
+                user.token_limit = 0
+
+        db.commit()
+
+        return {"message": "Gen token number updated"}
+    except Exception as e:
+        # Handle the exception here
+        return {"error": str(e)}
 # ------------------------------------ user Access methods ------------------------------------
 @router.post("/add_conversation/")
 async def add_conversation(
@@ -332,7 +372,7 @@ async def add_conversation(
     """
     try:
         # Check if the user exists by username
-        user = db.query(User).filter(User.username == input.username).first()
+        user = db.query(User).filter(User.username == current_user.username).first()
         if not user:
             # If the user doesn't exist, add it using the add_user function
             user_id = add_user(input)
@@ -379,7 +419,7 @@ async def delete_conversation(
         - dict: A dictionary with the response message or error details.
     """
     try:
-        user = db.query(User).filter(User.username == input.username).first()
+        user = db.query(User).filter(User.username == current_user.username).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -424,7 +464,7 @@ async def retrieve_conversation(
         HTTPException: If the user or conversation is not found in the database.
     """
     try:
-        user = db.query(User).filter(User.username == input.username).first()
+        user = db.query(User).filter(User.username == current_user.username).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -522,7 +562,7 @@ async def update_conversation(
         dict: A dictionary with the message "Conversation updated" if successful, or an error message if an exception occurs.
     """
     try:
-        user = db.query(User).filter(User.username == input.username).first()
+        user = db.query(User).filter(User.username == current_user.username).first()
 
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -580,7 +620,7 @@ async def update_conversation_name(
     """
     try:
         # Check if the user exists by username
-        user = db.query(User).filter(User.username == input.username).first()
+        user = db.query(User).filter(User.username == current_user.username).first()
 
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -666,7 +706,7 @@ async def get_user_conversations(
     """
     try:
         # Check if the user exists by username
-        user = db.query(User).filter(User.username == input.username).first()
+        user = db.query(User).filter(User.username == current_user.username).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -683,45 +723,6 @@ async def get_user_conversations(
 
     except Exception as e:
         # Handle the exception here
-        return {"error": str(e)}
+        return {"error": str(e),"username":input.username}
 
 
-@router.post("/update_token_number/")
-async def update_token_number(
-    input: Input,
-    current_user: LoginUser = Security(get_current_active_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Update the token number for a user.
-
-    Parameters:
-        - input: The input data for updating the token number.
-        - current_user: The currently logged-in user.
-        - db: The database session.
-
-    Returns:
-        - A dictionary with a message indicating that the token number has been updated,
-          or an error message if an exception occurs.
-    """
-    try:
-        user = db.query(User).filter(User.username == input.username).first()
-
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        # Update gen_token_number and check limits
-        if input.gen_token_number is not None:
-            user.gen_token_number += input.gen_token_number
-
-            # Disable user if gen_token_number exceeds token_limit
-            if user.gen_token_number > user.token_limit:
-                user.disabled = True
-                user.token_limit = 0
-
-        db.commit()
-
-        return {"message": "Gen token number updated"}
-    except Exception as e:
-        # Handle the exception here
-        return {"error": str(e)}
