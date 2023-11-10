@@ -8,29 +8,17 @@ from sqlalchemy.orm import sessionmaker
 from pydantic import BaseModel
 from typing import List, Dict
 from typing import Optional
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 DATABASE_URL = "sqlite:///./test.db"
-
 Base = declarative_base()
-
-
 class User(Base):
     __tablename__ = "users"
-
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     prompt_token_number = Column(Integer, default=0)  
     gen_token_number = Column(Integer, default=0)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
-    hashed_password = Column(String)
-
-
 class Conversation(Base):
     __tablename__ = "conversations"
-
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     conversation_number = Column(Integer)  # Add conversation number column
@@ -41,39 +29,28 @@ class Conversation(Base):
 
 class Input(BaseModel):
     username: Optional[str]
-    password: Optional[str]
     content: Optional[str]
     conversation_number: Optional[int]
     conversation_name: Optional[str] 
     user_id: Optional[int]
     prompt_token_number: Optional[int]
     gen_token_number: Optional[int]
-
-
 app = FastAPI()
-
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
-
-
 @app.post("/add_user/")
 def add_user(input: Input):
     db = SessionLocal()
-    hashed_password = pwd_context.hash(input.password) 
-    user = User(username=input.username, hashed_password=hashed_password,prompt_token_number=0, gen_token_number=0) 
-    
+    user = User(username=input.username, prompt_token_number=0, gen_token_number=0)
     db.add(user)
     db.commit()
     db.refresh(user)
     db.close()
     return {"user_id": user.id}
-
-
 @app.post("/add_conversation/")
 def add_conversation(input: Input):
     db = SessionLocal()
-
     # Check if the user exists by username
     user = db.query(User).filter(User.username == input.username).first()
     if not user:
@@ -84,7 +61,6 @@ def add_conversation(input: Input):
         )  # Retrieve the user object with the new ID
     else:
         user_id = user.id
-
     # Calculate the conversation number for the user
     conversation_number = (
         db.query(Conversation).filter(Conversation.user_id == user.id).count() + 1
@@ -100,9 +76,7 @@ def add_conversation(input: Input):
     db.add(conversation)
     db.commit()
     db.close()
-
     return {"message": "Conversation added"}
-
 
 @app.delete("/delete_user/")
 def delete_user(input: Input):
@@ -111,24 +85,18 @@ def delete_user(input: Input):
     if not user:
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
-
     db.query(Conversation).filter(Conversation.user_id == user.id).delete()
     db.delete(user)
     db.commit()
     db.close()
-
     return {"message": "User and related content deleted"}
-
-
 @app.delete("/delete_conversation/")
 def delete_conversation(input: Input):
     db = SessionLocal()
-
     user = db.query(User).filter(User.username == input.username).first()
     if not user:
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
-
     conversation = (
         db.query(Conversation)
         .filter(
@@ -137,23 +105,18 @@ def delete_conversation(input: Input):
         )
         .first()
     )
-
     if not conversation:
         db.close()
         raise HTTPException(status_code=404, detail="Conversation not found")
-
     db.delete(conversation)
     db.commit()
     db.close()
     return {"message": "Conversation deleted"}
-
-
 @app.get("/get_all_data/")
 def get_all_data():
     db = SessionLocal()
     users = db.query(User).all()
     data = []
-
     for user in users:
         user_data = {
             "user_id": user.id,
@@ -162,7 +125,6 @@ def get_all_data():
             "gen_token_number": user.gen_token_number,
             "conversations": [],
         }
-
         conversations = (
             db.query(Conversation)
             .filter(Conversation.user_id == user.id)
@@ -177,26 +139,18 @@ def get_all_data():
                     "timestamp": conversation.timestamp,
                 }
             )
-
         data.append(user_data)
-
     db.close()
     return data
-
-
-
 @app.get("/check_user_existence/")
 def check_user_existence(input: Input):
     db = SessionLocal()
     user = db.query(User).filter(User.username == input.username).first()
     db.close()
-
     if user:
-        return {"user_exists": True, "hashed_password": user.hashed_password}  # Return the hashed password
+        return {"user_exists": True}
     else:
         return {"user_exists": False}
-
-
 @app.post("/retrieve_conversation/")
 def retrieve_conversation(input: Input):
     db = SessionLocal()
@@ -204,7 +158,6 @@ def retrieve_conversation(input: Input):
     if not user:
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
-
     conversation = (
         db.query(Conversation)
         .filter(
@@ -213,11 +166,9 @@ def retrieve_conversation(input: Input):
         )
         .first()
     )
-
     if not conversation:
         db.close()
         raise HTTPException(status_code=404, detail="Conversation not found")
-
     db.close()
     return {
         "user_id": conversation.user_id,
@@ -231,21 +182,17 @@ def retrieve_conversation(input: Input):
 @app.get("/retrieve_latest_conversation/")
 def retrieve_latest_conversation(input: Input):
     db = SessionLocal()
-
     user = db.query(User).filter(User.username == input.username).first()
     if not user:
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
-
     conversation = (
         db.query(Conversation)
         .filter(Conversation.user_id == user.id)
         .order_by(Conversation.timestamp.desc())
         .first()
     )
-
     db.close()
-
     if conversation:
         return {
             "user_id": conversation.user_id,
@@ -255,8 +202,6 @@ def retrieve_latest_conversation(input: Input):
         }
     else:
         return {"message": "No conversations found for the user"}
-
-
 @app.post("/update_conversation/")
 def update_conversation(input: Input):
     db = SessionLocal()
@@ -265,7 +210,6 @@ def update_conversation(input: Input):
     if not user:
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
-
     conversation = (
         db.query(Conversation)
         .filter(
@@ -274,21 +218,16 @@ def update_conversation(input: Input):
         )
         .first()
     )
-
     if not conversation:
         db.close()
         raise HTTPException(status_code=404, detail="Conversation not found")
-
     # Update conversation content
     conversation.content = input.content
-
     # Increment prompt_token_number and gen_token_number if provided in the input
     if input.prompt_token_number is not None:
         user.prompt_token_number += input.prompt_token_number
-
     if input.gen_token_number is not None:
         user.gen_token_number += input.gen_token_number
-
     db.commit()
     db.close()
 
@@ -300,7 +239,7 @@ def update_conversation_name(input: Input):
 
     # Check if the user exists by username
     user = db.query(User).filter(User.username == input.username).first()
-    
+
     if not user:
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
@@ -331,24 +270,20 @@ def update_conversation_name(input: Input):
 @app.get("/retrieve_all_conversations/")
 def retrieve_all_conversations(input: Input):
     db = SessionLocal()
-
     # Check if the user exists by username
     user = db.query(User).filter(User.username == input.username).first()
-
     if not user:
         db.close()
         return None  # User not found, return None
-
     # Retrieve all conversations for the user
     conversations = db.query(Conversation).filter(Conversation.user_id == user.id).all()
-
     # Create a dictionary to store conversations (key: conversation_number, value: conversation_content)
     db.close()
-
     return len(conversations)
 @app.get("/get_user_conversations/")
 def get_user_conversations(input: Input):
     db = SessionLocal()
+    
 
     # Check if the user exists by username
     user = db.query(User).filter(User.username == input.username).first()
@@ -372,9 +307,7 @@ def get_user_conversations(input: Input):
 
 # Define other endpoints similarly
 # Remember to handle exceptions and error cases
-
 if __name__ == "__main__":
     import uvicorn
-
     Base.metadata.create_all(bind=engine)
     uvicorn.run(app, host="0.0.0.0", port=5000)

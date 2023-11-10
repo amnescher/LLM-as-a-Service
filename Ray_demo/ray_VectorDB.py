@@ -88,20 +88,6 @@ class VectorDataBase:
         processed_files = self.load_processed_files()
         return filename in processed_files
         
-    def add_pdf_to_DB(self, pdf_path):
-        if not self.is_file_processed(pdf_path):
-            loader = PyPDFLoader(pdf_path)
-            pages = loader.load_and_split()
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1500, chunk_overlap=200
-            )
-            texts = text_splitter.split_documents(pages)
-            self.vectorstore_doc.add_documents(texts)
-            self.vectorstore_doc.persist()
-            return True
-        else:
-            return False
-
     def save_processed_file(self, filename):
         processed_files = self.load_processed_files()
         processed_files.append(filename)
@@ -158,43 +144,6 @@ class VectorDataBase:
                 json.dump(video_list, f)
                 self.add_video_to_DB(video_url, collection, id)
             return True
-
-    def create_new_collection(self, name):
-        final_name = str(name)
-        print('final name', final_name)
-        collection = self.vectorstore_doc._client.get_or_create_collection(final_name)
-        print('collection created? ', collection)
-
-    def remove_collection(self, name):
-        final_name = str(name)
-        collection_to_remove = self.vectorstore_doc._client.get_collection(final_name)
-        collection_to_remove.delete()
-        self.vectorstore_doc._client.delete_collection(final_name)
-
-    def get_all_collections(self):
-        collection_list = self.vectorstore_doc._client.list_collections()
-        collection_names = [collection.name for collection in collection_list]
-        return collection_names
-    
-    def get_unique_ids(self, collection):
-        selected_collection = self.vectorstore_doc._client.get_collection(collection)
-        all_ids = selected_collection.get()['ids']
-        id_prefixe = []
-        for id in all_ids:
-            prefix = id.split('_')[0]
-            if prefix not in id_prefixe:
-                id_prefixe.append(prefix)
-        return id_prefixe
-
-    def delete_document(self, collection, name):
-        final_col_name = str(collection)
-        final_doc_name = str(name)
-        selected_collection = self.vectorstore_doc._client.get_collection(final_col_name)
-        document_filter = selected_collection.get()['ids']
-        filtered_ids = [id for id in document_filter if id.startswith(final_doc_name)]
-        selected_collection.delete(
-            ids = filtered_ids
-        )
 
     def weaviate_serialize_document(self, doc, title):
         
@@ -292,7 +241,7 @@ class VectorDataBase:
             self.weaviate_serialize_document(doc,doc_name) 
             for doc in text_docs
             ]
-        self.weaviate_client.batch.configure(batch_size=50)
+        self.weaviate_client.batch.configure(batch_size=50, num_workers=10, dynamic=True)
 
         with self.weaviate_client.batch as batch:
             for text in serialized_docs:
@@ -360,23 +309,6 @@ class VectorDataBase:
         #string_text = [doc.page_content for doc in text]
         embeddings_vec = self.embeddings.embed_query(text)
         return embeddings_vec
-    
-    def adding_webpage(self, url, collection, id):
-        loader= WebBaseLoader(str(url))
-        result = loader.load()
-        if id == "" or id == " " or id == None:
-            id = result[0].metadata['title']
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1500, chunk_overlap=400
-        )
-        texts = text_splitter.split_documents(result)
-        selected_collection = self.vectorstore_doc._client.get_collection(collection)
-        selected_collection.add(
-            documents = [doc.page_content for doc in texts],
-            embeddings=[self.get_embeddings(text) for text in [doc.page_content for doc in texts]],
-            ids=[(str(id)+ "_" +str(i)) for i in range(1, len(texts) + 1)],
-        )
-        self.vectorstore_doc.persist()
 
     async def __call__(self, request):
         data_type = request.query_params["data_type"]
