@@ -64,8 +64,8 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
 with SessionLocal() as db:
-    admin_username = "admin"
-    admin_password = "admin"
+    admin_username =  config.get("admin_username","admin")
+    admin_password = config.get("admin_password","admin")
 
     existing_admin = db.query(User).filter(User.username == admin_username).first()
     if not existing_admin:
