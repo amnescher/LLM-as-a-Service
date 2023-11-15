@@ -263,9 +263,11 @@ class VectorDataBase:
         VDB_type = request.VDB_type
         # Process the uploaded file
         if file:
+            # Check file size
             if file.size > MAX_FILE_SIZE:
                 raise HTTPException(status_code=413, detail="File size exceeds limit")
             file.file.seek(0)
+            # Check file type to be either PDF or ZIP
             if file.content_type == 'application/pdf':
                 self.process_pdf_file(await file.read())
                 

@@ -403,4 +403,5 @@ class PredictDeployment:
 
 
 
+
 serve.run(PredictDeployment.bind(), route_prefix="/")

@@ -16,28 +16,8 @@ This guide provides the steps to set up and run the LLM-as-a-Service on your mac
 - **GPU**: NVIDIA A100 or equivalent.
 - **Software**: CUDA version 11.8 or above.
 
-### System Packages
-
-Before proceeding, ensure the following packages are installed:
-
-```
-sudo apt install git vim python3 python3-pip
-```
-
 ## Python Environment Setup
-Install virtualenv:
-```
-sudo pip3 install virtualenv
-```
-Create a virtual environment:
-```
-virtualenv dev
-```
-Activate the virtual environment
-```
-source dev/bin/activate
 
-```
 Install required Python packages
 ```
 pip install -r requirements.txt
@@ -94,12 +74,9 @@ Run the Streamlit UI
 streamlit run UI/main.py
 ```
 For the first time login as admin to add new users.
-Login:
-Username: admin 
-Password: admin
-
-Add new users ans start using LLM service. 
+admin creientials are stored in ```cluster_config.yaml```
+More details of streamlit UI can be found [here](UI/README.md)
 
 ## Use EscherCloudAI API
-To use API service you need to get user access tokens to be able to send request to LLMs.
-You can fine more details of API here
+To use API service you need to get user access tokens, using streamlit UI, to be able to send request to LLMs API.
+You can fine more details of API [here](eschercloud/README.md)
