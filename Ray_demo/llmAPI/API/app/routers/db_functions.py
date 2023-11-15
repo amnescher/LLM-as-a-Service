@@ -100,6 +100,7 @@ async def add_user(
             hashed_password=hashed_password,
             prompt_token_number=0,
             gen_token_number=0,
+            collection_names= f"{input.username}_General_collection",
         )
 
         # Set token_limit if provided
@@ -184,6 +185,7 @@ async def get_all_data(
                 "token_limit": user.token_limit,
                 "role": user.role,
                 "disabled": user.disabled,
+                "collection_names": user.collection_names
             }
 
             conversations = (
