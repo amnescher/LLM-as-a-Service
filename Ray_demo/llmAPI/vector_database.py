@@ -68,7 +68,7 @@ with open("config.yaml", "r") as file:
         "min_replicas": 1,
         "initial_replicas": 1,
         "max_replicas": 3,
-        "max_concurrent_queries": 2,}, route_prefix="/VectoreDataBase")
+        "max_concurrent_queries": 2,})
 
 
 
@@ -241,9 +241,7 @@ class VectorDataBase:
             elif mode == "add_pdf":
                 pdf_path = request.query_params["pdf_path"]
                 class_name = request.query_params["class_name"]
-                #document_name = request.query_params["document_name"]
                 self.process_all_docs(pdf_path, class_name)
-                #self.adding_weaviate_document(pdf_path, class_name, document_name)
             elif mode == "add_webpage":
                 page_name = request.query_params['doc_name']
                 collection = request.query_params['collection']
@@ -258,4 +256,5 @@ class VectorDataBase:
                 cls = request.query_params["class_name"]
                 self.delete_weaviate_document(document_name, cls)
 
-app = VectorDataBase.bind()
+serve.run(VectorDataBase.bind(), route_prefix="/VectoreDataBase")
+#app = VectorDataBase.bind()
