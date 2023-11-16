@@ -21,8 +21,8 @@ DATABASE_URL = config.get("DATABASE_URL", "sqlite:///./test.db")  # Provide a fa
 DB_DIR = config.get("DB_DIR","CURRENT_DIR")
 if DB_DIR == "CURRENT_DIR":
     DB_DIR = os.getcwd()
-
-db_path = os.path.join(DB_DIR, "llm.db")
+db_name = config.get("DB_name","chat_bot_db")
+db_path = os.path.join(DB_DIR, f"{db_name}.db")
 DATABASE_URL = f"sqlite:///{db_path}"
 
 # Check if the database file exists
@@ -46,7 +46,8 @@ class User(Base):
     hashed_password = Column(String)
     disabled = Column(Boolean, default=False)
     token_limit = Column(Integer, default=1000)
-    role = Column(String, default="User")  
+    role = Column(String, default="User") 
+    collection_names = Column(String, default="") 
 
 # Conversation model
 class Conversation(Base):

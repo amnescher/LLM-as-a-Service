@@ -19,3 +19,4 @@ transformers
 scipy
 python-jose
 python-multipart
+weaviate-client

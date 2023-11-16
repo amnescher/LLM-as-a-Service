@@ -23,15 +23,31 @@ from langchain.text_splitter import CharacterTextSplitter
 import yaml
 import time
 from langchain.document_loaders import TextLoader
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
+from typing import Optional
+from pydantic import BaseModel
+import zipfile
+import os
+from io import BytesIO
+import shutil
+class Config:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
 
 
-@ray.remote(num_gpus=0.1)
+with open("cluster_conf.yaml", 'r') as file:
+    config = yaml.safe_load(file)
+    config = Config(**config)
+
+
+
+@ray.remote(num_gpus=config.VD_WeaviateEmbedder_num_gpus)
 class WeaviateEmbedder:
     def __init__(self):
         self.time_taken = 0
         self.text_list = []
         self.weaviate_client = weaviate.Client(
-            url="http://localhost:8080",   
+            url=config.weaviate_client_url,   
         )
 
     def adding_weaviate_document(self, text_lst, collection_name):
@@ -55,30 +71,35 @@ class WeaviateEmbedder:
     def get_time_taken(self):
         return self.time_taken
     
-class Config:
-    def __init__(self, **entries):
-        self.__dict__.update(entries)
+MAX_FILE_SIZE = config.max_file_size * 1024 * 1024  
+
+class VDBaseInput(BaseModel):
+    mode: str = "get_all"
+    web_urls: Optional[List[str]] = None
+    collection: Optional[str] = None
+    doc_name: Optional[str] = None
+    collection_name: Optional[str] = None
+    embedding_name: Optional[str] = None
+    VDB_type: str = "Weaviate"
 
 
-with open("config.yaml", "r") as file:
-    config = yaml.safe_load(file)
-    config = Config(**config)
-
-@serve.deployment(ray_actor_options={"num_gpus": 0.4}, autoscaling_config={
-        "min_replicas": 1,
-        "initial_replicas": 1,
-        "max_replicas": 3,
-        "max_concurrent_queries": 2,})
-
-
-
+app = FastAPI()
+@serve.deployment(ray_actor_options={"num_gpus": config.VD_deployment_num_gpus}, autoscaling_config={
+        "min_replicas": config.VD_min_replicas,
+        "initial_replicas": config.VD_initial_replicas,
+        "max_replicas": config.VD_max_replicas,
+        "max_concurrent_queries": config.VD_max_concurrent_queries,})
+@serve.ingress(app)
 class VectorDataBase:
     def __init__(self):
 
         self.weaviate_client = weaviate.Client(
-            url="http://localhost:8080",   
+            url=config.weaviate_client_url,   
         )
         self.weaviate_vectorstore = Weaviate(self.weaviate_client, 'Chatbot', 'page_content', attributes=['page_content'])
+        self.num_actors = config.VD_number_actors
+        self.chunk_size = config.VD_chunk_size
+        self.chunk_overlap = config.VD_chunk_overlap
 
     def weaviate_serialize_document(self,doc):
         document_title = doc.metadata.get('source', '').split('/')[-1]
@@ -88,7 +109,7 @@ class VectorDataBase:
         }
     
     def weaviate_split_multiple_pdf(self,docs):    
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+        text_splitter = CharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
 
         text_docs = text_splitter.split_documents(docs)
 
@@ -135,7 +156,7 @@ class VectorDataBase:
         if len(serialized_docs) <= 50:
             self.add_weaviate_document(cls, serialized_docs)
         else:
-            doc_workload = self.divide_workload(3, serialized_docs)
+            doc_workload = self.divide_workload(self.num_actors, serialized_docs)
             self.add_weaviate_batch_documents(cls, doc_workload)
 
     def add_weaviate_document(self, cls, docs):
@@ -209,52 +230,84 @@ class VectorDataBase:
                     },
         ]}
         self.weaviate_client.schema.create(schema)
+    async def process_pdf_file(self, file_data: bytes):
+        # Process the PDF file
+      
+        pass
+
+    async def extract_and_process_zip(self, file_data: bytes):
+        try:
+            with zipfile.ZipFile(BytesIO(file_data), 'r') as zip_ref:
+                # Extract ZIP file
+                tmp_dir = 'temp_dir'
+                os.makedirs(tmp_dir, exist_ok=True)
+                zip_ref.extractall(tmp_dir)
+
+                # Process each file in the ZIP
+                for filename in os.listdir(tmp_dir):
+                    if filename.endswith('.pdf'):
+                        file_path = os.path.join(tmp_dir, filename)
+                        with open(file_path, 'rb') as pdf_file:
+                            self.process_pdf_file(pdf_file.read())
+
+                # Clean up temporary directory
+                shutil.rmtree(tmp_dir)
+        except zipfile.BadZipFile:
+            raise HTTPException(status_code=400, detail="Invalid ZIP file")
+    @app.post("/VectorDataBase/")
+    async def VectorDataBase(self, request: VDBaseInput = Depends(), file: Optional[UploadFile] = File(None)):
 
 
-    async def __call__(self, request):
-        data_type = request.query_params["data_type"]
-        mode = request.query_params["mode"]
-        if data_type == "Video":
-            if mode == "clear":
-                self.clear_videos()
+
+        mode = request.mode
+        VDB_type = request.VDB_type
+        # Process the uploaded file
+        if file:
+            # Check file size
+            if file.size > MAX_FILE_SIZE:
+                raise HTTPException(status_code=413, detail="File size exceeds limit")
+            file.file.seek(0)
+            # Check file type to be either PDF or ZIP
+            if file.content_type == 'application/pdf':
+                self.process_pdf_file(await file.read())
+                
+            elif file.content_type == 'application/zip':
+                self.extract_and_process_zip(await file.read())
             else:
-                video_url = request.query_params["data_path"]
-                collection = request.query_params['collection']
-                video_name = request.query_params['doc_name']
-                print("recieved Video ----->", video_url)
-                self.save_video(video_url,collection, video_name)
-                print("video Uploaded Successfully")
-        elif data_type == "Weaviate":
+                raise HTTPException(status_code=400, detail="Unsupported file type")
+       
+        # Process the request
+        if VDB_type == "Weaviate":
             if mode == "create_class":
-                class_name = request.query_params["class_name"]	
-                embedding_name = request.query_params["embedding_name"]
-                #description = request.query_params["description"]
-                #class_description = request.query_params["class_description"]
+                class_name = request.class_name
+                embedding_name = request.embedding_name
                 self.create_weaviate_class(class_name, embedding_name)
             elif mode == "get_all":
                 classes = self.weaviate_client.schema.get()
                 class_names = [cls['class'] for cls in classes['classes']]
                 return JSONResponse(content={"weaviate": class_names})
             elif mode == "delete_class":
-                class_name = request.query_params["class_name"]
+                class_name = request.class_name
                 self.delete_weaviate_class(class_name)
             elif mode == "add_pdf":
-                pdf_path = request.query_params["pdf_path"]
-                class_name = request.query_params["class_name"]
+                pdf_path = request.pdf_path
+                class_name = request.class_name
+                #document_name = request.query_params["document_name"]
                 self.process_all_docs(pdf_path, class_name)
             elif mode == "add_webpage":
-                page_name = request.query_params['doc_name']
-                collection = request.query_params['collection']
-                page_url = request.query_params['data_path']
+                # should be able to parse a list of web addresses
+                page_name = request.doc_name
+                collection = request.collection
+                page_url = request.data_path
                 self.adding_weaviate_webpage(page_url, collection, page_name)
             elif mode == "get_all_document_per_class":
-                cls = request.query_params["class_name"]
+                cls = request.class_name
                 class_documents = self.query_weaviate_document_names(cls)
                 return JSONResponse(content={"weaviate": class_documents})
             elif mode == "delete_document":
-                document_name = request.query_params["document_name"]
-                cls = request.query_params["class_name"]
+                document_name = request.document_name
+                cls = request.class_name
                 self.delete_weaviate_document(document_name, cls)
 
-serve.run(VectorDataBase.bind(), route_prefix="/VectoreDataBase")
-#app = VectorDataBase.bind()
+
+serve.run(VectorDataBase.bind(), route_prefix="/")
