@@ -48,6 +48,7 @@ class User(Base):
     disabled = Column(Boolean, default=False)
     token_limit = Column(Integer, default=1000)
     role = Column(String, default="User")
+    collection_names = Column(String, default="")
 
 
 # Conversation model
@@ -203,3 +204,37 @@ class Database:
             "timestamp": conversation.timestamp,
             "conversation_name": conversation.conversation_name,
         }
+    def add_collection(self, input):
+        user = self.db.query(User).filter(User.username == input["username"]).first()
+        if not user:
+            return {"error": "User not found"}
+
+        new_collection_name = f"{input['username']}_{input['collection_name']}"
+        if new_collection_name in user.collection_names.split(','):
+            return {"error": "Collection already exists"}
+
+        user.collection_names += f",{new_collection_name}" if user.collection_names else new_collection_name
+        self.db.commit()
+        return {"message": "Collection added"}
+
+    def get_collections(self, input):
+        user = self.db.query(User).filter(User.username == input["username"]).first()
+        if not user:
+            return {"error": "User not found"}
+
+        return {"collections": user.collection_names.split(',')}
+    
+    def delete_collection(self, input):
+        user = self.db.query(User).filter(User.username == input["username"]).first()
+        if not user:
+            return {"error": "User not found"}
+        if input["collection_name"] == f"{input['username']}_General_collection":
+            return {"error": "Cannot delete the default collection"}
+        collection_names = user.collection_names.split(',')
+        if input["collection_name"] not in collection_names:
+            return {"error": "Collection not found"}
+        
+        collection_names.remove(input["collection_name"])
+        user.collection_names = ','.join(collection_names)
+        self.db.commit()
+        return {"message": "Collection deleted"}
