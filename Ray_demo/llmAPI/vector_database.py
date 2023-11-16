@@ -26,6 +26,7 @@ from langchain.document_loaders import TextLoader
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
 from typing import Optional
 from pydantic import BaseModel
+from backend_database import Database
 import zipfile
 import os
 from io import BytesIO
@@ -74,6 +75,7 @@ class WeaviateEmbedder:
 MAX_FILE_SIZE = config.max_file_size * 1024 * 1024  
 
 class VDBaseInput(BaseModel):
+    username: str = None
     mode: str = "get_all"
     web_urls: Optional[List[str]] = None
     collection: Optional[str] = None
@@ -83,13 +85,14 @@ class VDBaseInput(BaseModel):
     VDB_type: str = "Weaviate"
 
 
-app = FastAPI()
+VDB_app = FastAPI()
+
 @serve.deployment(ray_actor_options={"num_gpus": config.VD_deployment_num_gpus}, autoscaling_config={
         "min_replicas": config.VD_min_replicas,
         "initial_replicas": config.VD_initial_replicas,
         "max_replicas": config.VD_max_replicas,
         "max_concurrent_queries": config.VD_max_concurrent_queries,})
-@serve.ingress(app)
+@serve.ingress(VDB_app)
 class VectorDataBase:
     def __init__(self):
 
@@ -100,6 +103,7 @@ class VectorDataBase:
         self.num_actors = config.VD_number_actors
         self.chunk_size = config.VD_chunk_size
         self.chunk_overlap = config.VD_chunk_overlap
+        self.database = Database()
 
     def weaviate_serialize_document(self,doc):
         document_title = doc.metadata.get('source', '').split('/')[-1]
@@ -232,7 +236,6 @@ class VectorDataBase:
         self.weaviate_client.schema.create(schema)
     async def process_pdf_file(self, file_data: bytes):
         # Process the PDF file
-      
         pass
 
     async def extract_and_process_zip(self, file_data: bytes):
@@ -254,11 +257,8 @@ class VectorDataBase:
                 shutil.rmtree(tmp_dir)
         except zipfile.BadZipFile:
             raise HTTPException(status_code=400, detail="Invalid ZIP file")
-    @app.post("/VectorDataBase/")
+    @VDB_app.post("/VectorDataBase/")
     async def VectorDataBase(self, request: VDBaseInput = Depends(), file: Optional[UploadFile] = File(None)):
-
-
-
         mode = request.mode
         VDB_type = request.VDB_type
         # Process the uploaded file
@@ -281,7 +281,10 @@ class VectorDataBase:
             if mode == "create_class":
                 class_name = request.class_name
                 embedding_name = request.embedding_name
-                self.create_weaviate_class(class_name, embedding_name)
+                collection_name = self.database.add_collection(request)
+                return JSONResponse(content={"weaviate": collection_name})
+                #self.create_weaviate_class(class_name, embedding_name)
+
             elif mode == "get_all":
                 classes = self.weaviate_client.schema.get()
                 class_names = [cls['class'] for cls in classes['classes']]
@@ -290,6 +293,7 @@ class VectorDataBase:
                 class_name = request.class_name
                 self.delete_weaviate_class(class_name)
             elif mode == "add_pdf":
+                # if the coolection nsme is not passed use general collection
                 pdf_path = request.pdf_path
                 class_name = request.class_name
                 #document_name = request.query_params["document_name"]
@@ -309,5 +313,4 @@ class VectorDataBase:
                 cls = request.class_name
                 self.delete_weaviate_document(document_name, cls)
 
-
-serve.run(VectorDataBase.bind(), route_prefix="/")
+#serve.run(VectorDataBase.bind(), route_prefix="/")
