@@ -6,30 +6,33 @@ from dotenv import load_dotenv
 from sqlalchemy import Boolean
 from passlib.context import CryptContext
 import yaml
+import pathlib
 # from app.logging_config import setup_logger
 
-
+current_path = pathlib.Path(__file__).parent
+config_path = current_path/ 'cluster_conf.yaml'
 # Environment and DB setup
-with open("cluster_conf.yaml", 'r') as file:
+with open(config_path, 'r') as file:
     config = yaml.safe_load(file)
 
 
 
 DATABASE_URL = config.get("DATABASE_URL")
-SECRET_KEY = config.get("SECRET_KEY")
-ALGORITHM = config.get("ALGORITHM")
+
 DB_SERVICE_URL = config.get("DB_SERVICE_URL")  # Make sure this is used somewhere in your application
 DB_DIR = config.get("DB_DIR")
 if DB_DIR == "CURRENT_DIR":
     DB_DIR = os.getcwd()
-
-db_path = os.path.join(DB_DIR, "llm.db")
+DB_DIR = os.path.join(DB_DIR, "API")
+db_name = config.get("DB_name","chat_bot_db")
+db_path = os.path.join(DB_DIR, f"{db_name}.db")
 DATABASE_URL = f"sqlite:///{db_path}"
 
 # Check if the database file exists
 if not os.path.exists(db_path):
-    Base = declarative_base()
-    engine = create_engine(DATABASE_URL)
+    raise FileNotFoundError(f"Database file {db_path} not found.")
+else:
+    print(f"Database file {db_path} found.")
 
 
 # SQLAlchemy base class
@@ -206,16 +209,17 @@ class Database:
         }
     def add_collection(self, input):
         user = self.db.query(User).filter(User.username == input["username"]).first()
+        
         if not user:
             return {"error": "User not found"}
 
         new_collection_name = f"{input['username']}_{input['collection_name']}"
         if new_collection_name in user.collection_names.split(','):
-            return {"error": "Collection already exists"}
+            return {"collection_name": new_collection_name}
 
         user.collection_names += f",{new_collection_name}" if user.collection_names else new_collection_name
         self.db.commit()
-        return {"message": "Collection added"}
+        return {"collection_name": new_collection_name}
 
     def get_collections(self, input):
         user = self.db.query(User).filter(User.username == input["username"]).first()
@@ -238,3 +242,39 @@ class Database:
         user.collection_names = ','.join(collection_names)
         self.db.commit()
         return {"message": "Collection deleted"}
+    
+    def get_all_data(self):
+        self.db = SessionLocal()
+        users = self.db.query(User).all()
+        conversations = self.db.query(Conversation).all()
+
+        data = []
+        for user in users:
+            user_data = {
+                "id": user.id,
+                "username": user.username,
+                "prompt_token_number": user.prompt_token_number,
+                "gen_token_number": user.gen_token_number,
+                "timestamp": user.timestamp,
+                "disabled": user.disabled,
+                "token_limit": user.token_limit,
+                "role": user.role,
+                "collection_names": user.collection_names.split(","),
+                "conversations": []
+            }
+
+            # Add user's conversations
+            for conversation in conversations:
+                if conversation.user_id == user.id:
+                    user_data["conversations"].append({
+                        "conversation_id": conversation.id,
+                        "conversation_number": conversation.conversation_number,
+                        "content": conversation.content,
+                        "timestamp": conversation.timestamp,
+                        "conversation_name": conversation.conversation_name
+                    })
+
+            data.append(user_data)
+
+        self.db.close()
+        return data

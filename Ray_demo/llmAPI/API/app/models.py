@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from typing import Any, List
 
 class Token(BaseModel):
     access_token: str
@@ -45,3 +46,13 @@ class DataBaseRequest(BaseModel):
     prompt_token_number: Optional[int]
     gen_token_number: Optional[int]
     token_limit: Optional[int]
+
+class VectorDBRequest(BaseModel):
+    username: str = None
+    mode: str = "get_all"
+    web_urls: Optional[List[str]] = None
+    collection: Optional[str] = None
+    doc_name: Optional[str] = None
+    collection_name: Optional[str] = None
+    embedding_name: Optional[str] = None
+    VDB_type: str = "Weaviate"

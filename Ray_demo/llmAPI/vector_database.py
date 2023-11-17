@@ -257,7 +257,7 @@ class VectorDataBase:
                 shutil.rmtree(tmp_dir)
         except zipfile.BadZipFile:
             raise HTTPException(status_code=400, detail="Invalid ZIP file")
-    @VDB_app.post("/VectorDataBase/")
+    @VDB_app.post("/")
     async def VectorDataBase(self, request: VDBaseInput = Depends(), file: Optional[UploadFile] = File(None)):
         mode = request.mode
         VDB_type = request.VDB_type
@@ -278,11 +278,16 @@ class VectorDataBase:
        
         # Process the request
         if VDB_type == "Weaviate":
-            if mode == "create_class":
-                class_name = request.class_name
+            if mode == "add_class":
                 embedding_name = request.embedding_name
-                collection_name = self.database.add_collection(request)
-                return JSONResponse(content={"weaviate": collection_name})
+                response = self.database.add_collection({"username": request.username, "collection_name": request.collection_name})
+
+                if "collection_name" in response:
+                    collection_name = response["collection_name"]
+                    return JSONResponse(content={"response": collection_name})
+                else:
+                    return JSONResponse(content={"response": response})
+            
                 #self.create_weaviate_class(class_name, embedding_name)
 
             elif mode == "get_all":

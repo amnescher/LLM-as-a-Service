@@ -30,7 +30,7 @@ router = APIRouter()
 async def create_inference(data: InferenceRequest, current_user: User = Depends(get_current_active_user)):
     try:
         data.username = current_user.username
-        response = requests.post(f"{Ray_service_URL}/inference", json=data.dict())
+        response = requests.post(f"{Ray_service_URL}/llm", json=data.dict())
         response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
         
         # Extract data from the response

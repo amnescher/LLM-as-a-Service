@@ -21,6 +21,7 @@ DATABASE_URL = config.get("DATABASE_URL", "sqlite:///./test.db")  # Provide a fa
 DB_DIR = config.get("DB_DIR","CURRENT_DIR")
 if DB_DIR == "CURRENT_DIR":
     DB_DIR = os.getcwd()
+    
 db_name = config.get("DB_name","chat_bot_db")
 db_path = os.path.join(DB_DIR, f"{db_name}.db")
 DATABASE_URL = f"sqlite:///{db_path}"

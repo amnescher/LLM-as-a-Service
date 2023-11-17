@@ -390,7 +390,7 @@ class PredictDeployment:
 
         return results
 
-    @app.post("/inference")
+    @app.post("/")
     async def root(self, request: Input):
         try:
             self.logger.info("Received requests to /inference endpoint")

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.models import  InferenceRequest
+from app.models import  VectorDBRequest
 from app.depencencies.security import get_current_active_user
 from app.database import User
 import requests
@@ -27,10 +27,10 @@ Ray_service_URL = config.get("Ray_service_URL")
 router = APIRouter()
 
 @router.post("/")
-async def VectorDataBase(data: InferenceRequest, current_user: User = Depends(get_current_active_user)):
+async def VectorDataBase(data: VectorDBRequest, current_user: User = Depends(get_current_active_user)):
     try:
         data.username = current_user.username
-        response = requests.post(f"{Ray_service_URL}/VectoreDataBase", json=data.dict())
+        response = requests.post(f"{Ray_service_URL}/VectorDB", json=data.dict())
         response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
         
         # Extract data from the response
