@@ -303,7 +303,6 @@ class VectorDataBase:
                 class_name = request.class_name
                 #document_name = request.query_params["document_name"]
                 self.process_all_docs(pdf_path, class_name)
-                #self.adding_weaviate_document(pdf_path, class_name, document_name)
             elif mode == "add_webpage":
                 # should be able to parse a list of web addresses
                 page_name = request.doc_name
