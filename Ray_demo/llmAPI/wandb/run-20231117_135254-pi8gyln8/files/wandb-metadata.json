@@ -1,0 +1,186 @@
+{
+    "os": "Linux-5.19.0-46-generic-x86_64-with-glibc2.36",
+    "python": "3.10.7",
+    "heartbeatAt": "2023-11-17T13:52:55.005810",
+    "startedAt": "2023-11-17T13:52:54.432177",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--node-ip-address=192.168.0.224",
+        "--node-manager-port=39629",
+        "--object-store-name=/tmp/ray/session_2023-11-17_13-52-31_680597_2131987/sockets/plasma_store",
+        "--raylet-name=/tmp/ray/session_2023-11-17_13-52-31_680597_2131987/sockets/raylet",
+        "--redis-address=None",
+        "--temp-dir=/tmp/ray",
+        "--metrics-agent-port=38333",
+        "--runtime-env-agent-port=52612",
+        "--logging-rotate-bytes=536870912",
+        "--logging-rotate-backup-count=5",
+        "--runtime-env-agent-port=52612",
+        "--gcs-address=192.168.0.224:6379",
+        "--session-name=session_2023-11-17_13-52-31_680597_2131987",
+        "--temp-dir=/tmp/ray",
+        "--webui=127.0.0.1:8265",
+        "--cluster-id=fead78f09c6f2b78641753001d32682a80444c9be8dfdb5c4298fe30",
+        "--startup-token=27",
+        "--worker-launch-time-ms=1700229169948"
+    ],
+    "state": "running",
+    "program": "/home/ubuntu/dev/lib/python3.10/site-packages/ray/_private/workers/default_worker.py",
+    "codePathLocal": null,
+    "git": {
+        "remote": "https://github.com/amnescher/LLM-as-a-Service.git",
+        "commit": "1e80ac63069f87d224495ee6cdc0120930a5ecc8"
+    },
+    "email": "a.sabet@eschercloud.ai",
+    "root": "/home/ubuntu/falcon/gti_repo/LLM-as-a-Service",
+    "host": "amin-demo",
+    "username": "ubuntu",
+    "executable": "/home/ubuntu/dev/bin/python",
+    "cpu_count": 12,
+    "cpu_count_logical": 24,
+    "cpu_freq": {
+        "current": 2449.998,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2449.998,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 775.5194435119629,
+            "used": 612.7546730041504
+        }
+    },
+    "gpu": "NVIDIA A100 80GB PCIe",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA A100 80GB PCIe",
+            "memory_total": 85899345920
+        }
+    ],
+    "memory": {
+        "total": 188.69540405273438
+    }
+}

@@ -281,15 +281,11 @@ class VectorDataBase:
             if mode == "add_class":
                 embedding_name = request.embedding_name
                 response = self.database.add_collection({"username": request.username, "collection_name": request.collection_name})
-
                 if "collection_name" in response:
                     collection_name = response["collection_name"]
                     return JSONResponse(content={"response": collection_name})
                 else:
                     return JSONResponse(content={"response": response})
-            
-                #self.create_weaviate_class(class_name, embedding_name)
-
             elif mode == "get_all":
                 classes = self.weaviate_client.schema.get()
                 class_names = [cls['class'] for cls in classes['classes']]
