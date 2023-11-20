@@ -1,0 +1,23 @@
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/models/auto/configuration_auto.py:1020: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
+  warnings.warn(
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py:472: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
+  warnings.warn(
+
+
+
+
+
+
+
+Loading checkpoint shards: 100%|██████████| 15/15 [00:15<00:00,  1.06s/it]
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/utils/hub.py:374: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
+  warnings.warn(
+load INSTRUCTOR_Transformer
+max_seq_length  512
+INFO 2023-11-20 12:26:20,357 PredictDeployment LLM#PredictDeployment#VUijER 664a600a-115a-4a5b-9555-27b913bfcbea /llm/docs LLM replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-20 12:26:20,473 PredictDeployment LLM#PredictDeployment#VUijER 4a656b8d-0b7d-4ece-a1e0-b68e07458eef /llm/openapi.json LLM replica.py:749 - __CALL__ OK 10.5ms
+INFO 2023-11-20 12:26:43,258 PredictDeployment LLM#PredictDeployment#VUijER 9c37291e-98f7-459e-a1e8-bc0d72d51884 /llm/ LLM replica.py:749 - __CALL__ OK 6867.2ms
+INFO 2023-11-20 12:30:07,922 PredictDeployment LLM#PredictDeployment#VUijER f412f2a2-2f9c-42fa-b019-6afc282de217 /llm/docs LLM replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-20 12:30:08,029 PredictDeployment LLM#PredictDeployment#VUijER a682c783-bd57-4442-be4b-5433dd457611 /llm/openapi.json LLM replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-20 12:30:31,658 PredictDeployment LLM#PredictDeployment#VUijER aa8d9be2-1751-4064-8842-748a4a9ae698 /llm/ LLM replica.py:749 - __CALL__ OK 6284.4ms
+INFO 2023-11-20 12:32:34,622 PredictDeployment LLM#PredictDeployment#VUijER 88d1879b-4e0e-4416-9f16-251a35493fa4 /llm LLM replica.py:749 - __CALL__ OK 0.4ms

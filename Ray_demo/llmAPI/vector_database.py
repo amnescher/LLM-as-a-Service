@@ -1,22 +1,9 @@
 import binascii
 from typing import Any, List
-
 import pypdf
 import ray
-from langchain.chains.conversation.memory import ConversationBufferMemory
-import pandas as pd
 from ray import serve
 import os
-from langchain.embeddings import HuggingFaceInstructEmbeddings
-from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
-from langchain.vectorstores import Chroma
-from langchain.document_loaders import YoutubeLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-import json
-from langchain.document_loaders import PyPDFLoader, WebBaseLoader
-import io
-from ray.data.datasource import FileExtensionFilter
 import weaviate
 from langchain.vectorstores import Weaviate
 from langchain.text_splitter import CharacterTextSplitter
@@ -31,6 +18,9 @@ import zipfile
 import os
 from io import BytesIO
 import shutil
+import logging
+
+
 class Config:
     def __init__(self, **entries):
         self.__dict__.update(entries)
@@ -75,14 +65,9 @@ class WeaviateEmbedder:
 MAX_FILE_SIZE = config.max_file_size * 1024 * 1024  
 
 class VDBaseInput(BaseModel):
-    username: str = None
-    mode: str = "get_all"
-    web_urls: Optional[List[str]] = None
-    collection: Optional[str] = None
-    doc_name: Optional[str] = None
-    collection_name: Optional[str] = None
-    embedding_name: Optional[str] = None
-    VDB_type: str = "Weaviate"
+    username: str 
+    collection_name: Optional[str] 
+
 
 
 VDB_app = FastAPI()
@@ -104,6 +89,15 @@ class VectorDataBase:
         self.chunk_size = config.VD_chunk_size
         self.chunk_overlap = config.VD_chunk_overlap
         self.database = Database()
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            filename="app.log",  # specify the file name if you want logging to be stored in a file
+            filemode="a",  # append to the log file if it exists
+        )
+
+        self.logger = logging.getLogger(__name__)
+        self.logger.propagate = True
 
     def weaviate_serialize_document(self,doc):
         document_title = doc.metadata.get('source', '').split('/')[-1]
@@ -259,59 +253,32 @@ class VectorDataBase:
             raise HTTPException(status_code=400, detail="Invalid ZIP file")
     @VDB_app.post("/")
     async def VectorDataBase(self, request: VDBaseInput = Depends(), file: Optional[UploadFile] = File(None)):
-        mode = request.mode
-        VDB_type = request.VDB_type
-        # Process the uploaded file
-        if file:
-            # Check file size
-            if file.size > MAX_FILE_SIZE:
-                raise HTTPException(status_code=413, detail="File size exceeds limit")
-            file.file.seek(0)
-            # Check file type to be either PDF or ZIP
-            if file.content_type == 'application/pdf':
-                self.process_pdf_file(await file.read())
-                
-            elif file.content_type == 'application/zip':
-                self.extract_and_process_zip(await file.read())
-            else:
-                raise HTTPException(status_code=400, detail="Unsupported file type")
-       
-        # Process the request
-        if VDB_type == "Weaviate":
-            if mode == "add_class":
-                embedding_name = request.embedding_name
-                response = self.database.add_collection({"username": request.username, "collection_name": request.collection_name})
-                if "collection_name" in response:
-                    collection_name = response["collection_name"]
-                    return JSONResponse(content={"response": collection_name})
+
+        try:
+    # Code where potential errors may occur
+
+            # Process the uploaded file
+            if file:
+                # Check file size
+                if file.size > MAX_FILE_SIZE:
+                    raise HTTPException(status_code=413, detail="File size exceeds limit")
+                file.file.seek(0)
+                # Check file type to be either PDF or ZIP
+                if file.content_type == 'application/pdf':
+                    self.process_pdf_file(await file.read())
+                    
+                elif file.content_type == 'application/zip':
+                    self.extract_and_process_zip(await file.read())
                 else:
-                    return JSONResponse(content={"response": response})
-            elif mode == "get_all":
-                classes = self.weaviate_client.schema.get()
-                class_names = [cls['class'] for cls in classes['classes']]
-                return JSONResponse(content={"weaviate": class_names})
-            elif mode == "delete_class":
-                class_name = request.class_name
-                self.delete_weaviate_class(class_name)
-            elif mode == "add_pdf":
-                # if the coolection nsme is not passed use general collection
-                pdf_path = request.pdf_path
-                class_name = request.class_name
-                #document_name = request.query_params["document_name"]
-                self.process_all_docs(pdf_path, class_name)
-            elif mode == "add_webpage":
-                # should be able to parse a list of web addresses
-                page_name = request.doc_name
-                collection = request.collection
-                page_url = request.data_path
-                self.adding_weaviate_webpage(page_url, collection, page_name)
-            elif mode == "get_all_document_per_class":
-                cls = request.class_name
-                class_documents = self.query_weaviate_document_names(cls)
-                return JSONResponse(content={"weaviate": class_documents})
-            elif mode == "delete_document":
-                document_name = request.document_name
-                cls = request.class_name
-                self.delete_weaviate_document(document_name, cls)
+                    raise HTTPException(status_code=400, detail="Unsupported file type")
+        
+            # Process the request
+        
+            response = self.database.add_collection({"username": request.username, "collection_name": request.collection_name})
+            self.logger.info(f"Collection created for user {request.username}: %s", response)
+            return {"response": request.username}
+        except Exception as e:
+            self.logger.error("An error occurred: %s", str(e))
+
 
 #serve.run(VectorDataBase.bind(), route_prefix="/")

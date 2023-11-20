@@ -28,6 +28,11 @@ In the cluster_conf.yaml, you must specify access tokens for both your Huggingfa
 
 If you wish not to monitor deployment logging, set WANDB_ENABLE to False.
 When WANDB_ENABLE is set to False, there's no need to provide a Weights & Biases token.
+## Run Weaviate container 
+
+```
+sudo docker compose up -d
+```
 
 ## Running the Inference Service Locally 
 Initialize a RAY cluster

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Depends
 from app.models import  VectorDBRequest
 from app.depencencies.security import get_current_active_user
 from app.database import User
@@ -6,6 +6,7 @@ import requests
 from dotenv import load_dotenv
 import os
 import yaml
+from typing import Optional
 
 # Load environment variables
 
@@ -27,15 +28,21 @@ Ray_service_URL = config.get("Ray_service_URL")
 router = APIRouter()
 
 @router.post("/")
-async def VectorDataBase(data: VectorDBRequest, current_user: User = Depends(get_current_active_user)):
+async def create_inference(data: VectorDBRequest= Depends(), 
+                           current_user: User = Depends(get_current_active_user),
+                           file: Optional[UploadFile] = File(None)):
     try:
         data.username = current_user.username
-        response = requests.post(f"{Ray_service_URL}/VectorDB/", json=data.dict())
-        response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
-        
-        # Extract data from the response
+
+        # # Handle the file if it is provided
+        # if file:
+        #     # Process the file here as needed
+        #     pass
+        response = requests.post(f"{Ray_service_URL}/VectorDB", params=data.dict())
+        response.raise_for_status()  # Raises an HTTPError for unsuccessful status codes
+
         response_data = response.json()
-        return {"username": current_user.username, "data": response_data}
+        return {"username": current_user.username, "response": response_data}
 
     except requests.HTTPError as e:
         if response.status_code == 400:

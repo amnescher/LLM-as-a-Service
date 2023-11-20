@@ -48,11 +48,6 @@ class DataBaseRequest(BaseModel):
     token_limit: Optional[int]
 
 class VectorDBRequest(BaseModel):
-    username: str = None
-    mode: str = "get_all"
-    web_urls: Optional[List[str]] = None
-    collection: Optional[str] = None
-    doc_name: Optional[str] = None
-    collection_name: Optional[str] = None
-    embedding_name: Optional[str] = None
-    VDB_type: str = "Weaviate"
+
+    username: str 
+    collection_name: Optional[str] 
