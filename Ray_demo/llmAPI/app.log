@@ -177,3 +177,7 @@
 2023-11-20 14:17:28,736 - INFO - Collection created for user admin: {'collection_name': 'admin_ff'}
 2023-11-20 14:36:18,105 - INFO - Collection created for user admin: {'collection_name': 'admin_None'}
 2023-11-20 14:36:28,260 - INFO - Collection created for user admin: {'collection_name': 'admin_zz'}
+2023-11-21 10:08:48,545 - INFO - Collection created for user admin: {'collection_name': 'admin_test1'}
+2023-11-21 10:09:28,307 - INFO - Collection created for user admin: {'collection_name': 'admin_test2'}
+2023-11-21 10:26:38,196 - INFO -  file Car rental doc.pdf received for user admin: 
+2023-11-21 10:26:38,218 - INFO - Collection created for user admin: {'collection_name': 'admin_test3'}

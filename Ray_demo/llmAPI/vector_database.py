@@ -260,6 +260,7 @@ class VectorDataBase:
             # Process the uploaded file
             if file:
                 # Check file size
+                self.logger.info(f" file %s received for user {request.username}: ", file.filename)
                 if file.size > MAX_FILE_SIZE:
                     raise HTTPException(status_code=413, detail="File size exceeds limit")
                 file.file.seek(0)
