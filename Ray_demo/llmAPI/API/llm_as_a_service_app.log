@@ -802,3 +802,9 @@ WHERE users.username = ?
 2023-11-21 10:05:47,527 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
 2023-11-21 10:05:47,527 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
 2023-11-21 10:05:47,527 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-21 11:43:34,331 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-21 11:43:34,331 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-21 11:43:34,331 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-21 11:58:51,134 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-21 11:58:51,134 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-21 11:58:51,134 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin

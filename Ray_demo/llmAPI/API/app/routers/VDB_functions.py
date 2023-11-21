@@ -18,6 +18,9 @@ import yaml
 current_path = pathlib.Path(__file__).parent
 
 config_path = current_path.parent.parent.parent / 'cluster_conf.yaml'
+received_files_dir = os.path.join(current_path.parent.parent.parent, 'received_files')
+os.makedirs(received_files_dir, exist_ok=True)
+
 # Environment and DB setup
 with open(config_path, "r") as file:
     config = yaml.safe_load(file)
@@ -33,21 +36,23 @@ async def create_inference(data: VectorDBRequest = Depends(),
                            file: Optional[UploadFile] = File(None)):
     try:
         data.username = current_user.username
-        data_dict = data.dict()
+        
 
         # Check if a file is included in the request
         if file:
-            # Preparing the file and data for the multipart/form-data request
-            file_content = await file.read()
-            files = {'file': (file.filename, io.BytesIO(file_content), file.content_type)}
-            data_dict.pop('file', None)  # Ensure no conflicting 'file' key in data
+            if file.content_type in ['application/pdf', 'application/zip']:
+                # Save the file
+                file_path = os.path.join(received_files_dir, f"{current_user.username}_{file.filename}")
+                with open(file_path, "wb") as file_object:
+                    file_object.write(await file.read())
 
-            # Multipart/form-data request
-            response = requests.post(f"{Ray_service_URL}/VectorDB", files=files, params=data_dict)
-        else:
-            # Standard request without file
-            response = requests.post(f"{Ray_service_URL}/VectorDB", params=data_dict)
-
+                # Update the file path in the request data
+                data.file_path  = file_path
+            else:
+                raise HTTPException(status_code=400, detail="Unsupported file type")
+        data_dict = data.dict()
+        # Send the request to the external service
+        response = requests.post(f"{Ray_service_URL}/VectorDB", json=data_dict)
         response.raise_for_status()  # Raises an HTTPError for unsuccessful status codes
         response_data = response.json()
         return {"username": current_user.username, "response": response_data}

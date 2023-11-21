@@ -95,12 +95,16 @@ async def add_user(
             )
 
         hashed_password = pwd_context.hash(input.password)
+        collection_username = input.username
+        # the fist letter of collection name is set to uppecase because when bulding collections in Weaviate , the Weaviate will set the first letter to uppercase by default
+        if collection_username and collection_username[0].isalpha():
+            collection_username= collection_username[0].upper() + collection_username[1:]
         user = User(
             username=input.username,
             hashed_password=hashed_password,
             prompt_token_number=0,
             gen_token_number=0,
-            collection_names= f"{input.username}_General_collection",
+            collection_names= f"{collection_username}_General_collection",
         )
 
         # Set token_limit if provided

@@ -1,62 +1,37 @@
 import binascii
 from typing import Any, List
+
 import pypdf
 import ray
+from langchain.chains.conversation.memory import ConversationBufferMemory
+import pandas as pd
 from ray import serve
 import os
+from langchain.embeddings import HuggingFaceInstructEmbeddings
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
+from langchain.vectorstores import Chroma
+from langchain.document_loaders import YoutubeLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import json
+from langchain.document_loaders import PyPDFLoader, WebBaseLoader
+import io
+from ray.data.datasource import FileExtensionFilter
 import weaviate
 from langchain.vectorstores import Weaviate
 from langchain.text_splitter import CharacterTextSplitter
 import yaml
 import time
 from langchain.document_loaders import TextLoader
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
-from typing import Optional
-from pydantic import BaseModel
-from backend_database import Database
-import zipfile
-import os
-from io import BytesIO
-import shutil
-import logging
-from langchain.document_loaders import PyPDFLoader
-
-class Config:
-    def __init__(self, **entries):
-        self.__dict__.update(entries)
 
 
-with open("cluster_conf.yaml", 'r') as file:
-    config = yaml.safe_load(file)
-    config = Config(**config)
-
-
-
-@ray.remote(num_gpus=config.VD_WeaviateEmbedder_num_gpus)
+@ray.remote(num_gpus=0.1)
 class WeaviateEmbedder:
     def __init__(self):
         self.time_taken = 0
         self.text_list = []
-        # adding logger for debugging
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            filename="app.log",  # specify the file name if you want logging to be stored in a file
-            filemode="a",  # append to the log file if it exists
-        )
-
-        self.logger = logging.getLogger(__name__)
-        self.logger.propagate = True
-
-        try:
-            self.weaviate_client = weaviate.Client(
-                url=config.weaviate_client_url,   
-            )
-        except:
-            self.logger.error("Error in connecting to Weaviate")
-            
         self.weaviate_client = weaviate.Client(
-            url=config.weaviate_client_url,   
+            url="http://localhost:8080",   
         )
 
     def adding_weaviate_document(self, text_lst, collection_name):
@@ -76,49 +51,34 @@ class WeaviateEmbedder:
 
     def get(self):
         return self.lst_embeddings
-    
+
     def get_time_taken(self):
         return self.time_taken
-    
-MAX_FILE_SIZE = config.max_file_size * 1024 * 1024  
 
-class VDBaseInput(BaseModel):
-    username: str 
-    collection_name: Optional[str] 
-    mode: str = "add_to_collection"
-    vectorDB_type: Optional[str] = "Weaviate"
-    file_path: Optional[str] = None
+class Config:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
 
 
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+    config = Config(**config)
 
-VDB_app = FastAPI()
+@serve.deployment(ray_actor_options={"num_gpus": 0.4}, autoscaling_config={
+        "min_replicas": 1,
+        "initial_replicas": 1,
+        "max_replicas": 3,
+        "max_concurrent_queries": 2,}, route_prefix="/VectoreDataBase")
 
-@serve.deployment(ray_actor_options={"num_gpus": config.VD_deployment_num_gpus}, autoscaling_config={
-        "min_replicas": config.VD_min_replicas,
-        "initial_replicas": config.VD_initial_replicas,
-        "max_replicas": config.VD_max_replicas,
-        "max_concurrent_queries": config.VD_max_concurrent_queries,})
-@serve.ingress(VDB_app)
+
+
 class VectorDataBase:
     def __init__(self):
 
         self.weaviate_client = weaviate.Client(
-            url=config.weaviate_client_url,   
+            url="http://localhost:8080",   
         )
         self.weaviate_vectorstore = Weaviate(self.weaviate_client, 'Chatbot', 'page_content', attributes=['page_content'])
-        self.num_actors = config.VD_number_actors
-        self.chunk_size = config.VD_chunk_size
-        self.chunk_overlap = config.VD_chunk_overlap
-        self.database = Database()
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            filename="app.log",  # specify the file name if you want logging to be stored in a file
-            filemode="a",  # append to the log file if it exists
-        )
-
-        self.logger = logging.getLogger(__name__)
-        self.logger.propagate = True
 
     def weaviate_serialize_document(self,doc):
         document_title = doc.metadata.get('source', '').split('/')[-1]
@@ -126,9 +86,9 @@ class VectorDataBase:
             "page_content": doc.page_content,
             "document_title": document_title,
         }
-    
+
     def weaviate_split_multiple_pdf(self,docs):    
-        text_splitter = CharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
+        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
 
         text_docs = text_splitter.split_documents(docs)
 
@@ -175,7 +135,7 @@ class VectorDataBase:
         if len(serialized_docs) <= 50:
             self.add_weaviate_document(cls, serialized_docs)
         else:
-            doc_workload = self.divide_workload(self.num_actors, serialized_docs)
+            doc_workload = self.divide_workload(3, serialized_docs)
             self.add_weaviate_batch_documents(cls, doc_workload)
 
     def add_weaviate_document(self, cls, docs):
@@ -200,7 +160,7 @@ class VectorDataBase:
             if document_title is not None:
                 document_title_set.add(document_title)
         return list(document_title_set)
-    
+
     def delete_weaviate_document(self, name, cls_name):
         document_name = str(name)
         self.weaviate_client.batch.delete_objects(
@@ -216,11 +176,11 @@ class VectorDataBase:
         class_name = name
         self.weaviate_client.schema.delete_class(class_name)
 
-    def create_weaviate_class(self, name, embedding_model="text2vec-transformers"):
+    def create_weaviate_class(self, name, embedding_model):
         class_name = str(name)
         #class_description = str(description)
         vectorizer = str(embedding_model)
-        
+
         schema = {'classes': [ 
             {
                     'class': class_name,
@@ -249,55 +209,54 @@ class VectorDataBase:
                     },
         ]}
         self.weaviate_client.schema.create(schema)
-    async def process_pdf_file(self, file_data: bytes):
-        # Process the PDF file
-        pass
-
-    async def extract_and_process_zip(self, file_data: bytes):
-        try:
-            with zipfile.ZipFile(BytesIO(file_data), 'r') as zip_ref:
-                # Extract ZIP file
-                tmp_dir = 'temp_dir'
-                os.makedirs(tmp_dir, exist_ok=True)
-                zip_ref.extractall(tmp_dir)
-
-                # Process each file in the ZIP
-                for filename in os.listdir(tmp_dir):
-                    if filename.endswith('.pdf'):
-                        file_path = os.path.join(tmp_dir, filename)
-                        with open(file_path, 'rb') as pdf_file:
-                            self.process_pdf_file(pdf_file.read())
-
-                # Clean up temporary directory
-                shutil.rmtree(tmp_dir)
-        except zipfile.BadZipFile:
-            raise HTTPException(status_code=400, detail="Invalid ZIP file")
-    @VDB_app.post("/")
-    async def VectorDataBase(self, request: VDBaseInput):
-            try:
-                if request.mode == "add_to_collection":
-                    response  = self.process_all_docs(request.file_path, request.collection_name)
-                elif request.mode == "query_collection":
-                    response = self.query_weaviate_document_names(request.collection_name)
-                elif request.mode == "delete_collection":
-                    self.delete_weaviate_class(request.collection_name)
-                elif request.mode == "delete_document":
-                    self.delete_weaviate_document(request.data, request.collection_name)
-                elif request.mode == "create_collection":
-                    response = self.database.add_collection({"username": request.username, "collection_name": request.collection_name})
-                    collection_name = response["collection_name"]
-                    self.create_weaviate_class(collection_name)
-                    # request.vectorDB_type needs to be replace with a variable read from config file
-                self.logger.info(f"request processed successfully {request}: %s", )
-                return {"username": request.username, "response": response}
-            except Exception as e:
-                self.logger.error("An error occurred: %s", str(e))
-                
 
 
-#serve.run(VectorDataBase.bind(), route_prefix="/")
+    async def __call__(self, request):
+        data_type = request.query_params["data_type"]
+        mode = request.query_params["mode"]
+        if data_type == "Video":
+            if mode == "clear":
+                self.clear_videos()
+            else:
+                video_url = request.query_params["data_path"]
+                collection = request.query_params['collection']
+                video_name = request.query_params['doc_name']
+                print("recieved Video ----->", video_url)
+                self.save_video(video_url,collection, video_name)
+                print("video Uploaded Successfully")
+        elif data_type == "Weaviate":
+            if mode == "create_class":
+                class_name = request.query_params["class_name"]	
+                embedding_name = request.query_params["embedding_name"]
+                #description = request.query_params["description"]
+                #class_description = request.query_params["class_description"]
+                self.create_weaviate_class(class_name, embedding_name)
+            elif mode == "get_all":
+                classes = self.weaviate_client.schema.get()
+                class_names = [cls['class'] for cls in classes['classes']]
+                return JSONResponse(content={"weaviate": class_names})
+            elif mode == "delete_class":
+                class_name = request.query_params["class_name"]
+                self.delete_weaviate_class(class_name)
+            elif mode == "add_pdf":
+                pdf_path = request.query_params["pdf_path"]
+                class_name = request.query_params["class_name"]
+                #document_name = request.query_params["document_name"]
+                self.process_all_docs(pdf_path, class_name)
+                #self.adding_weaviate_document(pdf_path, class_name, document_name)
+            elif mode == "add_webpage":
+                page_name = request.query_params['doc_name']
+                collection = request.query_params['collection']
+                page_url = request.query_params['data_path']
+                self.adding_weaviate_webpage(page_url, collection, page_name)
+            elif mode == "get_all_document_per_class":
+                cls = request.query_params["class_name"]
+                class_documents = self.query_weaviate_document_names(cls)
+                return JSONResponse(content={"weaviate": class_documents})
+            elif mode == "delete_document":
+                document_name = request.query_params["document_name"]
+                cls = request.query_params["class_name"]
+                self.delete_weaviate_document(document_name, cls)
 
-# Note: remember Weaviate put capital letter for first letter of the collection name 
 
-
-#serve.run(VectorDataBase.bind(), route_prefix="/")
+serve.run(VectorDataBase.bind(), route_prefix="/VectorDB")

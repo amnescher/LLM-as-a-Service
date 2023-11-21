@@ -209,11 +209,14 @@ class Database:
         }
     def add_collection(self, input):
         user = self.db.query(User).filter(User.username == input["username"]).first()
-        
+        # the fist letter of collection name is set to uppecase because when bulding collections in Weaviate , the Weaviate will set the first letter to uppercase by default
         if not user:
             return {"error": "User not found"}
+        if input["username"] and input["username"][0].isalpha():
+            input["username"]= input["username"][0].upper() + input["username"][1:]
 
-        new_collection_name = f"{input['username']}_{input['collection_name']}"
+        username = input["username"]
+        new_collection_name = f"{username}_{input['collection_name']}"
         if new_collection_name in user.collection_names.split(','):
             return {"collection_name": new_collection_name}
 
