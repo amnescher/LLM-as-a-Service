@@ -22,23 +22,7 @@ import yaml
 import time
 
 
-
-class RayConfig:
-    def __init__(self, **entries):
-        self.__dict__.update(entries)   
-        self. num_gpus = 0
-        self. min_replicas = 1
-        self. initial_replicas = 1
-        self. max_replicas = 1
-        self. target_num_ongoing_requests_per_replica = 1
-        self. graceful_shutdown_wait_loop_s = 0
-        self. max_concurrent_queries = 1
-
-    def __str__(self):
-        return str(self.__dict__)
-
-
-
+# ------------------- Configuration --------------------
 class Config:
     def __init__(self, **entries):
         self.__dict__.update(entries)
@@ -56,12 +40,12 @@ class Input(BaseModel):
     conversation_number: Optional[int]
     AI_assistance: Optional[bool]
     collection_name: Optional[str]
+    llm_model: Optional[str]
 
 
 # ------------------------------ LLM Deployment -------------------------------
 
 app = FastAPI()
-
 @serve.deployment()
 @serve.ingress(app)
 class PredictDeployment:
@@ -69,23 +53,22 @@ class PredictDeployment:
                  temperature =  0.01,
                  max_new_tokens=  512,
                  repetition_penalty= 1.1,
-                 batch_size= 2,
-                 max_batch_size = 2,
-                 batch_wait_timeout_s= 0.1):
+                 batch_size= 2):
         import os
         from langchain.llms import HuggingFacePipeline
         from torch import cuda, bfloat16
         import transformers
         from langchain.chains import RetrievalQA
-        from langchain import PromptTemplate, LLMChain
+        from langchain import PromptTemplate
 
+        # class initialization
         self.model_id = model_id
         self.temperature = temperature
         self.max_new_tokens = max_new_tokens
         self.repetition_penalty = repetition_penalty
         self.batch_size = batch_size
 
-
+        #setting up weight and bias logging
         self.wandb_logging_enabled = config.WANDB_ENABLE
         if self.wandb_logging_enabled:
             try:
@@ -99,6 +82,7 @@ class PredictDeployment:
             except:
                 self.wandb_logging_enabled = False
                 pass
+        # load config
         with open("cluster_conf.yaml", "r") as self.file:
             self.config = yaml.safe_load(self.file)
             self.config = Config(**self.config)
@@ -108,6 +92,7 @@ class PredictDeployment:
         self.device = f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
         self.B_INST, self.E_INST = "[INST]", "[/INST]"
         self.B_SYS, self.E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
+
         self.DEFAULT_SYSTEM_PROMPT = """\
         You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
 
@@ -122,6 +107,8 @@ class PredictDeployment:
         {chat_history}
         Human: {input}
         AI:"""
+
+        # setting up logging for debugging
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(levelname)s - %(message)s",
@@ -132,9 +119,9 @@ class PredictDeployment:
         self.logger = logging.getLogger(__name__)
         self.logger.propagate = True
         
+        # set quantization configuration to load large model 
         self.device = f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
      
-        # set quantization configuration to load large model with less GPU memory
         # this requires the `bitsandbytes` library
         bnb_config = transformers.BitsAndBytesConfig(
             load_in_4bit=True,

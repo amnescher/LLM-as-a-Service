@@ -7,9 +7,6 @@ from dotenv import load_dotenv
 import os
 import yaml
 
-# Load environment variables
-
-
 import pathlib
 #from app.logging_config import setup_logger
 import yaml
@@ -22,6 +19,11 @@ with open(config_path, "r") as file:
     config = yaml.safe_load(file)
 
 
+def get_route_prefix_for_llm(llm_name):
+    for llm in config['LLMs']:
+        if llm['name'] == llm_name:
+            return llm['route_prefix']
+    return None
 
 Ray_service_URL = config.get("Ray_service_URL")
 router = APIRouter()
@@ -30,9 +32,14 @@ router = APIRouter()
 async def create_inference(data: InferenceRequest, current_user: User = Depends(get_current_active_user)):
     try:
         data.username = current_user.username
-        response = requests.post(f"{Ray_service_URL}/llm", json=data.dict())
-        response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
-        
+        if data.llm_model == "llama_70b" or data.llm_model == None:
+            prefix = get_route_prefix_for_llm("Llama_70b") 
+            response = requests.post(f"{Ray_service_URL}/{prefix}", json=data.dict())
+            response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
+        elif data.llm_model == "llama_13b":
+            prefix = get_route_prefix_for_llm("Llama_13b")
+            response = requests.post(f"{Ray_service_URL}/{prefix}", json=data.dict())
+            response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
         # Extract data from the response
         response_data = response.json()
         return {"username": current_user.username, "data": response_data}

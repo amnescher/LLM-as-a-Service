@@ -342,3 +342,21 @@
 2023-11-23 13:25:55,604 - INFO - Received a batch of request with batch size of: 1 
 2023-11-23 13:25:55,604 - INFO - Received request: {'username': 'admin', 'prompt': 'hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': True, 'collection_name': 'string'}
 2023-11-23 13:26:02,572 - INFO - Processed the request successfully
+2023-11-23 14:33:21,216 - INFO - Created a temporary directory at /tmp/tmpjb8ykvvk
+2023-11-23 14:33:21,216 - INFO - Writing /tmp/tmpjb8ykvvk/_remote_module_non_scriptable.py
+2023-11-23 14:33:23,368 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 14:33:40,879 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 14:33:49,607 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 14:33:56,713 - INFO - Created a temporary directory at /tmp/tmpbckzbvbo
+2023-11-23 14:33:56,713 - INFO - Writing /tmp/tmpbckzbvbo/_remote_module_non_scriptable.py
+2023-11-23 14:33:58,978 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 14:34:16,672 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 14:34:25,394 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 14:42:58,320 - INFO - Received requests to /inference endpoint
+2023-11-23 14:42:58,421 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 14:42:58,422 - INFO - Received request: {'username': 'admin', 'prompt': 'hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'llama_70b'}
+2023-11-23 14:43:05,361 - INFO - Processed the request successfully
+2023-11-23 14:43:12,311 - INFO - Received requests to /inference endpoint
+2023-11-23 14:43:12,412 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 14:43:12,413 - INFO - Received request: {'username': 'admin', 'prompt': 'hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'llama_13b'}
+2023-11-23 14:43:19,189 - INFO - Processed the request successfully

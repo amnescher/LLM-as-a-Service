@@ -9,8 +9,9 @@
 
 
 
-Loading checkpoint shards: 100%|██████████| 15/15 [00:16<00:00,  1.09s/it]
+Loading checkpoint shards: 100%|██████████| 15/15 [00:16<00:00,  1.08s/it]
 /home/ubuntu/dev/lib/python3.10/site-packages/transformers/utils/hub.py:374: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
   warnings.warn(
 load INSTRUCTOR_Transformer
 max_seq_length  512
+INFO 2023-11-23 14:43:12,292 Llama_13b Llama_13b#tltsgN 19b2cf43-43f7-44ed-9888-a9398f59ce86 /Llama_13b replica.py:749 - __CALL__ OK 0.4ms
