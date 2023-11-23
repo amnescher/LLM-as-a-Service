@@ -1,0 +1,18 @@
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/models/auto/configuration_auto.py:1020: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
+  warnings.warn(
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py:472: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
+  warnings.warn(
+
+
+
+
+
+
+
+Loading checkpoint shards: 100%|██████████| 15/15 [00:16<00:00,  1.07s/it]
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/utils/hub.py:374: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
+  warnings.warn(
+load INSTRUCTOR_Transformer
+max_seq_length  512
+INFO 2023-11-23 13:20:51,275 Llama_70b Llama_70b#BQNeIA 4d60ec2e-e92e-4247-bab4-1c63089198b6 /Llama_70b/docs replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-23 13:20:51,571 Llama_70b Llama_70b#BQNeIA 6dc5831a-f7ff-441b-bad5-2227a9f0f44e /Llama_70b/openapi.json replica.py:749 - __CALL__ OK 7.9ms

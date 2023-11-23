@@ -23,6 +23,7 @@ DB_SERVICE_URL = config.get("DB_SERVICE_URL")  # Make sure this is used somewher
 DB_DIR = config.get("DB_DIR")
 if DB_DIR == "CURRENT_DIR":
     DB_DIR = os.getcwd()
+
 DB_DIR = os.path.join(DB_DIR, "API")
 db_name = config.get("DB_name","chat_bot_db")
 db_path = os.path.join(DB_DIR, f"{db_name}.db")
@@ -30,7 +31,7 @@ DATABASE_URL = f"sqlite:///{db_path}"
 
 # Check if the database file exists
 if not os.path.exists(db_path):
-    raise FileNotFoundError(f"Database file {db_path} not found.")
+    raise FileNotFoundError("Database file not found in ",db_path)
 else:
     print(f"Database file {db_path} found.")
 

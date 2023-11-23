@@ -21,6 +21,24 @@ import os
 import yaml
 import time
 
+
+
+class RayConfig:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)   
+        self. num_gpus = 0
+        self. min_replicas = 1
+        self. initial_replicas = 1
+        self. max_replicas = 1
+        self. target_num_ongoing_requests_per_replica = 1
+        self. graceful_shutdown_wait_loop_s = 0
+        self. max_concurrent_queries = 1
+
+    def __str__(self):
+        return str(self.__dict__)
+
+
+
 class Config:
     def __init__(self, **entries):
         self.__dict__.update(entries)
@@ -44,27 +62,30 @@ class Input(BaseModel):
 
 app = FastAPI()
 
-
-@serve.deployment(
-    ray_actor_options={"num_gpus": config.num_gpus},
-    autoscaling_config={
-        "min_replicas": config.min_replicas,
-        "initial_replicas": config.initial_replicas,
-        "max_replicas": config.max_replicas,
-        "target_num_ongoing_requests_per_replica": config.target_num_ongoing_requests_per_replica,
-        "graceful_shutdown_wait_loop_s": config.graceful_shutdown_wait_loop_s,
-        "max_concurrent_queries": config.max_concurrent_queries,
-    }
-)
+@serve.deployment()
 @serve.ingress(app)
 class PredictDeployment:
-    def __init__(self):
+    def __init__(self, model_id,
+                 temperature =  0.01,
+                 max_new_tokens=  512,
+                 repetition_penalty= 1.1,
+                 batch_size= 2,
+                 max_batch_size = 2,
+                 batch_wait_timeout_s= 0.1):
         import os
         from langchain.llms import HuggingFacePipeline
         from torch import cuda, bfloat16
         import transformers
         from langchain.chains import RetrievalQA
         from langchain import PromptTemplate, LLMChain
+
+        self.model_id = model_id
+        self.temperature = temperature
+        self.max_new_tokens = max_new_tokens
+        self.repetition_penalty = repetition_penalty
+        self.batch_size = batch_size
+
+
         self.wandb_logging_enabled = config.WANDB_ENABLE
         if self.wandb_logging_enabled:
             try:
@@ -110,7 +131,7 @@ class PredictDeployment:
 
         self.logger = logging.getLogger(__name__)
         self.logger.propagate = True
-        model_id = "meta-llama/Llama-2-70b-chat-hf"
+        
         self.device = f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
      
         # set quantization configuration to load large model with less GPU memory
@@ -123,10 +144,10 @@ class PredictDeployment:
         )
 
         # begin initializing HF items, need auth token for these
-        model_config = transformers.AutoConfig.from_pretrained(model_id, use_auth_token = self.access_token)
+        model_config = transformers.AutoConfig.from_pretrained(self.model_id, use_auth_token = self.access_token)
 
         self.model = transformers.AutoModelForCausalLM.from_pretrained(
-            model_id,
+            self.model_id,
             trust_remote_code=True,
             config=model_config,
             quantization_config=bnb_config,
@@ -145,10 +166,10 @@ class PredictDeployment:
             task="text-generation",
             # we pass model parameters here too
             # stopping_criteria=stopping_criteria,  # without this model rambles during chat
-            temperature=self.config.temperature,  # 'randomness' of outputs, 0.0 is the min and 1.0 the max
-            max_new_tokens=self.config.max_new_tokens,  # mex number of tokens to generate in the output
-            repetition_penalty=self.config.repetition_penalty,  # without this output begins repeating
-            batch_size=self.config.batch_size,  # number of independent sequences to generate
+            temperature=self.temperature,  # 'randomness' of outputs, 0.0 is the min and 1.0 the max
+            max_new_tokens=self.max_new_tokens,  # mex number of tokens to generate in the output
+            repetition_penalty=self.repetition_penalty,  # without this output begins repeating
+            batch_size=self.batch_size,  # number of independent sequences to generate
         )
         self.llm = HuggingFacePipeline(pipeline=self.generate_text)
         self.generate_text.tokenizer.pad_token_id = self.tokenizer.eos_token_id

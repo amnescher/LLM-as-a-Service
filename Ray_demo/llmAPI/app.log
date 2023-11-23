@@ -186,3 +186,159 @@
 2023-11-21 12:27:14,382 - INFO - Unable to poll TPU GCE metadata: HTTPConnectionPool(host='metadata.google.internal', port=80): Max retries exceeded with url: /computeMetadata/v1/instance/attributes/accelerator-type (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7fbe397a4f70>: Failed to establish a new connection: [Errno -2] Name or service not known'))
 2023-11-21 12:31:03,268 - INFO - Unable to poll TPU GCE metadata: HTTPConnectionPool(host='metadata.google.internal', port=80): Max retries exceeded with url: /computeMetadata/v1/instance/attributes/accelerator-type (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7efdc1655090>: Failed to establish a new connection: [Errno -2] Name or service not known'))
 2023-11-21 12:42:19,617 - INFO - request processed successfully username='admin' collection_name='Admin_pdf' mode='add_to_collection' vectorDB_type='Weaviate' file_path='/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files': %s
+2023-11-23 11:12:51,049 - INFO - Created a temporary directory at /tmp/tmp1uh5qtym
+2023-11-23 11:12:51,049 - INFO - Writing /tmp/tmp1uh5qtym/_remote_module_non_scriptable.py
+2023-11-23 11:12:57,415 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 11:23:44,404 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 11:24:08,688 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 12:09:17,103 - INFO - Created a temporary directory at /tmp/tmpn7qlos_4
+2023-11-23 12:09:17,104 - INFO - Writing /tmp/tmpn7qlos_4/_remote_module_non_scriptable.py
+2023-11-23 12:09:19,414 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:09:40,259 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 12:09:49,126 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 12:23:24,289 - INFO - Created a temporary directory at /tmp/tmp52ctgij0
+2023-11-23 12:23:24,290 - INFO - Writing /tmp/tmp52ctgij0/_remote_module_non_scriptable.py
+2023-11-23 12:23:26,577 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:23:44,091 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 12:23:52,776 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 12:23:59,341 - INFO - Created a temporary directory at /tmp/tmp50ngzdjy
+2023-11-23 12:23:59,341 - INFO - Writing /tmp/tmp50ngzdjy/_remote_module_non_scriptable.py
+2023-11-23 12:24:01,677 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:24:24,679 - INFO - Created a temporary directory at /tmp/tmpmqxeqq11
+2023-11-23 12:24:24,680 - INFO - Writing /tmp/tmpmqxeqq11/_remote_module_non_scriptable.py
+2023-11-23 12:24:27,032 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:24:49,788 - INFO - Created a temporary directory at /tmp/tmp2qwruxb3
+2023-11-23 12:24:49,788 - INFO - Writing /tmp/tmp2qwruxb3/_remote_module_non_scriptable.py
+2023-11-23 12:24:52,138 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:25:14,908 - INFO - Created a temporary directory at /tmp/tmpnfixem8q
+2023-11-23 12:25:14,908 - INFO - Writing /tmp/tmpnfixem8q/_remote_module_non_scriptable.py
+2023-11-23 12:25:17,245 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:25:40,456 - INFO - Created a temporary directory at /tmp/tmprmnm6fnz
+2023-11-23 12:25:40,456 - INFO - Writing /tmp/tmprmnm6fnz/_remote_module_non_scriptable.py
+2023-11-23 12:25:42,829 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:26:05,709 - INFO - Created a temporary directory at /tmp/tmpte34exz3
+2023-11-23 12:26:05,709 - INFO - Writing /tmp/tmpte34exz3/_remote_module_non_scriptable.py
+2023-11-23 12:26:08,037 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:26:31,138 - INFO - Created a temporary directory at /tmp/tmp4rmjy08y
+2023-11-23 12:26:31,138 - INFO - Writing /tmp/tmp4rmjy08y/_remote_module_non_scriptable.py
+2023-11-23 12:26:33,432 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:26:56,541 - INFO - Created a temporary directory at /tmp/tmp4p9ddlmp
+2023-11-23 12:26:56,541 - INFO - Writing /tmp/tmp4p9ddlmp/_remote_module_non_scriptable.py
+2023-11-23 12:26:58,910 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:27:29,210 - INFO - Created a temporary directory at /tmp/tmp1li9fg41
+2023-11-23 12:27:29,211 - INFO - Writing /tmp/tmp1li9fg41/_remote_module_non_scriptable.py
+2023-11-23 12:27:31,546 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:28:33,686 - INFO - Created a temporary directory at /tmp/tmpfh7j7eez
+2023-11-23 12:28:33,686 - INFO - Writing /tmp/tmpfh7j7eez/_remote_module_non_scriptable.py
+2023-11-23 12:28:36,034 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:29:38,654 - INFO - Created a temporary directory at /tmp/tmp74ismo3e
+2023-11-23 12:29:38,654 - INFO - Writing /tmp/tmp74ismo3e/_remote_module_non_scriptable.py
+2023-11-23 12:29:40,982 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:30:42,780 - INFO - Created a temporary directory at /tmp/tmp4dbh3c2j
+2023-11-23 12:30:42,780 - INFO - Writing /tmp/tmp4dbh3c2j/_remote_module_non_scriptable.py
+2023-11-23 12:30:45,146 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:31:47,314 - INFO - Created a temporary directory at /tmp/tmpjass4rlb
+2023-11-23 12:31:47,314 - INFO - Writing /tmp/tmpjass4rlb/_remote_module_non_scriptable.py
+2023-11-23 12:31:49,690 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:32:52,257 - INFO - Created a temporary directory at /tmp/tmpo4l9kwnc
+2023-11-23 12:32:52,257 - INFO - Writing /tmp/tmpo4l9kwnc/_remote_module_non_scriptable.py
+2023-11-23 12:32:54,574 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:33:56,892 - INFO - Created a temporary directory at /tmp/tmpozv5f5k2
+2023-11-23 12:33:56,892 - INFO - Writing /tmp/tmpozv5f5k2/_remote_module_non_scriptable.py
+2023-11-23 12:33:59,197 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:35:01,320 - INFO - Created a temporary directory at /tmp/tmpyyk7iue2
+2023-11-23 12:35:01,321 - INFO - Writing /tmp/tmpyyk7iue2/_remote_module_non_scriptable.py
+2023-11-23 12:35:03,681 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:37:10,276 - INFO - Created a temporary directory at /tmp/tmpyfr5vwwk
+2023-11-23 12:37:10,276 - INFO - Writing /tmp/tmpyfr5vwwk/_remote_module_non_scriptable.py
+2023-11-23 12:37:12,655 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:38:15,069 - INFO - Created a temporary directory at /tmp/tmp3lf146a0
+2023-11-23 12:38:15,069 - INFO - Writing /tmp/tmp3lf146a0/_remote_module_non_scriptable.py
+2023-11-23 12:38:17,415 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:39:20,351 - INFO - Created a temporary directory at /tmp/tmppq5_4gwz
+2023-11-23 12:39:20,351 - INFO - Writing /tmp/tmppq5_4gwz/_remote_module_non_scriptable.py
+2023-11-23 12:39:22,661 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:40:25,264 - INFO - Created a temporary directory at /tmp/tmp63psze5p
+2023-11-23 12:40:25,265 - INFO - Writing /tmp/tmp63psze5p/_remote_module_non_scriptable.py
+2023-11-23 12:40:27,610 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:41:30,310 - INFO - Created a temporary directory at /tmp/tmpys1qln4v
+2023-11-23 12:41:30,310 - INFO - Writing /tmp/tmpys1qln4v/_remote_module_non_scriptable.py
+2023-11-23 12:41:32,657 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:42:34,582 - INFO - Created a temporary directory at /tmp/tmpx97u88py
+2023-11-23 12:42:34,582 - INFO - Writing /tmp/tmpx97u88py/_remote_module_non_scriptable.py
+2023-11-23 12:42:36,917 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:43:39,615 - INFO - Created a temporary directory at /tmp/tmpb7v8wpbr
+2023-11-23 12:43:39,615 - INFO - Writing /tmp/tmpb7v8wpbr/_remote_module_non_scriptable.py
+2023-11-23 12:43:41,966 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:44:44,212 - INFO - Created a temporary directory at /tmp/tmp20e82bof
+2023-11-23 12:44:44,212 - INFO - Writing /tmp/tmp20e82bof/_remote_module_non_scriptable.py
+2023-11-23 12:44:46,573 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:45:48,322 - INFO - Created a temporary directory at /tmp/tmpfm0muokk
+2023-11-23 12:45:48,323 - INFO - Writing /tmp/tmpfm0muokk/_remote_module_non_scriptable.py
+2023-11-23 12:45:50,682 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:46:52,508 - INFO - Created a temporary directory at /tmp/tmpnr_tekat
+2023-11-23 12:46:52,509 - INFO - Writing /tmp/tmpnr_tekat/_remote_module_non_scriptable.py
+2023-11-23 12:46:54,881 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:47:57,043 - INFO - Created a temporary directory at /tmp/tmpb138zrkz
+2023-11-23 12:47:57,044 - INFO - Writing /tmp/tmpb138zrkz/_remote_module_non_scriptable.py
+2023-11-23 12:47:59,379 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:49:01,198 - INFO - Created a temporary directory at /tmp/tmp26lisu9h
+2023-11-23 12:49:01,198 - INFO - Writing /tmp/tmp26lisu9h/_remote_module_non_scriptable.py
+2023-11-23 12:49:03,521 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:50:05,792 - INFO - Created a temporary directory at /tmp/tmp61mdubsu
+2023-11-23 12:50:05,792 - INFO - Writing /tmp/tmp61mdubsu/_remote_module_non_scriptable.py
+2023-11-23 12:50:08,122 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:51:11,560 - INFO - Created a temporary directory at /tmp/tmp_yh7aoo4
+2023-11-23 12:51:11,560 - INFO - Writing /tmp/tmp_yh7aoo4/_remote_module_non_scriptable.py
+2023-11-23 12:51:13,964 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:52:14,714 - INFO - Created a temporary directory at /tmp/tmp8pyhkrew
+2023-11-23 12:52:14,715 - INFO - Writing /tmp/tmp8pyhkrew/_remote_module_non_scriptable.py
+2023-11-23 12:52:17,070 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:53:19,247 - INFO - Created a temporary directory at /tmp/tmpdcagsmgx
+2023-11-23 12:53:19,247 - INFO - Writing /tmp/tmpdcagsmgx/_remote_module_non_scriptable.py
+2023-11-23 12:53:21,603 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:54:24,034 - INFO - Created a temporary directory at /tmp/tmp2uf87urb
+2023-11-23 12:54:24,034 - INFO - Writing /tmp/tmp2uf87urb/_remote_module_non_scriptable.py
+2023-11-23 12:54:26,392 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:55:28,963 - INFO - Created a temporary directory at /tmp/tmp3awgtdft
+2023-11-23 12:55:28,964 - INFO - Writing /tmp/tmp3awgtdft/_remote_module_non_scriptable.py
+2023-11-23 12:55:31,325 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:56:32,894 - INFO - Created a temporary directory at /tmp/tmpe_9rfdka
+2023-11-23 12:56:32,894 - INFO - Writing /tmp/tmpe_9rfdka/_remote_module_non_scriptable.py
+2023-11-23 12:56:35,237 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:57:37,015 - INFO - Created a temporary directory at /tmp/tmphcwlzw3g
+2023-11-23 12:57:37,015 - INFO - Writing /tmp/tmphcwlzw3g/_remote_module_non_scriptable.py
+2023-11-23 12:57:39,388 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:58:02,698 - INFO - Created a temporary directory at /tmp/tmp6pms8at1
+2023-11-23 12:58:02,698 - INFO - Writing /tmp/tmp6pms8at1/_remote_module_non_scriptable.py
+2023-11-23 12:58:05,044 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 12:58:22,618 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 12:58:31,300 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 13:13:29,302 - INFO - Created a temporary directory at /tmp/tmpuutsaogr
+2023-11-23 13:13:29,302 - INFO - Writing /tmp/tmpuutsaogr/_remote_module_non_scriptable.py
+2023-11-23 13:13:31,609 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 13:13:49,189 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 13:13:57,927 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 13:18:05,478 - INFO - Created a temporary directory at /tmp/tmp4cobtbia
+2023-11-23 13:18:05,478 - INFO - Writing /tmp/tmp4cobtbia/_remote_module_non_scriptable.py
+2023-11-23 13:18:07,744 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 13:18:25,232 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 13:18:33,889 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 13:21:14,851 - INFO - Received requests to /inference endpoint
+2023-11-23 13:21:14,953 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 13:21:14,953 - INFO - Received request: {'username': 'admin', 'prompt': 'Hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': True, 'collection_name': 'string'}
+2023-11-23 13:21:24,101 - INFO - Processed the request successfully
+2023-11-23 13:23:15,418 - INFO - Created a temporary directory at /tmp/tmpk2suv46u
+2023-11-23 13:23:15,419 - INFO - Writing /tmp/tmpk2suv46u/_remote_module_non_scriptable.py
+2023-11-23 13:23:17,554 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 13:23:35,938 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 13:23:44,634 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 13:23:50,599 - INFO - Created a temporary directory at /tmp/tmp5c09l6yy
+2023-11-23 13:23:50,599 - INFO - Writing /tmp/tmp5c09l6yy/_remote_module_non_scriptable.py
+2023-11-23 13:23:52,784 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 13:24:11,888 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 13:24:20,615 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 13:25:55,503 - INFO - Received requests to /inference endpoint
+2023-11-23 13:25:55,604 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 13:25:55,604 - INFO - Received request: {'username': 'admin', 'prompt': 'hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': True, 'collection_name': 'string'}
+2023-11-23 13:26:02,572 - INFO - Processed the request successfully
