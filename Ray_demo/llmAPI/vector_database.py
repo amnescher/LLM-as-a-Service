@@ -30,6 +30,19 @@ with open("cluster_conf.yaml", 'r') as file:
     config = yaml.safe_load(file)
     config = Config(**config)
 
+    
+MAX_FILE_SIZE = config.max_file_size * 1024 * 1024  
+
+class VDBaseInput(BaseModel):
+    username: str 
+    collection_name: Optional[str] 
+    mode: str = "add_to_collection"
+    vectorDB_type: Optional[str] = "Weaviate"
+    file_path: Optional[str] = None
+
+
+
+VDB_app = FastAPI()
 
 
 @ray.remote(num_gpus=config.VD_WeaviateEmbedder_num_gpus)
@@ -60,8 +73,7 @@ class WeaviateEmbedder:
         )
 
     def adding_weaviate_document(self, text_lst, collection_name):
-        start_time = time.time()
-        self.weaviate_client.batch.configure(batch_size=50)
+        self.weaviate_client.batch.configure(batch_size=100)
 
         with self.weaviate_client.batch as batch:
             for text in text_lst:
@@ -71,7 +83,6 @@ class WeaviateEmbedder:
                         #uuid=generate_uuid5(text),
         )
         self.text_list.append(text)
-        self.time_taken = time.time() - start_time
         return self.text_list
 
     def get(self):
@@ -79,25 +90,13 @@ class WeaviateEmbedder:
     
     def get_time_taken(self):
         return self.time_taken
-    
-MAX_FILE_SIZE = config.max_file_size * 1024 * 1024  
-
-class VDBaseInput(BaseModel):
-    username: str 
-    collection_name: Optional[str] 
-    mode: str = "add_to_collection"
-    vectorDB_type: Optional[str] = "Weaviate"
-    file_path: Optional[str] = None
-
-
-
-VDB_app = FastAPI()
 
 @serve.deployment(ray_actor_options={"num_gpus": config.VD_deployment_num_gpus}, autoscaling_config={
         "min_replicas": config.VD_min_replicas,
         "initial_replicas": config.VD_initial_replicas,
         "max_replicas": config.VD_max_replicas,
         "max_concurrent_queries": config.VD_max_concurrent_queries,})
+
 @serve.ingress(VDB_app)
 class VectorDataBase:
     def __init__(self):
@@ -180,12 +179,11 @@ class VectorDataBase:
 
     def add_weaviate_document(self, cls, docs):
         actor = WeaviateEmbedder.remote()
-        [actor.adding_weaviate_document.remote(doc_part, str(cls)) for doc_part in docs]
+        ray.get([actor.adding_weaviate_document.remote(docs, str(cls))])
 
     def add_weaviate_batch_documents(self, cls, doc_workload):
         actors = [WeaviateEmbedder.remote() for _ in range(3)]
-        [actor.adding_weaviate_document.remote(doc_part, str(cls)) for actor, doc_part in zip(actors, doc_workload)]
-        [actor.get_time_taken.remote() for actor in actors]
+        ray.get([actor.adding_weaviate_document.remote(doc_part, str(cls)) for actor, doc_part in zip(actors, doc_workload)])
 
     def query_weaviate_document_names(self,cls):
         class_properties = ["document_title"]
