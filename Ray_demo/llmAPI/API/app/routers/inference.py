@@ -32,17 +32,21 @@ router = APIRouter()
 async def create_inference(data: InferenceRequest, current_user: User = Depends(get_current_active_user)):
     try:
         data.username = current_user.username
-        if data.llm_model == "llama_70b" or data.llm_model == None:
+        if data.llm_model == "Llama_70b" or data.llm_model == None:
             prefix = get_route_prefix_for_llm("Llama_70b") 
+            print(f"request  sent to {Ray_service_URL}/{prefix}", data.dict())
             response = requests.post(f"{Ray_service_URL}/{prefix}", json=data.dict())
             response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
-        elif data.llm_model == "llama_13b":
+            response_data = response.json()
+            return {"username": current_user.username, "data": response_data}
+        if data.llm_model == "Llama_13b":
             prefix = get_route_prefix_for_llm("Llama_13b")
             response = requests.post(f"{Ray_service_URL}/{prefix}", json=data.dict())
             response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
         # Extract data from the response
-        response_data = response.json()
-        return {"username": current_user.username, "data": response_data}
+            response_data = response.json()
+            return {"username": current_user.username, "data": response_data}
+        return {"username": current_user.username, "data": "llm model not found"}
 
     except requests.HTTPError as e:
         if response.status_code == 400:

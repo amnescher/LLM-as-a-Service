@@ -360,3 +360,89 @@
 2023-11-23 14:43:12,412 - INFO - Received a batch of request with batch size of: 1 
 2023-11-23 14:43:12,413 - INFO - Received request: {'username': 'admin', 'prompt': 'hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'llama_13b'}
 2023-11-23 14:43:19,189 - INFO - Processed the request successfully
+2023-11-23 15:30:56,689 - INFO - Received requests to /inference endpoint
+2023-11-23 15:30:56,790 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 15:30:56,790 - INFO - Received request: {'username': 'alex', 'prompt': 'hi', 'memory': False, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'llama_70b'}
+2023-11-23 15:31:03,235 - INFO - Processed the request successfully
+2023-11-23 15:39:21,434 - INFO - Received requests to /inference endpoint
+2023-11-23 15:39:21,535 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 15:39:21,535 - INFO - Received request: {'username': 'alex', 'prompt': 'Hi', 'memory': False, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-23 15:39:27,700 - INFO - Processed the request successfully
+2023-11-23 15:39:37,523 - INFO - Received requests to /inference endpoint
+2023-11-23 15:39:37,625 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 15:39:37,625 - INFO - Received request: {'username': 'alex', 'prompt': 'Hi', 'memory': False, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-23 15:39:43,538 - INFO - Processed the request successfully
+2023-11-23 15:44:58,145 - INFO - Received requests to /inference endpoint
+2023-11-23 15:44:58,246 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 15:44:58,246 - INFO - Received request: {'username': 'alex', 'prompt': 'my name is Amin', 'memory': False, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-23 15:45:02,916 - INFO - Processed the request successfully
+2023-11-23 15:45:14,247 - INFO - Received requests to /inference endpoint
+2023-11-23 15:45:14,348 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 15:45:14,348 - INFO - Received request: {'username': 'alex', 'prompt': 'what was my previous question ?', 'memory': False, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-23 15:45:23,367 - INFO - Processed the request successfully
+2023-11-23 15:45:40,795 - INFO - Received requests to /inference endpoint
+2023-11-23 15:45:40,896 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 15:45:40,896 - INFO - Received request: {'username': 'alex', 'prompt': 'I told you name, what was my name?', 'memory': False, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-23 15:45:46,943 - INFO - Processed the request successfully
+2023-11-23 15:46:04,201 - INFO - Received requests to /inference endpoint
+2023-11-23 15:46:04,302 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 15:46:04,302 - INFO - Received request: {'username': 'alex', 'prompt': 'my name is Amin', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-23 15:46:08,827 - INFO - Processed the request successfully
+2023-11-23 15:46:15,746 - INFO - Received requests to /inference endpoint
+2023-11-23 15:46:15,847 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 15:46:15,847 - INFO - Received request: {'username': 'alex', 'prompt': 'what was my name?', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-23 15:46:25,574 - INFO - Processed the request successfully
+2023-11-23 16:00:44,051 - INFO - Received requests to /inference endpoint
+2023-11-23 16:00:44,152 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 16:00:44,152 - INFO - Received request: {'username': 'alex', 'prompt': 'where is London?', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-23 16:00:58,162 - INFO - Processed the request successfully
+2023-11-23 16:07:32,433 - INFO - Received requests to /inference endpoint
+2023-11-23 16:07:32,534 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 16:07:32,534 - INFO - Received request: {'username': 'alex', 'prompt': 'what was my previous question about?', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-23 16:07:41,463 - INFO - Processed the request successfully
+2023-11-23 16:12:21,583 - INFO - Received requests to /inference endpoint
+2023-11-23 16:12:21,684 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 16:12:21,684 - INFO - Received request: {'username': 'alex', 'prompt': 'hi', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-23 16:12:28,046 - INFO - Processed the request successfully
+2023-11-23 16:14:54,577 - INFO - Created a temporary directory at /tmp/tmpe76emsue
+2023-11-23 16:14:54,577 - INFO - Writing /tmp/tmpe76emsue/_remote_module_non_scriptable.py
+2023-11-23 16:14:56,681 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 16:15:14,381 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 16:15:23,087 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 16:15:29,688 - INFO - Created a temporary directory at /tmp/tmpj2a3qw3q
+2023-11-23 16:15:29,689 - INFO - Writing /tmp/tmpj2a3qw3q/_remote_module_non_scriptable.py
+2023-11-23 16:15:31,851 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-23 16:15:49,766 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-23 16:15:58,513 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-23 16:19:39,870 - INFO - Received requests to /inference endpoint
+2023-11-23 16:19:39,971 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 16:19:39,971 - INFO - Received request: {'username': 'admin', 'prompt': 'hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'string'}
+2023-11-23 16:19:46,762 - INFO - Processed the request successfully
+2023-11-23 16:20:04,412 - INFO - Received requests to /inference endpoint
+2023-11-23 16:20:04,514 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 16:20:04,514 - INFO - Received request: {'username': 'admin', 'prompt': 'my name is admin', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'string'}
+2023-11-23 16:20:09,768 - INFO - Processed the request successfully
+2023-11-23 16:20:23,309 - INFO - Received requests to /inference endpoint
+2023-11-23 16:20:23,410 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 16:20:23,411 - INFO - Received request: {'username': 'admin', 'prompt': 'what was my name?', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'string'}
+2023-11-23 16:20:30,829 - INFO - Processed the request successfully
+2023-11-23 16:20:57,682 - INFO - Received requests to /inference endpoint
+2023-11-23 16:20:57,783 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 16:20:57,783 - INFO - Received request: {'username': 'admin', 'prompt': 'where is the capital of the UK?', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'string'}
+2023-11-23 16:21:04,300 - INFO - Processed the request successfully
+2023-11-23 16:21:23,741 - INFO - Received requests to /inference endpoint
+2023-11-23 16:21:23,842 - INFO - Received a batch of request with batch size of: 1 
+2023-11-23 16:21:23,842 - INFO - Received request: {'username': 'admin', 'prompt': 'what was my previous question about?', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'string'}
+2023-11-23 16:21:32,897 - INFO - Processed the request successfully
+2023-11-24 09:43:45,747 - INFO - Received requests to /inference endpoint
+2023-11-24 09:43:45,848 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 09:43:45,848 - INFO - Received request: {'username': 'admin', 'prompt': 'Hi, my name is Admin', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'Llama_70b'}
+2023-11-24 09:43:55,246 - INFO - Processed the request successfully
+2023-11-24 09:44:18,755 - INFO - Received requests to /inference endpoint
+2023-11-24 09:44:18,856 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 09:44:18,856 - INFO - Received request: {'username': 'admin', 'prompt': 'what was my previous prompt?', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'Llama_70b'}
+2023-11-24 09:44:27,432 - INFO - Processed the request successfully
+2023-11-24 09:44:47,855 - INFO - Received requests to /inference endpoint
+2023-11-24 09:44:47,957 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 09:44:47,957 - INFO - Received request: {'username': 'admin', 'prompt': 'what was my previous prompt?', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'Llama_13b'}
+2023-11-24 09:44:56,326 - INFO - Processed the request successfully

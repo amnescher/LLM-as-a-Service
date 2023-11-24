@@ -1,0 +1,23 @@
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/models/auto/configuration_auto.py:1020: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
+  warnings.warn(
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py:472: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
+  warnings.warn(
+
+
+
+
+
+
+
+Loading checkpoint shards: 100%|██████████| 15/15 [00:16<00:00,  1.08s/it]
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/utils/hub.py:374: FutureWarning: The `use_auth_token` argument is deprecated and will be removed in v5 of Transformers.
+  warnings.warn(
+load INSTRUCTOR_Transformer
+max_seq_length  512
+INFO 2023-11-24 09:36:51,846 Llama_70b Llama_70b#NAsUcM be55788e-46bc-4c2e-a441-e876200217b2 /Llama_70b/docs replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-24 09:36:52,432 Llama_70b Llama_70b#NAsUcM 2fa418d5-2293-4a04-8759-981a1eea64da /Llama_70b/openapi.json replica.py:749 - __CALL__ OK 8.7ms
+INFO 2023-11-24 09:43:45,728 Llama_70b Llama_70b#NAsUcM 7edfa587-99bf-4ea4-9c66-8207bd796cbd /Llama_70b replica.py:749 - __CALL__ OK 0.3ms
+chat histroy for admin with the conversation_number of 1 retrieved from database
+INFO 2023-11-24 09:43:55,246 Llama_70b Llama_70b#NAsUcM a88021b6-010f-44f7-9fcc-7de8b8094845 /Llama_70b/ replica.py:749 - __CALL__ OK 9507.5ms
+chat histroy for admin with the conversation_number of 1 retrieved from database
+INFO 2023-11-24 09:44:18,742 Llama_70b Llama_70b#NAsUcM 01444fb7-93f4-4fae-978a-d0998837a549 /Llama_70b replica.py:749 - __CALL__ OK 0.3ms

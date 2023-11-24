@@ -1,1 +1,1 @@
-{"The number of input tokens": 1, "The number of generated tokens": 36, "Inference Time": 6.754939079284668, "token/second": 5.329433704354343, "_timestamp": 1700750599.1890821, "_runtime": 564.9293661117554, "_step": 0}
+{"The number of input tokens": 1, "The number of generated tokens": 36, "Inference Time": 6.347162246704102, "token/second": 5.671826022517979, "_timestamp": 1700755948.0460827, "_runtime": 5913.786366701126, "_step": 9}

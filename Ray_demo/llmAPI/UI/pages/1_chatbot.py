@@ -11,7 +11,7 @@ from langchain.schema import messages_from_dict, messages_to_dict
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 import random
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = "http://localhost:8083"
 
 def process_text(text):
     # Remove quotes from the beginning and end of the text, if present
@@ -25,7 +25,7 @@ def process_text(text):
 def authentication(username, password):
     data = {"username": username, "password": password}
     resp = requests.post(
-        f"{BASE_URL}/token/", data=data
+        f"{BASE_URL}/token", data=data
     )
     if "access_token" not in resp.json():
         return None
@@ -39,11 +39,11 @@ def add_user(username, password,token_limit,access_token):
   "password": password,
   "token_limit": token_limit
 }
-    resp = requests.post(f"{BASE_URL}/de_request/add_user/", json=query_data, headers=headers)
+    resp = requests.post(f"{BASE_URL}/db_request/add_user/", json=query_data, headers=headers)
     return True
 def get_all_users_info(access_token):   
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.get(f"{BASE_URL}/de_request/get_all_users/", headers=headers)
+    resp = requests.get(f"{BASE_URL}/db_request/get_all_users/", headers=headers)
     if resp.status_code == 200:
         return resp.json()
     else:
@@ -54,7 +54,7 @@ def retrieve_latest_conversation(username, access_token):
   "username": username
 }
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.post(f"{BASE_URL}/de_request/get_user_conversations/",json=query_data, headers=headers)
+    resp = requests.post(f"{BASE_URL}/db_request/get_user_conversations/",json=query_data, headers=headers)
     if resp.status_code == 200:
         conversations = resp.json()['conversations']
         names = [d["name"] for d in conversations]
@@ -71,7 +71,7 @@ def add_conversation(username, conversation,access_token):
   "conversation_name": "Current Conversation",
 }
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.post(f"{BASE_URL}/de_request/add_conversation/",json=query_data, headers=headers)
+    resp = requests.post(f"{BASE_URL}/db_request/add_conversation/",json=query_data, headers=headers)
     if resp.status_code == 200:
         return True
     else:
@@ -93,7 +93,7 @@ def update_conversation_name(username, conversation_number, new_name, access_tok
   "conversation_name": new_name
 }
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.post(f"{BASE_URL}/de_request/update_conversation_name/",json=query_data, headers=headers)
+    resp = requests.post(f"{BASE_URL}/db_request/update_conversation_name/",json=query_data, headers=headers)
     if resp.status_code == 200:
         return True
     else:
@@ -105,7 +105,7 @@ def retrieve_conversation(username, conversation_number, access_token):
   "conversation_number": conversation_number
 }
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.post(f"{BASE_URL}/de_request/retrieve_conversation/",json=query_data, headers=headers)
+    resp = requests.post(f"{BASE_URL}/db_request/retrieve_conversation/",json=query_data, headers=headers)
     if resp.status_code == 200:
         return resp.json()
     else:
@@ -117,7 +117,7 @@ def delete_conversation(username, conversation_number, access_token):
   "conversation_number": conversation_number
 }
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.delete(f"{BASE_URL}/de_request/delete_conversation/",json=query_data, headers=headers)
+    resp = requests.delete(f"{BASE_URL}/db_request/delete_conversation/",json=query_data, headers=headers)
     if resp.status_code == 200:
         return True
     else:
@@ -259,8 +259,11 @@ else:
                         {"role": "assistant", "content":history.messages[-1][-1].content}
                     ]
 
-            
-
+            st.sidebar.markdown("---")
+            st.sidebar.markdown("<br>", unsafe_allow_html=True)
+            llm_options = ["Llama_70b", "Llama_13b"]
+            selected_llm = st.sidebar.selectbox("Choose a LLM :", llm_options, index=0)
+            st.session_state.llm = selected_llm
             # st.image("Eschercloud.png", caption=None, width=None, use_column_width=None, clamp=False, channels="RGB", output_format="auto")
             st.sidebar.markdown("---")
             st.sidebar.markdown("<br>", unsafe_allow_html=True)
@@ -301,6 +304,7 @@ else:
                             "conversation_number": st.session_state.conversation_number,
                             "AI_assistance": st.session_state.AI_Assistance,
                             "collection_name": selected_collection,
+                            "llm_model": st.session_state.llm
                         }
                         URL = f"{BASE_URL}/llm_request"
                         headers = {"Authorization": f"Bearer {st.session_state.token}"}

@@ -15,3 +15,21 @@ Loading checkpoint shards: 100%|██████████| 15/15 [00:16<00:
 load INSTRUCTOR_Transformer
 max_seq_length  512
 INFO 2023-11-23 14:43:12,292 Llama_13b Llama_13b#tltsgN 19b2cf43-43f7-44ed-9888-a9398f59ce86 /Llama_13b replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-23 14:43:19,189 Llama_13b Llama_13b#tltsgN 2023aa88-0dfa-48a7-955c-3beffe11c478 /Llama_13b/ replica.py:749 - __CALL__ OK 6885.3ms
+INFO 2023-11-23 15:39:37,510 Llama_13b Llama_13b#tltsgN a5c99931-6541-45a4-bbe6-94158702a98f /Llama_13b replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-23 15:39:43,538 Llama_13b Llama_13b#tltsgN d16b876a-6688-40c7-9021-f3b5a128d910 /Llama_13b/ replica.py:749 - __CALL__ OK 6018.1ms
+INFO 2023-11-23 15:44:58,132 Llama_13b Llama_13b#tltsgN b525b761-2798-4f8a-9375-9b8297265b50 /Llama_13b replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-23 15:45:02,916 Llama_13b Llama_13b#tltsgN 3bc9dc13-4657-448d-a9cb-cc91d2eddded /Llama_13b/ replica.py:749 - __CALL__ OK 4774.6ms
+INFO 2023-11-23 15:45:14,234 Llama_13b Llama_13b#tltsgN 946ff87f-b50b-4e86-b74d-763f4d0996e5 /Llama_13b replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-23 15:45:23,367 Llama_13b Llama_13b#tltsgN d9c809ec-c29b-4342-a3e8-7661db204c79 /Llama_13b/ replica.py:749 - __CALL__ OK 9123.5ms
+INFO 2023-11-23 15:45:40,784 Llama_13b Llama_13b#tltsgN 6fb66fb9-e1d6-4dc7-893d-32aa548f25a3 /Llama_13b replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-23 15:45:46,943 Llama_13b Llama_13b#tltsgN ad32a3e3-bfc3-41f9-86dc-f798a7c92a91 /Llama_13b/ replica.py:749 - __CALL__ OK 6151.4ms
+INFO 2023-11-23 15:46:04,189 Llama_13b Llama_13b#tltsgN faf59c92-7fef-47ba-9fc7-972e24416044 /Llama_13b replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-23 15:46:08,827 Llama_13b Llama_13b#tltsgN 4b77ff08-d495-4323-b55b-d79de50974b0 /Llama_13b/ replica.py:749 - __CALL__ OK 4629.2ms
+INFO 2023-11-23 15:46:15,737 Llama_13b Llama_13b#tltsgN e549760c-e201-4abc-936c-9283bb8e8ae9 /Llama_13b replica.py:749 - __CALL__ OK 0.2ms
+INFO 2023-11-23 15:46:25,574 Llama_13b Llama_13b#tltsgN 5cb65e54-431b-429f-b3ff-621f7e381e5c /Llama_13b/ replica.py:749 - __CALL__ OK 9830.1ms
+INFO 2023-11-23 16:00:44,038 Llama_13b Llama_13b#tltsgN 8fdf7cc3-3287-4dae-a6b6-7e96c72e8e80 /Llama_13b replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-23 16:00:58,163 Llama_13b Llama_13b#tltsgN 83d12825-a0b3-4738-a7ef-201e1b5de9e0 /Llama_13b/ replica.py:749 - __CALL__ OK 14114.8ms
+INFO 2023-11-23 16:07:32,420 Llama_13b Llama_13b#tltsgN cb8bdf1d-9bb5-413c-b438-9712272b2d1e /Llama_13b replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-23 16:07:41,463 Llama_13b Llama_13b#tltsgN 18ee64c3-b0d0-4980-b611-74f7b3598e22 /Llama_13b/ replica.py:749 - __CALL__ OK 9033.5ms
+INFO 2023-11-23 16:12:21,570 Llama_13b Llama_13b#tltsgN 7acca8b6-4cae-46d0-84e1-a3aa412a9c76 /Llama_13b replica.py:749 - __CALL__ OK 0.3ms
