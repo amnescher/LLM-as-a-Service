@@ -33,6 +33,7 @@ query = {
     "conversation_number": 0,  # Specify which previous conversation to use as context
     "AI_assistance": True,  # If True, LLM uses its own knowledge to answer, if False, it retrieves information from a vector database
     "collection_name": "Youtube Videos"  # Specify the collection in the vector database to retrieve information from
+    "llm_model" : "Llama_70b" # 
 }
 
 response = agent.query_inference(query)
