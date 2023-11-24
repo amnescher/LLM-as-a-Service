@@ -10,6 +10,9 @@ import textwrap
 from fastapi import FastAPI
 from langchain.chains import RetrievalQA
 import logging
+
+from langchain.vectorstores import Weaviate
+import weaviate
 import wandb
 from backend_database import Database
 from langchain.schema import messages_from_dict, messages_to_dict
@@ -60,8 +63,15 @@ class PredictDeployment:
         import transformers
         from langchain.chains import RetrievalQA
         from langchain import PromptTemplate
+        from langchain.vectorstores import Weaviate
 
         # class initialization
+        try:
+            self.weaviate_client = weaviate.Client(
+                url=config.weaviate_client_url,   
+            )
+        except:
+            self.logger.error("Error in connecting to Weaviate")
         self.model_id = model_id
         self.temperature = temperature
         self.max_new_tokens = max_new_tokens
@@ -88,7 +98,6 @@ class PredictDeployment:
             self.config = Config(**self.config)
 
         self.access_token = config.Hugging_ACCESS_TOKEN
-        self.model_id = "meta-llama/Llama-2-70b-chat-hf"
         self.device = f"cuda:{cuda.current_device()}" if cuda.is_available() else "cpu"
         self.B_INST, self.E_INST = "[INST]", "[/INST]"
         self.B_SYS, self.E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
@@ -173,30 +182,44 @@ class PredictDeployment:
         self.embeddings = HuggingFaceInstructEmbeddings(
             model_name="hkunlp/instructor-xl", model_kwargs={"device": "cuda"}
         )
-        self.Doc_persist_directory = "./Document_db"
-        # self.vectorstore_video = Chroma("YouTube_store", persist_directory=video_persist_directory, embedding_function=self.embeddings)
-        self.vectorstore_doc = Chroma(
-            persist_directory=self.Doc_persist_directory,
-            embedding_function=self.embeddings,
+
+        self.weaviate_vectorstore = Weaviate(
+            self.weaviate_client, 
+            "Admin_General_collection",
+            'page_content', 
+            attributes=['page_content']
         )
+        # self.vectorstore_video = Chroma("YouTube_store", persist_directory=video_persist_directory, embedding_function=self.embeddings)
         self.QA_document = RetrievalQA.from_chain_type(
             llm=self.llm,
             chain_type="stuff",
-            retriever=self.vectorstore_doc.as_retriever(),
+            retriever=self.weaviate_vectorstore.as_retriever(),
             memory=self.memory,
             output_key="output",
         )
+
         # self.QA_video = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.vectorstore_video.as_retriever(),memory = self.memory,output_key= "output")
         self.database = Database()
 
-    def get_collection_based_retriver(self, collection):
+    def get_collection_based_retriver(self, client, collection):
+        content = ['page_content']
+        weaviate_vectorstore = Weaviate(
+            client,
+            str(collection),
+            'page_content', 
+            attributes=['page_content']
+        )
+        return weaviate_vectorstore
+    
+    
+    '''def get_collection_based_retriver(self, collection):
         vectorstore_doc = Chroma(
             str(collection),
             persist_directory=self.Doc_persist_directory,
             embedding_function=self.embeddings,
         )
 
-        return vectorstore_doc
+        return vectorstore_doc'''
 
     def get_prompt(self, instruction):
         SYSTEM_PROMPT = self.B_SYS + self.DEFAULT_SYSTEM_PROMPT + self.E_SYS
@@ -305,7 +328,7 @@ class PredictDeployment:
                 )
             else:
                 print("Document search")
-                retriever = self.get_collection_based_retriver(collection_name)
+                retriever = self.get_collection_based_retriver(self.weaviate_client,collection_name)
                 llm_chain = RetrievalQA.from_chain_type(
                     llm=self.llm,
                     chain_type="stuff",

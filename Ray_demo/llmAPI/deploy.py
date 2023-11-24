@@ -3,7 +3,7 @@ from vector_database import VectorDataBase
 from ray import serve
 import yaml
 
-serve.start()
+
 
 class Config:
     def __init__(self, **entries):
@@ -14,7 +14,7 @@ with open("cluster_conf.yaml", 'r') as file:
     config = yaml.safe_load(file)
     config = Config(**config)
 
-#serve.run(VectorDataBase.bind(), name = "VectorDB" ,route_prefix="/VectorDB")
+serve.run(VectorDataBase.bind(), name = "VectorDB" ,route_prefix="/VectorDB")
 
 for LLM in config.LLMs:
     prefix = LLM["route_prefix"]
@@ -36,4 +36,4 @@ for LLM in config.LLMs:
     # Apply the deployment options to the PredictDeployment class
     PredictDeployment = PredictDeployment.options(**deployment_options)
     # Deploy the service with the specified model_id and other parameters
-    PredictDeployment.deploy(model_id, LLM["temperature"], LLM["max_new_tokens"], LLM["repetition_penalty"], LLM["batch_size"])
+    serve.run(PredictDeployment.bind(model_id, LLM["temperature"], LLM["max_new_tokens"], LLM["repetition_penalty"], LLM["batch_size"]), name = LLM["name"], route_prefix=f"/{prefix}")
