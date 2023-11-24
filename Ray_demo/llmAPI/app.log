@@ -446,3 +446,51 @@
 2023-11-24 09:44:47,957 - INFO - Received a batch of request with batch size of: 1 
 2023-11-24 09:44:47,957 - INFO - Received request: {'username': 'admin', 'prompt': 'what was my previous prompt?', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'string', 'llm_model': 'Llama_13b'}
 2023-11-24 09:44:56,326 - INFO - Processed the request successfully
+2023-11-24 11:57:07,619 - INFO - Received requests to /inference endpoint
+2023-11-24 11:57:07,720 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 11:57:07,720 - INFO - Received request: {'username': 'alex', 'prompt': 'where is the capital of France?', 'memory': False, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-24 11:57:18,765 - INFO - Processed the request successfully
+2023-11-24 11:57:32,035 - INFO - Received requests to /inference endpoint
+2023-11-24 11:57:32,136 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 11:57:32,137 - INFO - Received request: {'username': 'alex', 'prompt': 'what was my previous question ?', 'memory': False, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-24 11:57:41,574 - INFO - Processed the request successfully
+2023-11-24 11:58:00,398 - INFO - Received requests to /inference endpoint
+2023-11-24 11:58:00,499 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 11:58:00,499 - INFO - Received request: {'username': 'alex', 'prompt': 'what was my previous prompt?', 'memory': False, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-24 11:58:07,056 - INFO - Processed the request successfully
+2023-11-24 11:58:22,765 - INFO - Received requests to /inference endpoint
+2023-11-24 11:58:22,866 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 11:58:22,866 - INFO - Received request: {'username': 'alex', 'prompt': 'where is the capital of France?', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-24 11:58:33,997 - INFO - Processed the request successfully
+2023-11-24 11:58:51,482 - INFO - Received requests to /inference endpoint
+2023-11-24 11:58:51,583 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 11:58:51,584 - INFO - Received request: {'username': 'alex', 'prompt': 'what was my previous prompt about?', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-24 11:59:00,208 - INFO - Processed the request successfully
+2023-11-24 12:01:15,545 - INFO - Received requests to /inference endpoint
+2023-11-24 12:01:15,647 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 12:01:15,647 - INFO - Received request: {'username': 'alex', 'prompt': 'where is the capital of France?', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-24 12:01:20,173 - INFO - Processed the request successfully
+2023-11-24 12:01:32,396 - INFO - Received requests to /inference endpoint
+2023-11-24 12:01:32,497 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 12:01:32,497 - INFO - Received request: {'username': 'alex', 'prompt': 'What was my previous prompt?', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-24 12:01:41,192 - INFO - Processed the request successfully
+2023-11-24 12:06:49,837 - INFO - Received requests to /inference endpoint
+2023-11-24 12:06:49,938 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 12:06:49,938 - INFO - Received request: {'username': 'alex', 'prompt': 'did I ask question about paris?', 'memory': True, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-24 12:06:56,663 - INFO - Processed the request successfully
+2023-11-24 12:07:30,597 - INFO - Received requests to /inference endpoint
+2023-11-24 12:07:30,698 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 12:07:30,698 - INFO - Received request: {'username': 'alex', 'prompt': 'where is London located?', 'memory': True, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_70b'}
+2023-11-24 12:07:41,822 - INFO - Processed the request successfully
+2023-11-24 12:08:00,768 - INFO - Received requests to /inference endpoint
+2023-11-24 12:08:00,869 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 12:08:00,869 - INFO - Received request: {'username': 'alex', 'prompt': 'did I ask question about London?', 'memory': True, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-24 12:08:06,731 - INFO - Processed the request successfully
+2023-11-24 12:08:23,289 - INFO - Received requests to /inference endpoint
+2023-11-24 12:08:23,390 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 12:08:23,390 - INFO - Received request: {'username': 'alex', 'prompt': 'did I asked where London is Located?', 'memory': True, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-24 12:08:31,514 - INFO - Processed the request successfully
+2023-11-24 12:09:00,315 - INFO - Received requests to /inference endpoint
+2023-11-24 12:09:00,416 - INFO - Received a batch of request with batch size of: 1 
+2023-11-24 12:09:00,417 - INFO - Received request: {'username': 'alex', 'prompt': 'give me brief of our chats before this prompt', 'memory': True, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
+2023-11-24 12:09:23,082 - INFO - Processed the request successfully

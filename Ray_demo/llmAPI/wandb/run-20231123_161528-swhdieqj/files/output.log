@@ -28,3 +28,12 @@ chat histroy for admin with the conversation_number of 1 retrieved from database
 INFO 2023-11-23 16:21:32,897 Llama_13b Llama_13b#aYLEFF 40af02e8-4601-442e-b9f5-4ab5c1aeb045 /Llama_13b/ replica.py:749 - __CALL__ OK 9159.5ms
 INFO 2023-11-24 09:44:47,843 Llama_13b Llama_13b#aYLEFF a07a37f3-1837-41ff-bbb8-635aaff3f775 /Llama_13b replica.py:749 - __CALL__ OK 0.3ms
 chat histroy for admin with the conversation_number of 1 retrieved from database
+INFO 2023-11-24 09:44:56,327 Llama_13b Llama_13b#aYLEFF 7f4eda07-911b-4e15-9f34-03a7184b3ced /Llama_13b/ replica.py:749 - __CALL__ OK 8474.4ms
+INFO 2023-11-24 12:08:00,757 Llama_13b Llama_13b#aYLEFF 7d87bee9-e702-4f1e-ac42-d95515883d69 /Llama_13b replica.py:749 - __CALL__ OK 0.3ms
+chat histroy for alex with the conversation_number of 2 retrieved from database
+INFO 2023-11-24 12:08:06,732 Llama_13b Llama_13b#aYLEFF 94064fad-824c-422a-adbe-0b3d491f975e /Llama_13b/ replica.py:749 - __CALL__ OK 5965.8ms
+INFO 2023-11-24 12:08:23,275 Llama_13b Llama_13b#aYLEFF c0a28ccc-6139-43fc-8886-f63bb3fa5cc1 /Llama_13b replica.py:749 - __CALL__ OK 0.4ms
+chat histroy for alex with the conversation_number of 2 retrieved from database
+INFO 2023-11-24 12:08:31,514 Llama_13b Llama_13b#aYLEFF 850efad3-c598-44fb-a09c-0b1f7e1170d8 /Llama_13b/ replica.py:749 - __CALL__ OK 8228.5ms
+chat histroy for alex with the conversation_number of 2 retrieved from database
+INFO 2023-11-24 12:09:00,302 Llama_13b Llama_13b#aYLEFF 0ee43887-289c-4990-8741-deb257792037 /Llama_13b replica.py:749 - __CALL__ OK 0.4ms

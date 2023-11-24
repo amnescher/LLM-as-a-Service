@@ -868,3 +868,15 @@ WHERE users.username = ?
 2023-11-24 09:38:13,207 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
 2023-11-24 09:38:13,207 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
 2023-11-24 09:38:13,207 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-24 11:53:44,558 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-24 11:53:44,558 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-24 11:53:44,558 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user admin
+2023-11-24 11:53:56,604 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user alex
+2023-11-24 11:53:56,604 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user alex
+2023-11-24 11:53:56,604 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user alex
+2023-11-24 12:00:53,030 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user alex
+2023-11-24 12:00:53,030 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user alex
+2023-11-24 12:00:53,030 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user alex
+2023-11-24 12:06:26,122 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user alex
+2023-11-24 12:06:26,122 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user alex
+2023-11-24 12:06:26,122 - llm_as_a_service_logger - INFO - login_for_access_token: valid credentials for user alex

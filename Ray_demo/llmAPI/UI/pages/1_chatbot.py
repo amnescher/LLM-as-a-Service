@@ -233,7 +233,7 @@ else:
             # st.sidebar.markdown("<br>", unsafe_allow_html=True)
 
             if selected_button_label:
-                st.session_state.newchat = "False"
+                st.session_state.newchat = "true"
                 st.session_state.conversation_number = find_conversation_number(
                     conversation_info["conversations"], selected_button_label
                 )

@@ -21,3 +21,27 @@ chat histroy for admin with the conversation_number of 1 retrieved from database
 INFO 2023-11-24 09:43:55,246 Llama_70b Llama_70b#NAsUcM a88021b6-010f-44f7-9fcc-7de8b8094845 /Llama_70b/ replica.py:749 - __CALL__ OK 9507.5ms
 chat histroy for admin with the conversation_number of 1 retrieved from database
 INFO 2023-11-24 09:44:18,742 Llama_70b Llama_70b#NAsUcM 01444fb7-93f4-4fae-978a-d0998837a549 /Llama_70b replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-24 09:44:27,432 Llama_70b Llama_70b#NAsUcM 72b78e54-960b-48c1-a24c-73baf8cd6715 /Llama_70b/ replica.py:749 - __CALL__ OK 8680.4ms
+INFO 2023-11-24 11:57:07,604 Llama_70b Llama_70b#NAsUcM dcd17cbb-a69b-4d49-80eb-667daa75d64d /Llama_70b replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-24 11:57:18,765 Llama_70b Llama_70b#NAsUcM d66d0cf8-d6c4-4be6-b8a7-2d0c42d9981b /Llama_70b/ replica.py:749 - __CALL__ OK 11149.9ms
+INFO 2023-11-24 11:57:32,023 Llama_70b Llama_70b#NAsUcM 39a74a7b-51b1-4e20-9300-9439a366548d /Llama_70b replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-24 11:57:41,575 Llama_70b Llama_70b#NAsUcM b4349e04-b179-4dad-9705-507048b93510 /Llama_70b/ replica.py:749 - __CALL__ OK 9542.1ms
+INFO 2023-11-24 11:58:00,385 Llama_70b Llama_70b#NAsUcM 9c2a7635-ecce-4d36-9990-b5c53767e09d /Llama_70b replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-24 11:58:07,057 Llama_70b Llama_70b#NAsUcM bb2461f5-16af-4f43-b4db-ef9ed080e8e8 /Llama_70b/ replica.py:749 - __CALL__ OK 6661.9ms
+INFO 2023-11-24 11:58:22,752 Llama_70b Llama_70b#NAsUcM 538e9061-b93a-421b-b574-6d9dc0e5782e /Llama_70b replica.py:749 - __CALL__ OK 0.3ms
+INFO 2023-11-24 11:58:33,998 Llama_70b Llama_70b#NAsUcM b9fec760-4455-4006-9c4b-65169175e38b /Llama_70b/ replica.py:749 - __CALL__ OK 11235.7ms
+INFO 2023-11-24 11:58:51,469 Llama_70b Llama_70b#NAsUcM 1d2a912f-c9ce-4d02-96ca-e48f2c3f882e /Llama_70b replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-24 11:59:00,208 Llama_70b Llama_70b#NAsUcM ef7731e4-b83d-4eea-9599-e3b0c3ff0d7c /Llama_70b/ replica.py:749 - __CALL__ OK 8728.6ms
+chat histroy for alex with the conversation_number of 1 retrieved from database
+INFO 2023-11-24 12:01:15,532 Llama_70b Llama_70b#NAsUcM 6dba8773-0618-4992-ab0f-ffea26aa4980 /Llama_70b replica.py:749 - __CALL__ OK 0.4ms
+INFO 2023-11-24 12:01:20,173 Llama_70b Llama_70b#NAsUcM 5c0403f5-b06c-4637-9538-296229e6c977 /Llama_70b/ replica.py:749 - __CALL__ OK 4631.2ms
+INFO 2023-11-24 12:01:32,382 Llama_70b Llama_70b#NAsUcM 138a3ee5-6b94-4f1d-8eac-30f38c5d0cb5 /Llama_70b replica.py:749 - __CALL__ OK 0.4ms
+chat histroy for alex with the conversation_number of 1 retrieved from database
+INFO 2023-11-24 12:01:41,192 Llama_70b Llama_70b#NAsUcM eefd9472-250f-4cc2-a6ed-9c6f0629b14d /Llama_70b/ replica.py:749 - __CALL__ OK 8799.9ms
+INFO 2023-11-24 12:06:49,824 Llama_70b Llama_70b#NAsUcM 9a94076e-783f-45ea-90d3-91e5dde0017a /Llama_70b replica.py:749 - __CALL__ OK 0.3ms
+chat histroy for alex with the conversation_number of 1 retrieved from database
+INFO 2023-11-24 12:06:56,663 Llama_70b Llama_70b#NAsUcM c495a7be-9e7b-4e31-9918-73b47bb65186 /Llama_70b/ replica.py:749 - __CALL__ OK 6829.6ms
+INFO 2023-11-24 12:07:30,584 Llama_70b Llama_70b#NAsUcM 4f50ab7f-2fe7-464e-a2bd-18112ba46569 /Llama_70b replica.py:749 - __CALL__ OK 0.3ms
+/home/ubuntu/dev/lib/python3.10/site-packages/transformers/pipelines/base.py:1101: UserWarning: You seem to be using the pipelines sequentially on GPU. In order to maximize efficiency please use a dataset
+  warnings.warn(
+chat histroy for alex with the conversation_number of 2 retrieved from database
