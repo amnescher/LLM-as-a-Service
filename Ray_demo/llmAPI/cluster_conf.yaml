@@ -15,7 +15,8 @@ DB_DIR: CURRENT_DIR
 Ray_service_URL : "http://localhost:8000"
 API_service_URL : "http://localhost:8081"
 DB_name: chat_bot_db
-#----------------------- LLMRay Cluster Configuration
+#----------------------- API Port
+API_port: 8083
 
 #----------------------- Vector Database Cluster Configuration
 VD_WeaviateEmbedder_num_gpus: 0.1

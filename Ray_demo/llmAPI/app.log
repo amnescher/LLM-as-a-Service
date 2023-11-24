@@ -494,3 +494,31 @@
 2023-11-24 12:09:00,416 - INFO - Received a batch of request with batch size of: 1 
 2023-11-24 12:09:00,417 - INFO - Received request: {'username': 'alex', 'prompt': 'give me brief of our chats before this prompt', 'memory': True, 'conversation_number': 2, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
 2023-11-24 12:09:23,082 - INFO - Processed the request successfully
+2023-11-24 12:58:21,180 - INFO - Created a temporary directory at /tmp/tmpoi9rm3t6
+2023-11-24 12:58:21,180 - INFO - Writing /tmp/tmpoi9rm3t6/_remote_module_non_scriptable.py
+2023-11-24 12:58:23,306 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 12:58:40,894 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 12:58:49,645 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-24 12:58:56,194 - INFO - Created a temporary directory at /tmp/tmp906n0fra
+2023-11-24 12:58:56,194 - INFO - Writing /tmp/tmp906n0fra/_remote_module_non_scriptable.py
+2023-11-24 12:58:58,396 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 12:59:16,220 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 12:59:24,937 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-24 13:42:14,482 - INFO - Created a temporary directory at /tmp/tmpxi8mh_ak
+2023-11-24 13:42:14,482 - INFO - Writing /tmp/tmpxi8mh_ak/_remote_module_non_scriptable.py
+2023-11-24 13:42:16,638 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 13:42:34,329 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 13:42:43,072 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-24 13:42:49,588 - INFO - Created a temporary directory at /tmp/tmpyi32iyuj
+2023-11-24 13:42:49,588 - INFO - Writing /tmp/tmpyi32iyuj/_remote_module_non_scriptable.py
+2023-11-24 13:42:51,804 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 13:43:09,365 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 13:43:18,074 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-24 13:45:31,246 - INFO - Created a temporary directory at /tmp/tmpzsfn_vvw
+2023-11-24 13:45:31,246 - INFO - Writing /tmp/tmpzsfn_vvw/_remote_module_non_scriptable.py
+2023-11-24 13:45:33,448 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 13:45:51,250 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 13:45:59,988 - INFO - Anonymized telemetry enabled. See https://docs.trychroma.com/telemetry for more information.
+2023-11-24 13:46:06,278 - INFO - Created a temporary directory at /tmp/tmpjxsa7vpl
+2023-11-24 13:46:06,278 - INFO - Writing /tmp/tmpjxsa7vpl/_remote_module_non_scriptable.py
+2023-11-24 13:46:08,508 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).

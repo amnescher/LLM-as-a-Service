@@ -4,6 +4,7 @@ from ray import serve
 import yaml
 
 serve.start()
+
 class Config:
     def __init__(self, **entries):
         self.__dict__.update(entries)
