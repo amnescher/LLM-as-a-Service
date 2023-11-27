@@ -28,6 +28,8 @@ async def query_vectorDB(data: VectorDBRequest = Depends(),
                          current_user: User = Depends(get_current_active_user),
                          file: Optional[UploadFile] = File(None)):
     try:
+        print(f"Received data: {data.dict()}")  # Debug print
+        print(f"Received file: {file.filename if file else 'No file'}")
         data.username = current_user.username
         
         # Check if a file is included in the request
