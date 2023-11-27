@@ -1,0 +1,11 @@
+# Ignore all PDF files
+*.pdf
+
+# Ignore all ZIP files
+*.zip
+# 
+*.db
+*.log
+
+# Ignore specific directories
+received_files/

@@ -1,55 +1,62 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Depends
-from app.models import  VectorDBRequest
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from app.models import VectorDBRequest
 from app.depencencies.security import get_current_active_user
 from app.database import User
 import requests
-from dotenv import load_dotenv
 import os
 import yaml
+import secrets
+import zipfile
 from typing import Optional
-import io
-# Load environment variables
-
-
 import pathlib
-#from app.logging_config import setup_logger
-import yaml
 
+# Load environment variables and setup
 current_path = pathlib.Path(__file__).parent
-
 config_path = current_path.parent.parent.parent / 'cluster_conf.yaml'
 received_files_dir = os.path.join(current_path.parent.parent.parent, 'received_files')
 os.makedirs(received_files_dir, exist_ok=True)
 
-# Environment and DB setup
+# Load configuration
 with open(config_path, "r") as file:
     config = yaml.safe_load(file)
-
-
 
 Ray_service_URL = config.get("Ray_service_URL")
 router = APIRouter()
 
 @router.post("/")
-async def create_inference(data: VectorDBRequest = Depends(), 
-                           current_user: User = Depends(get_current_active_user),
-                           file: Optional[UploadFile] = File(None)):
+async def query_vectorDB(data: VectorDBRequest = Depends(), 
+                         current_user: User = Depends(get_current_active_user),
+                         file: Optional[UploadFile] = File(None)):
     try:
+        print(f"Received data: {data.dict()}")  # Debug print
+        print(f"Received file: {file.filename if file else 'No file'}")
         data.username = current_user.username
         
-
         # Check if a file is included in the request
         if file:
-            if file.content_type in ['application/pdf', 'application/zip']:
-                # Save the file
-                file_path = os.path.join(received_files_dir, f"{current_user.username}_{file.filename}")
-                with open(file_path, "wb") as file_object:
-                    file_object.write(await file.read())
+            # Create a random directory for the file
+            random_dir = secrets.token_hex(8)  # Generates a random 16-character string
+            file_dir = os.path.join(received_files_dir, random_dir)
+            os.makedirs(file_dir, exist_ok=True)
 
-                # Update the file path in the request data
-                data.file_path  = file_path
-            else:
-                raise HTTPException(status_code=400, detail="Unsupported file type")
+            # Save the file in the random directory
+            file_path = os.path.join(file_dir, file.filename)
+            with open(file_path, "wb") as file_object:
+                file_object.write(await file.read())
+
+            # If the file is a ZIP file, extract it
+            if file.content_type == 'application/zip':
+                with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                    # Extract only the files not in _MACOSX directory
+                    for zip_info in zip_ref.infolist():
+                        if not zip_info.filename.startswith('__MACOSX/'):
+                            zip_ref.extract(zip_info, file_dir)
+
+            # Update the file path in the request data
+            data.file_path = file_dir
+        else:
+            data.file_path = None
+
         data_dict = data.dict()
         # Send the request to the external service
         response = requests.post(f"{Ray_service_URL}/VectorDB", json=data_dict)

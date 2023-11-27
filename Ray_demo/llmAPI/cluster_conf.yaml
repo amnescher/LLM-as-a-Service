@@ -17,7 +17,6 @@ API_service_URL : "http://localhost:8081"
 DB_name: chat_bot_db
 #----------------------- API Port
 API_port: 8083
-
 #----------------------- Vector Database Cluster Configuration
 VD_WeaviateEmbedder_num_gpus: 0.1
 VD_deployment_num_gpus: 0.1
@@ -61,7 +60,7 @@ LLMs:
     repetition_penalty: 1.1
     batch_size: 2
     route_prefix: Llama_13b
-    num_gpus: 0.45
+    num_gpus: 0.35
     min_replicas: 1
     initial_replicas: 1
     max_replicas: 2

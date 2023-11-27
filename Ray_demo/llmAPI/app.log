@@ -522,3 +522,60 @@
 2023-11-24 13:46:06,278 - INFO - Created a temporary directory at /tmp/tmpjxsa7vpl
 2023-11-24 13:46:06,278 - INFO - Writing /tmp/tmpjxsa7vpl/_remote_module_non_scriptable.py
 2023-11-24 13:46:08,508 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:14:29,257 - INFO - Created a temporary directory at /tmp/tmpwi0t5sf9
+2023-11-24 16:14:29,258 - INFO - Writing /tmp/tmpwi0t5sf9/_remote_module_non_scriptable.py
+2023-11-24 16:14:31,556 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:14:49,192 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 16:15:04,555 - INFO - Created a temporary directory at /tmp/tmpfgxakqhk
+2023-11-24 16:15:04,556 - INFO - Writing /tmp/tmpfgxakqhk/_remote_module_non_scriptable.py
+2023-11-24 16:16:08,239 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:16:12,441 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 16:19:20,847 - INFO - Created a temporary directory at /tmp/tmpbyn56i3p
+2023-11-24 16:19:20,847 - INFO - Writing /tmp/tmpbyn56i3p/_remote_module_non_scriptable.py
+2023-11-24 16:19:23,271 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:19:40,999 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 16:19:56,558 - INFO - Created a temporary directory at /tmp/tmp4mh0e5us
+2023-11-24 16:19:56,558 - INFO - Writing /tmp/tmp4mh0e5us/_remote_module_non_scriptable.py
+2023-11-24 16:19:58,422 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:20:02,922 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 16:24:52,413 - INFO - Created a temporary directory at /tmp/tmpjkss21or
+2023-11-24 16:24:52,413 - INFO - Writing /tmp/tmpjkss21or/_remote_module_non_scriptable.py
+2023-11-24 16:24:54,738 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:25:12,084 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 16:25:26,647 - INFO - Created a temporary directory at /tmp/tmpgiw8zzz6
+2023-11-24 16:25:26,647 - INFO - Writing /tmp/tmpgiw8zzz6/_remote_module_non_scriptable.py
+2023-11-24 16:25:28,448 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:25:32,666 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 16:26:27,492 - INFO - Created a temporary directory at /tmp/tmpgd0se94d
+2023-11-24 16:26:27,493 - INFO - Writing /tmp/tmpgd0se94d/_remote_module_non_scriptable.py
+2023-11-24 16:26:29,828 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:26:47,350 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 16:29:55,708 - INFO - Created a temporary directory at /tmp/tmp6kcast2l
+2023-11-24 16:29:55,708 - INFO - Writing /tmp/tmp6kcast2l/_remote_module_non_scriptable.py
+2023-11-24 16:29:58,038 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:30:15,722 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-24 16:31:35,276 - INFO - Created a temporary directory at /tmp/tmpbs261uga
+2023-11-24 16:31:35,277 - INFO - Writing /tmp/tmpbs261uga/_remote_module_non_scriptable.py
+2023-11-24 16:31:37,588 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-24 16:31:55,077 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-27 09:52:02,915 - INFO - Created a temporary directory at /tmp/tmpme30l9h9
+2023-11-27 09:52:02,915 - INFO - Writing /tmp/tmpme30l9h9/_remote_module_non_scriptable.py
+2023-11-27 09:52:05,183 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-27 09:52:22,711 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-27 09:52:37,971 - INFO - Created a temporary directory at /tmp/tmpkazi7fy2
+2023-11-27 09:52:37,971 - INFO - Writing /tmp/tmpkazi7fy2/_remote_module_non_scriptable.py
+2023-11-27 09:52:39,805 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-27 09:52:43,763 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-27 09:54:02,579 - INFO - Created a temporary directory at /tmp/tmpkj0bmpr9
+2023-11-27 09:54:02,580 - INFO - Writing /tmp/tmpkj0bmpr9/_remote_module_non_scriptable.py
+2023-11-27 09:54:04,862 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-27 09:54:22,230 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-27 09:54:36,775 - INFO - Created a temporary directory at /tmp/tmpk_d8gkff
+2023-11-27 09:54:36,776 - INFO - Writing /tmp/tmpk_d8gkff/_remote_module_non_scriptable.py
+2023-11-27 09:54:38,606 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-11-27 09:54:42,469 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-11-27 09:57:00,310 - INFO - request processed successfully username='admin' collection_name='videos' mode='create_collection' vectorDB_type='Weaviate' file_path='string': %s
+2023-11-27 10:01:33,265 - ERROR - An error occurred: [Errno 20] Not a directory: '/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/docs/paper.pdf'
+2023-11-27 10:09:22,302 - ERROR - An error occurred: [Errno 20] Not a directory: '/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files/admin_Car rental doc.pdf'
+2023-11-27 10:55:03,854 - ERROR - An error occurred: [Errno 20] Not a directory: '/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/docs/paper.pdf'
+2023-11-27 11:00:59,336 - INFO - request processed successfully username='admin' collection_name='Admin_videos' mode='add_to_collection' vectorDB_type='Weaviate' file_path='/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files/f84b2db7d4a8f72d': %s
