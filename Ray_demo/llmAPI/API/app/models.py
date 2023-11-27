@@ -49,7 +49,7 @@ class DataBaseRequest(BaseModel):
     token_limit: Optional[int]
 
 class VectorDBRequest(BaseModel):
-    username: Optional[str] 
+    username: str 
     collection_name: Optional[str] 
     mode: str = "add_to_collection"
     vectorDB_type: Optional[str] = "Weaviate"

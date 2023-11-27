@@ -13,9 +13,9 @@ class Config:
 with open("cluster_conf.yaml", 'r') as file:
     config = yaml.safe_load(file)
     config = Config(**config)
-
+# Deploy the vector database
 serve.run(VectorDataBase.bind(), name = "VectorDB" ,route_prefix="/VectorDB")
-
+# Deploy the LLMs
 for LLM in config.LLMs:
     prefix = LLM["route_prefix"]
     model_id = LLM["model_id"]
