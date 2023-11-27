@@ -45,7 +45,7 @@ class VDBaseInput(BaseModel):
 VDB_app = FastAPI()
 
 
-@ray.remote(num_gpus=config.VD_WeaviateEmbedder_num_gpus)
+@ray.remote(num_gpus=config.VD_WeaviateEmbedder_num_gpus, num_cpus=12)
 class WeaviateEmbedder:
     def __init__(self):
         self.time_taken = 0
@@ -67,10 +67,6 @@ class WeaviateEmbedder:
             )
         except:
             self.logger.error("Error in connecting to Weaviate")
-            
-        self.weaviate_client = weaviate.Client(
-            url=config.weaviate_client_url,   
-        )
 
     def adding_weaviate_document(self, text_lst, collection_name):
         self.weaviate_client.batch.configure(batch_size=100)
@@ -83,6 +79,10 @@ class WeaviateEmbedder:
                         #uuid=generate_uuid5(text),
         )
         self.text_list.append(text)
+        self.logger.info(f"Check the data that is being passed {self.text_list}: %s", )
+        results= self.text_list
+        self.logger.info(f"Check the results {results}: %s", )
+        ray.get(results)
         return self.text_list
 
     def get(self):
@@ -92,10 +92,11 @@ class WeaviateEmbedder:
         return self.time_taken
 
 @serve.deployment(ray_actor_options={"num_gpus": config.VD_deployment_num_gpus}, autoscaling_config={
-        "min_replicas": config.VD_min_replicas,
+        #"min_replicas": config.VD_min_replicas,
         "initial_replicas": config.VD_initial_replicas,
-        "max_replicas": config.VD_max_replicas,
-        "max_concurrent_queries": config.VD_max_concurrent_queries,})
+        #"max_replicas": config.VD_max_replicas,
+        #"max_concurrent_queries": config.VD_max_concurrent_queries,
+        })
 
 @serve.ingress(VDB_app)
 class VectorDataBase:
@@ -133,7 +134,7 @@ class VectorDataBase:
 
         serialized_docs = [
                     self.weaviate_serialize_document(doc) 
-                    for doc in text_docs
+                    for doc in docs
                     ]
         return serialized_docs	
 
@@ -171,11 +172,12 @@ class VectorDataBase:
     def process_all_docs(self, dir, cls):
         document_list = self.parse_pdf(dir)
         serialized_docs = self.weaviate_split_multiple_pdf(document_list)
-        if len(serialized_docs) <= 50:
+        if len(serialized_docs) <= 3:
             self.add_weaviate_document(cls, serialized_docs)
         else:
             doc_workload = self.divide_workload(self.num_actors, serialized_docs)
             self.add_weaviate_batch_documents(cls, doc_workload)
+            self.logger.info(f"check weaviate add data, ")
 
     def add_weaviate_document(self, cls, docs):
         actor = WeaviateEmbedder.remote()
@@ -183,7 +185,10 @@ class VectorDataBase:
 
     def add_weaviate_batch_documents(self, cls, doc_workload):
         actors = [WeaviateEmbedder.remote() for _ in range(3)]
-        ray.get([actor.adding_weaviate_document.remote(doc_part, str(cls)) for actor, doc_part in zip(actors, doc_workload)])
+        self.logger.info(f"actors creation successful {actors}: %s", )
+        [actor.adding_weaviate_document.remote(doc_part, str(cls)) for actor, doc_part in zip(actors, doc_workload)]
+        self.logger.info(f"check 1st step of ray was successful", )
+        self.logger.info(f"check if ray was successful:", )
 
     def query_weaviate_document_names(self,cls):
         class_properties = ["document_title"]
