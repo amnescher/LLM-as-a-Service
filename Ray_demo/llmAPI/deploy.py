@@ -1,5 +1,6 @@
 from backend import PredictDeployment
-from vector_database import VectorDataBase
+from backend_vectordatabase import VectorDataBase
+from backend_arxiv_search import ArxivSearch
 from ray import serve
 import yaml
 
@@ -14,7 +15,14 @@ with open("cluster_conf.yaml", 'r') as file:
     config = yaml.safe_load(file)
     config = Config(**config)
 # Deploy the vector database
+
+vdb_deployment_options = {
+    
+}
+
 serve.run(VectorDataBase.bind(), name = "VectorDB" ,route_prefix="/VectorDB")
+
+serve.run(ArxivSearch.bind(), name = "ArxivSearch" ,route_prefix="/ArxivSearch")
 # Deploy the LLMs
 for LLM in config.LLMs:
     prefix = LLM["route_prefix"]
@@ -36,4 +44,4 @@ for LLM in config.LLMs:
     # Apply the deployment options to the PredictDeployment class
     PredictDeployment = PredictDeployment.options(**deployment_options)
     # Deploy the service with the specified model_id and other parameters
-    serve.run(PredictDeployment.bind(model_id, LLM["temperature"], LLM["max_new_tokens"], LLM["repetition_penalty"], LLM["batch_size"]), name = LLM["name"], route_prefix=f"/{prefix}")
+    #serve.run(PredictDeployment.bind(model_id, LLM["temperature"], LLM["max_new_tokens"], LLM["repetition_penalty"], LLM["batch_size"]), name = LLM["name"], route_prefix=f"/{prefix}")

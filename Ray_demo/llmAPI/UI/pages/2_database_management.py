@@ -17,15 +17,19 @@ logger.propagate = True
 
 port = 5001
 BASE_URL = "http://localhost:8083"
+Weaviate_endpoint = "/vector_DB_request/"
+Arxiv_endpoint = "/arxiv_search/"
 
 def add_class(username, class_name, access_token):
     params = {
         "username": username,
-        "class_name": class_name
+        "class_name": class_name,
+        "mode": "create_class"
         }
     print('query data', params)
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.post(f"{BASE_URL}/vector_DB_request/add_vdb_class/",json=params, headers=headers)
+    resp = send_vector_db_request(access_token, params, Weaviate_endpoint)
+    #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
     if resp.status_code == 200:
         print(resp.status_code, resp.content)
     else:
@@ -34,10 +38,12 @@ def add_class(username, class_name, access_token):
 def delete_class(username, class_name, access_token):
     params = {
         "username": username,
-        "class_name": class_name
+        "class_name": class_name,
+        "mode": "delete_class"
         }
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.post(f"{BASE_URL}/vector_DB_request/remove_vdb_class/",json=params, headers=headers)
+    resp = send_vector_db_request(access_token, params, Weaviate_endpoint)
+    #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
     if resp.status_code == 200:
         print(resp.status_code, resp.content)
     else:
@@ -46,13 +52,16 @@ def delete_class(username, class_name, access_token):
 def display_documents(username, class_name, access_token):
     params = {
         "username": username,
-        "class_name": class_name
+        "class_name": class_name,
+        "mode": "display_documents"
         }
+    
 
     #print("collection selected:", params)
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.post(f"{BASE_URL}/vector_DB_request/get_docs_in_class/",json=params, headers=headers)
+    resp = send_vector_db_request(access_token, params, Weaviate_endpoint)
+    #resp = requests.post(f"{BASE_URL}/vector_DB_request/get_docs_in_class/",json=params, headers=headers)
     
 
     #print("the response", resp, resp.content)
@@ -66,14 +75,16 @@ def display_documents(username, class_name, access_token):
 def display_user_classes(username, access_token):
     params = {
         "username": username,
+        "mode": "display_classes"
         }
+    file_path = None
 
     print("data:", params)
 
-    headers = {"Authorization": f"Bearer {access_token}"}
-    resp = requests.post(f"{BASE_URL}/vector_DB_request/get_classes/",json=params, headers=headers)
-    
-
+    #headers = {"Authorization": f"Bearer {access_token}"}
+    resp = send_vector_db_request(access_token, params, Weaviate_endpoint)
+    #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
+        # Handle the response
     print("the response", resp, resp.content)
 
     response_content = resp.content.decode("utf-8")
@@ -85,7 +96,68 @@ def display_user_classes(username, access_token):
     else:
         print(resp.status_code, resp.content)
         return 
+
+def upload_documents(username, class_name, access_token, file_path):
+    params = {
+        "username": username,
+        "class_name": class_name,
+        "mode": "add_to_collection"
+        }
+    resp = send_vector_db_request(access_token, params, Weaviate_endpoint, file_path)
+    #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
+    if resp.status_code == 200:
+        print(resp.status_code, resp.content)
+    else:
+        print(resp.status_code, resp.content)
+
+def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=None, file_path=None):
+    if query is not None and file_path is None:
+        print('it went in the 1st condition')
+        params = {
+            "username": username,
+            "class_name": class_name,
+            "mode": arxiv_mode,
+            "recursive_mode": arxiv_recusrive_mode,
+            "query": query,
+            }
+        resp = send_vector_db_request(access_token, params, Arxiv_endpoint)
+    if file_path is not None and query is None: 
+        print('it went in the 2nd condition')
+        params = {
+            "username": username,
+            "class_name": class_name,
+            "mode": arxiv_mode,
+            "recursive_mode": arxiv_recusrive_mode,
+            }
+        resp = send_vector_db_request(access_token, params, Arxiv_endpoint, file_path)
+    print('file path', file_path)
     
+    
+    if resp.status_code == 200:
+        print(resp.status_code, resp.content)
+    else:
+        print(resp.status_code, resp.content)
+
+def send_vector_db_request(access_token, json_data, endpoint, uploaded_file=None):
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    # Prepare the form data with JSON data as a string
+    form_data = {
+        'data': (None, json.dumps(json_data), 'application/json')
+    }
+
+    # Prepare the file data
+    if uploaded_file is not None and uploaded_file is not type(str):
+        form_data['file'] = (uploaded_file.name, uploaded_file, uploaded_file.type)
+        #with open(file_path, 'rb') as f:
+        #    form_data['file'] = ('filename', f, 'application/octet-stream')
+    print('form data', form_data)
+    # Sending the request
+    response = requests.post(f"{BASE_URL}{endpoint}", headers=headers, files=form_data)
+
+    return response
+
+
 def authentication(username, password):
     data = {"username": username, "password": password}
     resp = requests.post(
@@ -192,8 +264,41 @@ else:
                     #documents = display_colleciton_in_table()  # Fetch actual documents
                     st.table(doc_list)
 
+            
+            st.subheader("Add Document")
+            uploaded_files = st.file_uploader("Add files", accept_multiple_files=True)
+            if st.button("Upload documents"):
+                if uploaded_files:
+                    for uploaded_file in uploaded_files:
+                        upload_documents(st.session_state.username, str(selected_collections), st.session_state.token, uploaded_file)
+                        st.text(f"Document {uploaded_file.name} Uploaded! ✅")
+            st.subheader("Populate collection with Arxiv papers")
+            
+            arxiv_mode = st.radio(options= ["Search by query", "Upload file"], label="Type upload")
+            arxiv_recusrive_mode = st.text_input("Number of recursive calls", value=1)
+            arxiv_paper_limit = st.text_input("Number of papers to add", value=10)
+            if arxiv_mode == "Search by query":
+                query = st.text_input("Enter query")
+                print("query", query, type(query))
+            elif arxiv_mode == "Upload file":
+                query = st.file_uploader("Upload file", type=["pdf"])
+                print("query", query, type(query))
+            if st.button("Populate collection"):
+                if arxiv_mode == "Search by query":
+                    arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=query)
+                    st.text(f"Collection populated! ✅")
+                if arxiv_mode == "Upload file":
+                    arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, file_path=query)
+                    st.text(f"Collection populated! ✅")
+                
 
-        st.header("Select collections to use")
+                #def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=None, file_path=None):
+         # uploaded_pdf = st.file_uploader("Add PDF", type=["pdf"])
+          #  if st.button("Upload document"):
+           #         if uploaded_pdf is not None:
+            #            upload_documents(st.session_state.username, str(selected_collections), st.session_state.token, uploaded_pdf)
+             #           st.text("Document Uploaded!" + " ✅")
+        #st.header("Select collections to use")
         #doc_list = display_documents(selected_collections)
         #selected_collections = st.selectbox("Select Collections:", documents)
 
