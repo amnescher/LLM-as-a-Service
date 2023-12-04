@@ -163,7 +163,6 @@ class WeaviateRayEmbedder:
                 self.text_list.append(text)
         #self.logger.info(f"Check the data that is being passed {self.text_list}: %s", )
         results= self.text_list
-        self.logger.info(f"Check the results {results}: %s", )
         ray.get(results)
         return self.text_list
 
@@ -200,36 +199,25 @@ class ArxivSearch:
         self.logger = logging.getLogger(__name__)
         self.logger.propagate = True
     
-    def run_anystyle(self, input_dir):
+    def run_anystyle(self,input_pdf, base_dir):
         try:
-            # Create a bib_files directory inside the input directory
-            bib_files_dir = os.path.join(input_dir, 'bib_files')
-            os.makedirs(bib_files_dir, exist_ok=True)
-
-            # Find the first PDF in the directory
-            for file in os.listdir(input_dir):
-                if file.endswith('.pdf'):
-                    input_pdf_path = os.path.join(input_dir, file)
-                    break
-            else:
-                return "No PDF file found in the directory."
-
-            # Run anystyle command on the PDF file
-            command = ['anystyle', '-f', 'bib', 'find', input_pdf_path, bib_files_dir]
+            new_directory_path = os.path.join(base_dir, 'bib_files')
+            os.makedirs(new_directory_path, exist_ok=True)
+            
+            command = ['anystyle', '-f', 'bib', 'find', input_pdf, new_directory_path]
             result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
+            # Check for successful execution
             if result.returncode == 0:
-                # Construct the expected output .bib file path
-                output_file_name = os.path.basename(input_pdf_path).replace('.pdf', '.bib')
-                output_file_path = os.path.join(bib_files_dir, output_file_name)
+                output_file_name = os.path.basename(input_pdf).replace('.pdf', '.' + 'bib')
+                output_file_path = os.path.join(new_directory_path, output_file_name)
                 return output_file_path
             else:
                 return f"Command failed with return code {result.returncode}."
 
         except subprocess.CalledProcessError as e:
+            # Handle errors
             return f"An error occurred: {e.stderr}"
-
-        
 
     def process_bib_files(self, file):
         try:
@@ -288,11 +276,11 @@ class ArxivSearch:
                                 print("Connection reset by peer. Retrying in 5 seconds.")
                                 time.sleep(5)
                                 continue  # Retry the current iteration
-                    break  # Break the inner loop if a search is completed
+                    break  # Break loop if a search is completed
 
                 except Exception as e:
                     print(f"An error occurred: {e}")
-                    break  # Break the inner loop on encountering an exception
+                    break  
 
     def weaviate_serialize_document(self, doc):
             document_title = doc.metadata.get('source', '').split('/')[-1]
@@ -387,23 +375,22 @@ class ArxivSearch:
         actors = [WeaviateRayEmbedder.remote() for _ in range(4)]
         [actor.adding_weaviate_document.remote(doc_part, cls) for actor, doc_part in zip(actors, actor_workload)]
 
-    def merge_all_pdfs_into_final_dir(self, final_dir):
+    def merge_all_pdfs_into_final_dir(self, final_dir, base_dir):
         if not os.path.exists(final_dir):
             os.makedirs(final_dir)
 
         # Regular expression to match iteration directories
         iter_dir_pattern = re.compile(r'^iteration_\d+$')
 
-        # List all directories that match the iteration pattern
-        all_iter_dirs = [d for d in os.listdir('.') if os.path.isdir(d) and iter_dir_pattern.match(d)]
-
+        # List all directories that match the iteration pattern with full paths
+        all_iter_dirs = [os.path.join(base_dir, d) for d in os.listdir(base_dir) 
+                         if os.path.isdir(os.path.join(base_dir, d)) and iter_dir_pattern.match(d)]
         for iter_dir in all_iter_dirs:
             for pdf_file in os.listdir(iter_dir):
                 if pdf_file.endswith('.pdf'):
                     src_file_path = os.path.join(iter_dir, pdf_file)
                     dest_file_path = os.path.join(final_dir, pdf_file)
 
-                    # Check for filename conflicts and rename if necessary
                     file_index = 1
                     base_name, extension = os.path.splitext(dest_file_path)
                     while os.path.exists(dest_file_path):
@@ -417,27 +404,26 @@ class ArxivSearch:
             """Process all on one actor"""
 
             current_iter = 1
-
-            print('check before recursive')
-            self.logger.info(f"ctest if it reaches the function {current_iter}: %s", )
+            base_dir = input_pdf
+            for file in os.listdir(input_pdf):
+                if file.endswith('.pdf'):
+                    input_pdf_path = os.path.join(input_pdf, file)
+                    break
+                else:
+                    return "No PDF file found in the directory."
             if not recursive:
-                anystyle_output = self.run_anystyle(input_pdf)
+                anystyle_output = self.run_anystyle(input_pdf_path,base_dir)
                 parsed_data = self.process_bib_files(anystyle_output)
                 for ref in parsed_data:
                     self.arxiv_search(ref['title'], ref['authors'])
 
-
-                print('check not recursive')
                 parsed_text = self.parse_pdf()
                 serialized_text = self.weaviate_split_multiple_pdf(parsed_text)
 
                 if ray == False:
-                    print('success split with no ray')
-                # calling the weaviate embedder
                     self.weaviate_embedding(serialized_text, cls)
 
                 elif ray is True:
-                    print('splt with ray')
                     self.weaviate_ray_embedding(serialized_text, cls)
 
 
@@ -445,43 +431,31 @@ class ArxivSearch:
                     file_path = os.path.join('./pdfs', filename)
                     if os.path.isfile(file_path) and filename.endswith(".pdf"):
                         os.remove(file_path)
-                        print(f"Removed {filename}")
 
             if recursive and iteration > 0:
-                self.logger.info(f"recursive mode {recursive}: %s", )
+                base_dir = input_pdf
                 while current_iter <= iteration:
-                    print('test while loop 1')
                     if current_iter == 1:
-                        print('test while loop 2')
-                        iter_dir = f'./iteration_{current_iter}'
+                        iter_dir = os.path.join(input_pdf, f'iteration_{current_iter}')
                         if not os.path.exists(iter_dir):
                             os.makedirs(iter_dir)
-                        print('test while loop 3')
-                        anystyle_output = self.run_anystyle(input_pdf)
-                        self.logger.info(f"anystyle output {anystyle_output}: %s", )
+                        anystyle_output = self.run_anystyle(input_pdf_path,base_dir)
                         parsed_data = self.process_bib_files(anystyle_output)
-                        self.logger.info(f"parsed data {parsed_data}: %s", )
                         for ref in parsed_data:
                             self.arxiv_search(ref['title'], ref['authors'], iter_dir)
 
-                        print('test while loop 4')
                         current_iter += 1
                         
                     elif current_iter >= 2:
-                        print('test while loop 5')
-                        iter_dir = f'./iteration_{current_iter}'
+                        iter_dir =  os.path.join(input_pdf, f'iteration_{current_iter}')
                         if not os.path.exists(iter_dir):
                             os.makedirs(iter_dir)
                     
-                        previous_dir = f'./iteration_{current_iter - 1}'
-                        print('checking the directories prev and current and current iteration:', iter_dir, previous_dir, current_iter)
+                        previous_dir =  os.path.join(input_pdf, f'iteration_{current_iter - 1}')
                         pdf_files = [f for f in os.listdir(previous_dir) if f.endswith('.pdf')]
-                        print('pdf files in iterdir', pdf_files)
                         for pdf_file in pdf_files:
                             full_path = os.path.join(previous_dir, pdf_file)
-                            print('pdf file:', full_path)
-                            anystyle_output = self.run_anystyle(full_path)
-                            print('check anystyle bib', anystyle_output)
+                            anystyle_output = self.run_anystyle(full_path,base_dir)
                             
                             parsed_data = self.process_bib_files(anystyle_output)
                             for ref in parsed_data:
@@ -491,8 +465,8 @@ class ArxivSearch:
                                     print(f"Unexpected format of reference: {ref}")
                         current_iter += 1
                 
-                final_directory = './final_pdfs'
-                self.merge_all_pdfs_into_final_dir(final_directory)
+                final_directory = input_pdf + '/final_pdfs'
+                self.merge_all_pdfs_into_final_dir(final_directory, input_pdf)
                 parsed_text = self.parse_pdf(final_directory)
                 serialized_text = self.weaviate_split_multiple_pdf(parsed_text)
                 if ray == False:
@@ -521,16 +495,3 @@ class ArxivSearch:
                 return {"username": request.username, "response": response}
             except Exception as e:
                 self.logger.error("An error occurred: %s", str(e))
-
-'''
-def arxiv_pipeline(self, input_pdf, cls, ray=False, recursive=False, iteration = None):
-
-class ArxivInput(BaseModel):
-    username: str 
-    class_name: Optional[str]
-    query: Optional[str]
-    paper_limit: Optional[int]
-    recursive_mode: Optional[int] 
-    mode: str = "ray_on"
-    file_path: Optional[str] = None
-'''

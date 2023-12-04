@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Security
+from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, File, Security
 from app.models import VectorDBRequest,LoginUser
 from app.depencencies.security import get_current_active_user
 from app.depencencies.security import get_current_active_user
@@ -12,9 +12,10 @@ from typing import Optional
 import pathlib
 from sqlalchemy.orm import Session
 from app.database import get_db
+from pydantic import BaseModel, parse_raw_as
 import weaviate
 import logging
-
+import json
 # Load environment variables and setup
 current_path = pathlib.Path(__file__).parent
 config_path = current_path.parent.parent.parent / 'cluster_conf.yaml'
@@ -41,14 +42,21 @@ Ray_service_URL = config.get("Ray_service_URL")
 router = APIRouter()
 
 @router.post("/")
-async def query_vectorDB(data: VectorDBRequest = Depends(), 
+async def query_vectorDB(data: str = Form(...), 
+                         file: Optional[UploadFile] = File(None),
                          current_user: User = Depends(get_current_active_user),
-                         file: Optional[UploadFile] = File(None)):
+                        
+                         ):
     try:
-        print(f"Received data: {data.dict()}")  # Debug print
-        print(f"Received file: {file.filename if file else 'No file'}")
-        data.username = current_user.username
-        
+        print('data received', data)
+        print('file received', file)
+        data_dict = json.loads(data)
+        vector_db_request = parse_raw_as(VectorDBRequest, json.dumps(data_dict))
+
+        # Add the username from the current user
+        vector_db_request.username = current_user.username
+        print('Parsed data:', vector_db_request.dict())
+        #data.username = current_user.username
         # Check if a file is included in the request
         if file:
             # Create a random directory for the file
@@ -70,14 +78,16 @@ async def query_vectorDB(data: VectorDBRequest = Depends(),
                             zip_ref.extract(zip_info, file_dir)
 
             # Update the file path in the request data
-            data.file_path = file_dir
-        else:
-            data.file_path = None
+            #data.file_path = file_dir
+        #else:
+            #data.file_path = None
+            vector_db_request.file_path = file_dir
 
-        data_dict = data.dict()
+        #data_dict = data.dict()
         # Send the request to the external service
-        response = requests.post(f"{Ray_service_URL}/VectorDB", json=data_dict)
-        response.raise_for_status()  # Raises an HTTPError for unsuccessful status codes
+       # print("data_dict",data_dict)
+        response = requests.post(f"{Ray_service_URL}/VectorDB/", json=vector_db_request.dict())
+        #response.raise_for_status()  # Raises an HTTPError for unsuccessful status codes
         response_data = response.json()
         return {"username": current_user.username, "response": response_data}
 
@@ -90,102 +100,4 @@ async def query_vectorDB(data: VectorDBRequest = Depends(),
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
 
-@router.post("/add_vdb_class/")
-async def add_vdb_class(
-    data: VectorDBRequest,
-    current_user: User = Depends(get_current_active_user)):
 
-    try:            
-            weaviate_client = weaviate.Client("http://localhost:8080")
-            prefix = current_user.username
-            cls = str(prefix) + "_" + str(data.class_name)
-            #class_description = str(description)
-            vectorizer = 'text2vec-transformers'
-            if cls is not None:
-                schema = {'classes': [ 
-                    {
-                            'class': str(cls),
-                            'description': 'normal description',
-                            'vectorizer': str(vectorizer),
-                            'moduleConfig': {
-                                str(vectorizer): {
-                                    'vectorizerClassName': False,
-                                    }
-                            },
-                            'properties': [{
-                                'dataType': ['text'],
-                                'description': 'the text from the documents parsed',
-                                'moduleConfig': {
-                                    str(vectorizer): {
-                                        'skip': False,
-                                        'vectorizePropertyName': False,
-                                        }
-                                },
-                                'name': 'page_content',
-                            },
-                            {
-                                'name': 'document_title',
-                                'dataType': ['text'],
-                            }],      
-                            },
-                ]}
-                weaviate_client.schema.create(schema)
-            else:
-                return {"error": "No class name provided"}
-    except Exception as e:
-        return {"error": str(e)}
-
-@router.post("/remove_vdb_class/")  
-async def delete_weaviate_class(data: VectorDBRequest,
-    current_user: User = Depends(get_current_active_user)):
-        try: 
-            weaviate_client = weaviate.Client("http://localhost:8080")
-            username = current_user.username
-            class_name = data.class_name
-            full_class_name = str(username) + "_" + str(class_name)
-            weaviate_client.schema.delete_class(full_class_name)
-
-        except Exception as e:
-            return {"error": str(e)}
-
-@router.post("/get_docs_in_class/")    
-async def query_weaviate_document_names(data: VectorDBRequest,
-    current_user: User = Depends(get_current_active_user)):
-    try:
-        weaviate_client = weaviate.Client("http://localhost:8080")
-        username = current_user.username
-        class_properties = ["document_title"]
-        class_name = data.class_name
-        #full_class_name = str(username) + "_" + str(class_name)
-        full_class_name = 'Admin' + "_" + str(class_name)
-        query = weaviate_client.query.get(full_class_name, class_properties)
-        print('the query', query)
-        query = query.do()
-
-        document_title_set = set()
-        documents = query.get('data', {}).get('Get', {}).get(str(full_class_name), [])
-        #print('the documents', documents)
-        for document in documents:
-            document_title = document.get('document_title')
-            if document_title is not None:
-                document_title_set.add(document_title)
-        return list(document_title_set)
-    
-    except Exception as e:
-            return {"error": str(e)}
-    
-@router.post("/get_classes/")  
-async def delete_weaviate_class(data: VectorDBRequest,
-    current_user: User = Depends(get_current_active_user)):
-    try:
-        weaviate_client = weaviate.Client("http://localhost:8080")
-        username = current_user.username
-        schema = weaviate_client.schema.get()
-        classes = schema.get('classes', []) 
-        prefix = str(username) + "_"
-        prefix = prefix.capitalize()
-        filtered_classes = [cls["class"].replace(prefix, "", 1) for cls in classes if cls["class"].startswith(prefix)] #[cls["class"] for cls in classes if cls["class"].startswith(prefix)]
-        return filtered_classes
-    
-    except Exception as e:
-            return {"error": str(e)}

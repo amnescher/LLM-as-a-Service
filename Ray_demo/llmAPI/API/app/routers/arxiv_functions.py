@@ -48,8 +48,7 @@ async def query_arxiv_search(data: str = Form(...),
                          file: Optional[UploadFile] = File(None),
                          current_user: User = Depends(get_current_active_user),
                         ):
-    #print('files', file)   
-    print("query_arxiv_search!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
     try:
         print('data received', data)
         print('file received', file)
