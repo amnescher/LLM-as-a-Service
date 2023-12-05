@@ -50,7 +50,16 @@ class DataBaseRequest(BaseModel):
 
 class VectorDBRequest(BaseModel):
     username: Optional[str] 
-    collection_name: Optional[str] 
-    mode: str = "add_to_collection"
+    class_name: Optional[str] 
+    mode: Optional[str]
     vectorDB_type: Optional[str] = "Weaviate"
+    file_path: Optional[str] = None
+
+class ArxivInput(BaseModel):
+    username: str 
+    class_name: Optional[str]
+    query: Optional[str]
+    paper_limit: Optional[int]
+    recursive_mode: Optional[int] 
+    mode: Optional[str]
     file_path: Optional[str] = None

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, File, Security
-from app.models import VectorDBRequest,LoginUser
+from app.models import VectorDBRequest,LoginUser, ArxivInput
 from app.depencencies.security import get_current_active_user
 from app.depencencies.security import get_current_active_user
 from app.database import User
@@ -16,11 +16,17 @@ from pydantic import BaseModel, parse_raw_as
 import weaviate
 import logging
 import json
+
 # Load environment variables and setup
 current_path = pathlib.Path(__file__).parent
 config_path = current_path.parent.parent.parent / 'cluster_conf.yaml'
 received_files_dir = os.path.join(current_path.parent.parent.parent, 'received_files')
 os.makedirs(received_files_dir, exist_ok=True)
+
+# Load configuration
+with open(config_path, "r") as file:
+    config = yaml.safe_load(file)
+
 
 logging.basicConfig(
             level=logging.INFO,
@@ -32,32 +38,23 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.propagate = True
 
-# Load configuration
-with open(config_path, "r") as file:
-    config = yaml.safe_load(file)
-
 #weaviate_client = weaviate.Client("http://localhost:8080")
 
 Ray_service_URL = config.get("Ray_service_URL")
 router = APIRouter()
 
 @router.post("/")
-async def query_vectorDB(data: str = Form(...), 
+async def query_arxiv_search(data: str = Form(...), 
                          file: Optional[UploadFile] = File(None),
                          current_user: User = Depends(get_current_active_user),
-                        
-                         ):
+                        ):
+
     try:
         print('data received', data)
         print('file received', file)
         data_dict = json.loads(data)
-        vector_db_request = parse_raw_as(VectorDBRequest, json.dumps(data_dict))
-
-        # Add the username from the current user
+        vector_db_request = parse_raw_as(ArxivInput, json.dumps(data_dict))
         vector_db_request.username = current_user.username
-        print('Parsed data:', vector_db_request.dict())
-        #data.username = current_user.username
-        # Check if a file is included in the request
         if file:
             # Create a random directory for the file
             random_dir = secrets.token_hex(8)  # Generates a random 16-character string
@@ -82,22 +79,11 @@ async def query_vectorDB(data: str = Form(...),
         #else:
             #data.file_path = None
             vector_db_request.file_path = file_dir
-
-        #data_dict = data.dict()
-        # Send the request to the external service
-       # print("data_dict",data_dict)
-        response = requests.post(f"{Ray_service_URL}/VectorDB/", json=vector_db_request.dict())
+        
+        print(f"Received data: {vector_db_request.dict()}")  # Debug print
+        response = requests.post(f"{Ray_service_URL}/ArxivSearch/", json=vector_db_request.dict())
         #response.raise_for_status()  # Raises an HTTPError for unsuccessful status codes
         response_data = response.json()
         return {"username": current_user.username, "response": response_data}
-
-    except requests.HTTPError as e:
-        if response.status_code == 400:
-            raise HTTPException(status_code=400, detail="Bad request to the other API service.")
-        else:
-            raise HTTPException(status_code=500, detail=f"Failed to forward request to the other API service. Error: {e}")
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
-
-

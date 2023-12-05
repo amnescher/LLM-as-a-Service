@@ -12,6 +12,7 @@ from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 import random
 
 BASE_URL = "http://localhost:8083"
+Weaviate_endpoint = "/vector_DB_request/"
 
 def process_text(text):
     # Remove quotes from the beginning and end of the text, if present
@@ -22,6 +23,51 @@ def process_text(text):
     text = text.replace("\\n", "\n")
 
     return text
+
+def display_user_classes(username, access_token):
+    params = {
+        "username": username,
+        "mode": "display_classes"
+        }
+    file_path = None
+
+    print("data:", params)
+
+    #headers = {"Authorization": f"Bearer {access_token}"}
+    resp = send_vector_db_request(access_token, params, Weaviate_endpoint)
+    #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
+        # Handle the response
+    print("the response", resp, resp.content)
+
+    response_content = resp.content.decode("utf-8")
+    print("respcontent", response_content)
+    user_classes = json.loads(response_content)
+    if resp.status_code == 200:
+        print(resp.status_code, resp.content)
+        return user_classes
+    else:
+        print(resp.status_code, resp.content)
+        return 
+    
+def send_vector_db_request(access_token, json_data, endpoint, uploaded_file=None):
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    # Prepare the form data with JSON data as a string
+    form_data = {
+        'data': (None, json.dumps(json_data), 'application/json')
+    }
+
+    # Prepare the file data
+    if uploaded_file is not None and uploaded_file is not type(str):
+        form_data['file'] = (uploaded_file.name, uploaded_file, uploaded_file.type)
+        #with open(file_path, 'rb') as f:
+        #    form_data['file'] = ('filename', f, 'application/octet-stream')
+
+    # Sending the request
+    response = requests.post(f"{BASE_URL}{endpoint}", headers=headers, files=form_data)
+
+    return response
+
 def authentication(username, password):
     data = {"username": username, "password": password}
     resp = requests.post(
@@ -38,9 +84,10 @@ def add_user(username, password,token_limit,access_token):
   "username": username,
   "password": password,
   "token_limit": token_limit
-}
+    }
     resp = requests.post(f"{BASE_URL}/db_request/add_user/", json=query_data, headers=headers)
     return True
+
 def get_all_users_info(access_token):   
     headers = {"Authorization": f"Bearer {access_token}"}
     resp = requests.get(f"{BASE_URL}/db_request/get_all_users/", headers=headers)
@@ -146,6 +193,8 @@ else:
 
     if st.session_state.show_logged_in_message:
         logedin_username = st.session_state.username
+        classes = display_user_classes(st.session_state.username, st.session_state.token)
+        print('classes', classes)
 
         if logedin_username == "admin":
             # Display the form to add new users
@@ -272,6 +321,17 @@ else:
                 options=["AI Assistance", "Document Search"], label="Type of search"
             )
             if search_choice == "Document Search":
+                classes = display_user_classes(st.session_state.username, st.session_state.token)
+                selected_collection = st.sidebar.selectbox(
+                    "select collection", classes['response']
+                )
+                if st.button("Selected_class"):
+                    if selected_collection is not None:
+                        params = {
+                            "username": st.session_state.username,
+                            "collection_name": selected_collection,
+                        }
+
                 # collection_list = get_collections()
                 # selected_collection = st.sidebar.selectbox(
                 #     "select collection", collection_list
