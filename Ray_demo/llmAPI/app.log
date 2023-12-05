@@ -579,3 +579,18 @@
 2023-11-27 10:09:22,302 - ERROR - An error occurred: [Errno 20] Not a directory: '/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files/admin_Car rental doc.pdf'
 2023-11-27 10:55:03,854 - ERROR - An error occurred: [Errno 20] Not a directory: '/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/docs/paper.pdf'
 2023-11-27 11:00:59,336 - INFO - request processed successfully username='admin' collection_name='Admin_videos' mode='add_to_collection' vectorDB_type='Weaviate' file_path='/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files/f84b2db7d4a8f72d': %s
+2023-11-27 11:05:11,372 - INFO - request processed successfully username='admin' collection_name='Admin_videos' mode='add_to_collection' vectorDB_type='Weaviate' file_path='/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files/536b0eacb9e16257': %s
+2023-11-27 11:24:52,458 - ERROR - An error occurred: (sqlite3.OperationalError) attempt to write a readonly database
+[SQL: UPDATE users SET collection_names=? WHERE users.id = ?]
+[parameters: ('admin_Video,admin_Video2,admin_Test,admin_my_collection,admin_xc,admin_vc,admin_ff,admin_None,admin_zz,admin_test1,admin_test2,admin_test3,admin_pdf,A_video,A_web,Admin_ssd,Admin_videos,Admin_amin', 1)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2023-11-27 11:26:12,608 - ERROR - An error occurred: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (sqlite3.OperationalError) attempt to write a readonly database
+[SQL: UPDATE users SET collection_names=? WHERE users.id = ?]
+[parameters: ('admin_Video,admin_Video2,admin_Test,admin_my_collection,admin_xc,admin_vc,admin_ff,admin_None,admin_zz,admin_test1,admin_test2,admin_test3,admin_pdf,A_video,A_web,Admin_ssd,Admin_videos,Admin_amin', 1)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+2023-11-27 11:28:24,866 - INFO - request processed successfully username='admin' collection_name='Admin_General_collection' mode='add_to_collection' vectorDB_type='Weaviate' file_path='/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files/59906acd283673a0': %s
+2023-11-27 12:27:48,177 - ERROR - An error occurred: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (sqlite3.OperationalError) attempt to write a readonly database
+[SQL: UPDATE users SET collection_names=? WHERE users.id = ?]
+[parameters: ('admin_Video,admin_Video2,admin_Test,admin_my_collection,admin_xc,admin_vc,admin_ff,admin_None,admin_zz,admin_test1,admin_test2,admin_test3,admin_pdf,A_video,A_web,Admin_ssd,Admin_videos,Admin_amin', 1)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8) (Background on this error at: https://sqlalche.me/e/20/7s2a)
+2023-11-27 12:33:17,440 - INFO - request processed successfully username='amin' collection_name=None mode='add_to_collection' vectorDB_type='Weaviate' file_path='/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files/38a6b2c006a2e2d9': %s

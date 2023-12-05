@@ -12,3 +12,4 @@ load INSTRUCTOR_Transformer
 max_seq_length  512
 /home/ubuntu/dev/lib/python3.10/site-packages/ray/serve/_private/utils.py:492: DeprecationWarning: setDaemon() is deprecated, set the daemon attribute instead
   self.pusher_thread.setDaemon(True)
+INFO 2023-11-27 10:55:35,925 Llama_13b Llama_13b#Llama_13b#LqsxGi b9d7ed64-72cb-46cd-92c2-f2ed1192422a /Llama_13b/openapi.json Llama_13b replica.py:726 - __CALL__ OK 7.5ms

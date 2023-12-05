@@ -20,3 +20,4 @@ max_seq_length  512
 /home/ubuntu/dev/lib/python3.10/site-packages/ray/serve/_private/utils.py:492: DeprecationWarning: setDaemon() is deprecated, set the daemon attribute instead
   self.pusher_thread.setDaemon(True)
 INFO 2023-11-27 09:55:50,841 Llama_70b Llama_70b#Llama_70b#ngCypD b859c5ea-b73b-4c91-8339-0a775cff4cd6 /Llama_70b/openapi.json Llama_70b replica.py:726 - __CALL__ OK 13.1ms
+INFO 2023-11-27 10:55:28,827 Llama_70b Llama_70b#Llama_70b#ngCypD 7bb4f715-002c-4258-93de-d73f028f65ff /Llama_70b/openapi.json Llama_70b replica.py:726 - __CALL__ OK 0.4ms
