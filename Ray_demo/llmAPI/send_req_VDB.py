@@ -2,9 +2,10 @@ import requests
 
 # Your existing parameters
 param = {
-  "class_name": "zte",
+  "class_name": "sdee",
   "mode": "create_collection",
   "vectorDB_type": "Weaviate",
+  "file_path": "string"
 }
 
 # File to be sent

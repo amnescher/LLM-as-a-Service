@@ -248,8 +248,7 @@ class VectorDataBase:
                     weaviate_client.schema.create(schema)
                     database_response = self.database.add_collection({"username": username, "collection_name": class_name})
                     if database_response:
-                        self.logger.info("class name added successfully to database") 
-                        
+                        self.logger.info("class name added successfully to database")     
                     self.logger.info(f"success: class {class_name} created for user {username}")
                     return {"success": "Class created "}
                 else:
@@ -329,7 +328,6 @@ class VectorDataBase:
                 elif request.mode == "delete_document":
                     self.delete_weaviate_document(request.data, request.collection_name)
                 elif request.mode == "create_collection":
-                    
                     self.logger.info(f"checking the request/ {request}: %s", )
                     response = self.add_vdb_class(request.username, request.class_name)
                     return response
