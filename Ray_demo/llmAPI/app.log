@@ -670,3 +670,17 @@
 2023-12-06 12:04:09,090 - INFO - Received requests to /inference endpoint
 2023-12-06 12:04:09,191 - INFO - Received a batch of request with batch size of: 1 
 2023-12-06 12:04:09,191 - INFO - Received request: {'username': 'amin', 'prompt': 'hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': False, 'collection_name': 'video', 'llm_model': 'Llama_70b'}
+2023-12-06 13:31:34,071 - INFO - checking the request/ username='string' class_name='ee' mode='create_collection' vectorDB_type='Weaviate' file_path='string': %s
+2023-12-06 13:31:34,158 - INFO - checkpoint 1
+2023-12-06 13:31:34,158 - INFO - checkpoint 2 string: %s
+2023-12-06 13:31:34,158 - INFO - checkpoint 2 string_ee: %s
+2023-12-06 13:31:34,243 - INFO - class name added successfully to database
+2023-12-06 13:31:34,243 - INFO - success: class ee created for user string
+2023-12-06 13:33:22,281 - INFO - checking the request/ username='amin' class_name='cd' mode='create_collection' vectorDB_type='Weaviate' file_path=None: %s
+2023-12-06 13:33:22,369 - INFO - checkpoint 1
+2023-12-06 13:33:22,369 - INFO - checkpoint 2 amin: %s
+2023-12-06 13:33:22,369 - INFO - checkpoint 2 amin_cd: %s
+2023-12-06 13:33:22,405 - INFO - class name added successfully to database
+2023-12-06 13:33:22,405 - INFO - success: class cd created for user amin
+2023-12-06 13:33:44,717 - INFO - request processed successfully username='amin' class_name=None mode=None vectorDB_type='Weaviate' file_path='/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files/bf47e2ef6b86afed': %s
+2023-12-06 13:33:44,717 - ERROR - An error occurred: local variable 'response' referenced before assignment

@@ -48,9 +48,9 @@ with open("cluster_conf.yaml", 'r') as file:
 MAX_FILE_SIZE = config.max_file_size * 1024 * 1024  
 
 class VDBaseInput(BaseModel):
-    username: str 
+    username: Optional[str] 
     class_name: Optional[str] 
-    mode: str = "add_to_collection"
+    mode: Optional[str]
     vectorDB_type: Optional[str] = "Weaviate"
     file_path: Optional[str] = None
 
@@ -329,7 +329,7 @@ class VectorDataBase:
                 elif request.mode == "delete_document":
                     self.delete_weaviate_document(request.data, request.collection_name)
                 elif request.mode == "create_collection":
-                    #response = self.database.add_collection({"username": request.username, "collection_name": request.collection_name})
+                    
                     self.logger.info(f"checking the request/ {request}: %s", )
                     response = self.add_vdb_class(request.username, request.class_name)
                     return response

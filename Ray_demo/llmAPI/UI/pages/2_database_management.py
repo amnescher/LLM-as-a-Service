@@ -24,7 +24,7 @@ def add_class(username, class_name, access_token):
     params = {
         "username": username,
         "class_name": class_name,
-        "mode": "create_class"
+        "mode": "create_collection"
         }
     print('query data', params)
     headers = {"Authorization": f"Bearer {access_token}"}
@@ -154,19 +154,18 @@ def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive
 def send_vector_db_request(access_token, json_data, endpoint, uploaded_file=None):
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    # Prepare the form data with JSON data as a string
-    form_data = {
-        'data': (None, json.dumps(json_data), 'application/json')
-    }
+    # # Prepare the form data with JSON data as a string
+    # form_data = {
+    #     'data': (None, json.dumps(json_data), 'application/json')
+    # }
 
-    # Prepare the file data
-    if uploaded_file is not None and uploaded_file is not type(str):
-        form_data['file'] = (uploaded_file.name, uploaded_file, uploaded_file.type)
-        #with open(file_path, 'rb') as f:
-        #    form_data['file'] = ('filename', f, 'application/octet-stream')
-    print('form data', form_data)
+    # # Prepare the file data
+    # if uploaded_file is not None and uploaded_file is not type(str):
+    #     form_data['file'] = (uploaded_file.name, uploaded_file, uploaded_file.type)
+    #     #with open(file_path, 'rb') as f:
+    #     #    form_data['file'] = ('filename', f, 'application/octet-stream')
     # Sending the request
-    response = requests.post(f"{BASE_URL}{endpoint}", headers=headers, files=form_data)
+    response = requests.post(f"{BASE_URL}{endpoint}", headers=headers, files=uploaded_file)
 
     return response
 
