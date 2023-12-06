@@ -246,6 +246,12 @@ class VectorDataBase:
                                 },
                     ]}
                     weaviate_client.schema.create(schema)
+                    database_response = self.database.add_collection({"username": username, "collection_name": class_name})
+                    if database_response:
+                        self.logger.info("class name added successfully to database") 
+                        
+                    self.logger.info(f"success: class {class_name} created for user {username}")
+                    return {"success": "Class created "}
                 else:
                     return {"error": "No class name provided"}
         except Exception as e:
@@ -259,7 +265,7 @@ class VectorDataBase:
                 class_name = class_name
                 full_class_name = str(username) + "_" + str(class_name)
                 weaviate_client.schema.delete_class(full_class_name)
-
+                self.database.delete_collection({"username": username, "collection_name": class_name})
             except Exception as e:
                 return {"error": str(e)}
 
@@ -320,7 +326,7 @@ class VectorDataBase:
                     self.delete_weaviate_class(request.username, request.class_name)
                 elif request.mode == "delete_document":
                     self.delete_weaviate_document(request.data, request.collection_name)
-                elif request.mode == "create_class":
+                elif request.mode == "create_collection":
                     #response = self.database.add_collection({"username": request.username, "collection_name": request.collection_name})
                     self.logger.info(f"checking the request/ {request}: %s", )
                     response = self.add_vdb_class(request.username, request.class_name)

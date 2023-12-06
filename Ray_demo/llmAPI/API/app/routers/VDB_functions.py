@@ -41,6 +41,8 @@ with open(config_path, "r") as file:
 Ray_service_URL = config.get("Ray_service_URL")
 router = APIRouter()
 
+
+
 @router.post("/")
 async def query_vectorDB(data: str = Form(...), 
                          file: Optional[UploadFile] = File(None),

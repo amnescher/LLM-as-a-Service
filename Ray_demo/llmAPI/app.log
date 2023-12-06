@@ -594,3 +594,79 @@
 [parameters: ('admin_Video,admin_Video2,admin_Test,admin_my_collection,admin_xc,admin_vc,admin_ff,admin_None,admin_zz,admin_test1,admin_test2,admin_test3,admin_pdf,A_video,A_web,Admin_ssd,Admin_videos,Admin_amin', 1)]
 (Background on this error at: https://sqlalche.me/e/20/e3q8) (Background on this error at: https://sqlalche.me/e/20/7s2a)
 2023-11-27 12:33:17,440 - INFO - request processed successfully username='amin' collection_name=None mode='add_to_collection' vectorDB_type='Weaviate' file_path='/home/ubuntu/falcon/gti_repo/LLM-as-a-Service/Ray_demo/llmAPI/received_files/38a6b2c006a2e2d9': %s
+2023-12-05 12:49:46,413 - INFO - Created a temporary directory at /tmp/tmpfd17agu7
+2023-12-05 12:49:46,413 - INFO - Writing /tmp/tmpfd17agu7/_remote_module_non_scriptable.py
+2023-12-05 12:49:50,023 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-12-05 12:59:22,312 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-12-05 12:59:38,525 - INFO - Created a temporary directory at /tmp/tmp704ler0i
+2023-12-05 12:59:38,525 - INFO - Writing /tmp/tmp704ler0i/_remote_module_non_scriptable.py
+2023-12-06 10:14:45,285 - INFO - Created a temporary directory at /tmp/tmpemk428xz
+2023-12-06 10:14:45,285 - INFO - Writing /tmp/tmpemk428xz/_remote_module_non_scriptable.py
+2023-12-06 10:14:48,704 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-12-06 10:20:26,244 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-12-06 10:20:42,262 - INFO - Created a temporary directory at /tmp/tmpilr_7vuk
+2023-12-06 10:20:42,263 - INFO - Writing /tmp/tmpilr_7vuk/_remote_module_non_scriptable.py
+2023-12-06 10:21:56,387 - INFO - Created a temporary directory at /tmp/tmpuh6vs2_q
+2023-12-06 10:21:56,387 - INFO - Writing /tmp/tmpuh6vs2_q/_remote_module_non_scriptable.py
+2023-12-06 10:23:24,436 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-12-06 10:23:41,517 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-12-06 10:25:34,841 - INFO - Created a temporary directory at /tmp/tmpx6t7m6ts
+2023-12-06 10:25:34,841 - INFO - Writing /tmp/tmpx6t7m6ts/_remote_module_non_scriptable.py
+2023-12-06 10:25:37,172 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-12-06 10:27:34,676 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-12-06 10:27:49,354 - INFO - Created a temporary directory at /tmp/tmp7l33bz1s
+2023-12-06 10:27:49,355 - INFO - Writing /tmp/tmp7l33bz1s/_remote_module_non_scriptable.py
+2023-12-06 10:27:51,218 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-12-06 10:27:56,180 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-12-06 11:04:19,573 - INFO - Received requests to /inference endpoint
+2023-12-06 11:04:19,674 - INFO - Received a batch of request with batch size of: 1 
+2023-12-06 11:04:19,675 - INFO - Received request: {'username': 'admin', 'prompt': 'Hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': False, 'collection_name': 'Amin', 'llm_model': 'Llama_70b'}
+2023-12-06 11:04:54,237 - INFO - Received requests to /inference endpoint
+2023-12-06 11:04:54,338 - INFO - Received a batch of request with batch size of: 1 
+2023-12-06 11:04:54,338 - INFO - Received request: {'username': 'admin', 'prompt': 'Hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': False, 'collection_name': 'General_collection', 'llm_model': 'Llama_70b'}
+2023-12-06 11:05:03,064 - INFO - Received requests to /inference endpoint
+2023-12-06 11:05:03,165 - INFO - Received a batch of request with batch size of: 1 
+2023-12-06 11:05:03,165 - INFO - Received request: {'username': 'admin', 'prompt': 'Hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': False, 'collection_name': 'General_collection', 'llm_model': 'Llama_70b'}
+2023-12-06 11:05:46,516 - INFO - Received requests to /inference endpoint
+2023-12-06 11:05:46,617 - INFO - Received a batch of request with batch size of: 1 
+2023-12-06 11:05:46,617 - INFO - Received request: {'username': 'admin', 'prompt': 'Hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': False, 'collection_name': 'General_collection', 'llm_model': 'Llama_70b'}
+2023-12-06 11:06:33,448 - INFO - Received requests to /inference endpoint
+2023-12-06 11:06:33,549 - INFO - Received a batch of request with batch size of: 1 
+2023-12-06 11:06:33,549 - INFO - Received request: {'username': 'amin', 'prompt': 'Hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': False, 'collection_name': 'General_collection', 'llm_model': 'Llama_70b'}
+2023-12-06 11:06:33,572 - ERROR - Error processing the request: Error during query: [{'locations': [{'column': 6, 'line': 1}], 'message': 'Cannot query field "General_collection" on type "GetObjectsObj". Did you mean "Admin_General_collection"?', 'path': None}]
+2023-12-06 11:17:34,034 - INFO - checking the request/ username='amin' class_name='video' mode='create_class' vectorDB_type='Weaviate' file_path='string': %s
+2023-12-06 11:17:34,123 - INFO - checkpoint 1
+2023-12-06 11:17:34,123 - INFO - checkpoint 2 amin: %s
+2023-12-06 11:17:34,123 - INFO - checkpoint 2 amin_video: %s
+2023-12-06 11:24:44,014 - INFO - checking the request/ username='amin' class_name='document' mode='create_class' vectorDB_type='Weaviate' file_path='string': %s
+2023-12-06 11:24:44,101 - INFO - checkpoint 1
+2023-12-06 11:24:44,101 - INFO - checkpoint 2 amin: %s
+2023-12-06 11:24:44,101 - INFO - checkpoint 2 amin_document: %s
+2023-12-06 11:24:44,120 - INFO - success: class document created for user amin
+2023-12-06 11:31:00,074 - INFO - checking the request/ username='amin' class_name='web' mode='create_class' vectorDB_type='Weaviate' file_path='string': %s
+2023-12-06 11:31:00,135 - INFO - checkpoint 1
+2023-12-06 11:31:00,135 - INFO - checkpoint 2 amin: %s
+2023-12-06 11:31:00,135 - INFO - checkpoint 2 amin_web: %s
+2023-12-06 11:31:00,166 - INFO - success: class web created for user amin
+2023-12-06 11:46:23,071 - INFO - checking the request/ username='amin' class_name='web2' mode='create_class' vectorDB_type='Weaviate' file_path='string': %s
+2023-12-06 11:46:23,132 - INFO - checkpoint 1
+2023-12-06 11:46:23,133 - INFO - checkpoint 2 amin: %s
+2023-12-06 11:46:23,133 - INFO - checkpoint 2 amin_web2: %s
+2023-12-06 11:46:23,177 - INFO - class name added successfully to database
+2023-12-06 11:46:23,177 - INFO - success: class web2 created for user amin
+2023-12-06 11:52:25,070 - INFO - request processed successfully username='amin' class_name='web2' mode='delete_class' vectorDB_type='Weaviate' file_path='string': %s
+2023-12-06 11:52:25,070 - ERROR - An error occurred: local variable 'response' referenced before assignment
+2023-12-06 12:02:08,040 - INFO - Created a temporary directory at /tmp/tmpvmh12ryr
+2023-12-06 12:02:08,040 - INFO - Writing /tmp/tmpvmh12ryr/_remote_module_non_scriptable.py
+2023-12-06 12:02:10,623 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-12-06 12:02:45,785 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-12-06 12:03:01,497 - INFO - Created a temporary directory at /tmp/tmpnuw3eece
+2023-12-06 12:03:01,497 - INFO - Writing /tmp/tmpnuw3eece/_remote_module_non_scriptable.py
+2023-12-06 12:03:03,336 - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+2023-12-06 12:03:07,744 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2023-12-06 12:03:51,534 - INFO - Received requests to /inference endpoint
+2023-12-06 12:03:51,635 - INFO - Received a batch of request with batch size of: 1 
+2023-12-06 12:03:51,636 - INFO - Received request: {'username': 'amin', 'prompt': 'hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': False, 'collection_name': 'web', 'llm_model': 'Llama_70b'}
+2023-12-06 12:04:09,090 - INFO - Received requests to /inference endpoint
+2023-12-06 12:04:09,191 - INFO - Received a batch of request with batch size of: 1 
+2023-12-06 12:04:09,191 - INFO - Received request: {'username': 'amin', 'prompt': 'hi', 'memory': False, 'conversation_number': 0, 'AI_assistance': False, 'collection_name': 'video', 'llm_model': 'Llama_70b'}

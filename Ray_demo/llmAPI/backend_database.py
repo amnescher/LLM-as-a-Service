@@ -223,7 +223,20 @@ class Database:
 
         user.collection_names += f",{new_collection_name}" if user.collection_names else new_collection_name
         self.db.commit()
-        return {"collection_name": new_collection_name}
+        return True
+    
+    def check_collection_exists(self, input):
+        user = self.db.query(User).filter(User.username == input["username"]).first()
+        if not user:
+            return {"error": "User not found"}
+        if input["username"] and input["username"][0].isalpha():
+            input["username"]= input["username"][0].upper() + input["username"][1:]
+        username = input["username"]
+        new_collection_name = f"{username}_{input['collection_name']}"  
+
+        if new_collection_name in user.collection_names.split(','):
+            return True
+        return False
 
     def get_collections(self, input):
         user = self.db.query(User).filter(User.username == input["username"]).first()
@@ -236,13 +249,18 @@ class Database:
         user = self.db.query(User).filter(User.username == input["username"]).first()
         if not user:
             return {"error": "User not found"}
-        if input["collection_name"] == f"{input['username']}_General_collection":
+        if input["username"] and input["username"][0].isalpha():
+            input["username"]= input["username"][0].upper() + input["username"][1:]
+        username = input["username"]
+        new_collection_name = f"{username}_{input['collection_name']}"  
+
+        if new_collection_name == f"{username}_General_collection":
             return {"error": "Cannot delete the default collection"}
         collection_names = user.collection_names.split(',')
-        if input["collection_name"] not in collection_names:
+        if new_collection_name not in collection_names:
             return {"error": "Collection not found"}
         
-        collection_names.remove(input["collection_name"])
+        collection_names.remove(new_collection_name)
         user.collection_names = ','.join(collection_names)
         self.db.commit()
         return {"message": "Collection deleted"}
