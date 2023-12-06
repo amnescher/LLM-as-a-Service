@@ -333,6 +333,7 @@ class VectorDataBase:
     async def VectorDataBase(self, request: VDBaseInput):
             try:
                 if request.mode == "add_to_collection":
+                    self.logger.info(f"request received {request}: %s", )
                     response  = self.process_all_docs(request.file_path, request.username, request.class_name)
                 elif request.mode == "display_classes":
                     response = self.get_classes(request.username)

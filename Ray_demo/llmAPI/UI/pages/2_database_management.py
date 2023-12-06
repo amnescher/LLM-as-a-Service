@@ -23,6 +23,7 @@ Arxiv_endpoint = "/arxiv_search/"
 def add_class(username, class_name, access_token):
     params = {
         "username": username,
+        "vectorDB_type": "Weaviate",
         "class_name": class_name,
         "mode": "create_collection"
         }
@@ -39,6 +40,7 @@ def delete_class(username, class_name, access_token):
     params = {
         "username": username,
         "class_name": class_name,
+        "vectorDB_type": "Weaviate",
         "mode": "delete_class"
         }
     headers = {"Authorization": f"Bearer {access_token}"}
@@ -53,6 +55,7 @@ def display_documents(username, class_name, access_token):
     params = {
         "username": username,
         "class_name": class_name,
+        "vectorDB_type": "Weaviate",
         "mode": "display_documents"
         }
     
@@ -75,7 +78,9 @@ def display_documents(username, class_name, access_token):
 def display_user_classes(username, access_token):
     params = {
         "username": username,
-        "mode": "display_classes"
+        "vectorDB_type": "Weaviate",
+        "mode": "display_classes",
+        "class_name": "string"
         }
     file_path = None
 
@@ -98,12 +103,16 @@ def display_user_classes(username, access_token):
         return 
 
 def upload_documents(username, class_name, access_token, file_path):
+    files = {'file': (file_path.name, file_path, file_path.type)}
     params = {
         "username": username,
         "class_name": class_name,
-        "mode": "add_to_collection"
+        "mode": "add_to_collection",
+        "vectorDB_type": "Weaviate",
         }
-    resp = send_vector_db_request(access_token, params, Weaviate_endpoint, file_path)
+    print('file path', file_path)
+    print('file name', file_path.name)
+    resp = send_vector_db_request(access_token, params, Weaviate_endpoint,files)
     #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
     if resp.status_code == 200:
         print(resp.status_code, resp.content)
@@ -154,21 +163,10 @@ def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive
 def send_vector_db_request(access_token, json_data, endpoint, uploaded_file=None):
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    # # Prepare the form data with JSON data as a string
-    # form_data = {
-    #     'data': (None, json.dumps(json_data), 'application/json')
-    # }
 
-    # # Prepare the file data
-    # if uploaded_file is not None and uploaded_file is not type(str):
-    #     form_data['file'] = (uploaded_file.name, uploaded_file, uploaded_file.type)
-    #     #with open(file_path, 'rb') as f:
-    #     #    form_data['file'] = ('filename', f, 'application/octet-stream')
-    # Sending the request
-    response = requests.post(f"{BASE_URL}{endpoint}", headers=headers, files=uploaded_file)
+    response = requests.post(f"{BASE_URL}{endpoint}", data=json_data,headers=headers, files=uploaded_file)
 
     return response
-
 
 def authentication(username, password):
     data = {"username": username, "password": password}
