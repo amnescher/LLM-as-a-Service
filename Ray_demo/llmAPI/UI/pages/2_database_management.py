@@ -24,7 +24,7 @@ def add_class(username, class_name, access_token):
     params = {
         "username": username,
         "class_name": class_name,
-        "mode": "create_class"
+        "mode": "create_collection"
         }
     print('query data', params)
     headers = {"Authorization": f"Bearer {access_token}"}
