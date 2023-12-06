@@ -110,6 +110,17 @@ def upload_documents(username, class_name, access_token, file_path):
     else:
         print(resp.status_code, resp.content)
 
+def query_arxiv(access_token, arxiv_mode, query):
+    params = {
+        "mode": arxiv_mode,
+        "query": query,
+        }
+    resp = send_vector_db_request(access_token, params, Arxiv_endpoint) 
+    if resp.status_code == 200:
+        print(resp.status_code, resp.content)
+    else:
+        print(resp.status_code, resp.content)
+
 def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=None, file_path=None):
     if query is not None and file_path is None:
         print('it went in the 1st condition')
@@ -118,6 +129,7 @@ def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive
             "class_name": class_name,
             "mode": arxiv_mode,
             "recursive_mode": arxiv_recusrive_mode,
+            "paper_limit": arxiv_paper_limit,
             "query": query,
             }
         resp = send_vector_db_request(access_token, params, Arxiv_endpoint)
@@ -128,6 +140,7 @@ def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive
             "class_name": class_name,
             "mode": arxiv_mode,
             "recursive_mode": arxiv_recusrive_mode,
+            "paper_limit": arxiv_paper_limit,
             }
         resp = send_vector_db_request(access_token, params, Arxiv_endpoint, file_path)
     print('file path', file_path)
@@ -279,6 +292,11 @@ else:
             arxiv_paper_limit = st.text_input("Number of papers to add", value=10)
             if arxiv_mode == "Search by query":
                 query = st.text_input("Enter query")
+                if st.button("test button"):
+                    query_res = query_arxiv(st.session_state.token, arxiv_mode, query)
+                    if query_res is not None: 
+                        selected_options = st.multiselect("Select one or more options", query_res)
+                        st.write("You selected:", selected_options)
                 print("query", query, type(query))
             elif arxiv_mode == "Upload file":
                 query = st.file_uploader("Upload file", type=["pdf"])

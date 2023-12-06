@@ -252,7 +252,7 @@ class ArxivSearch:
     def is_close_match(self, result_title, query_title, result_author, query_author):
         return (query_title.lower() in result_title.lower()) and (query_author.lower() in result_author.lower())
 
-    def arxiv_search(self, titles, authors, dir):
+    def arxiv_search(self, titles, authors, dir, count):
         for title in titles:
             for author in authors:
                 try:
@@ -263,24 +263,27 @@ class ArxivSearch:
                         result_title = result.title
                         result_author = ', '.join([a.name for a in result.authors])
                         print(f"Title: {result_title}, Authors: {result_author}")
-
                         if self.is_close_match(result_title, title, result_author, author):
-                            try:
-                                result.download_pdf(dirpath=dir)
-                                return  # Exit the loop once a match is found and downloaded
-                            except FileNotFoundError:
-                                print("File not found.")
-                            except HTTPError:
-                                print("Access forbidden.")
-                            except ConnectionResetError:
-                                print("Connection reset by peer. Retrying in 5 seconds.")
-                                time.sleep(5)
-                                continue  # Retry the current iteration
-                    break  # Break loop if a search is completed
+                                try:
+                                    result.download_pdf(dirpath=dir)
+                                    count += 1
+                                    self.logger.info(f"count {count}: %s", )
+                                    return count # Exit the loop once a match is found and downloaded
+                                except FileNotFoundError:
+                                    print("File not found.")
+                                except HTTPError:
+                                    print("Access forbidden.")
+                                except ConnectionResetError:
+                                    print("Connection reset by peer. Retrying in 5 seconds.")
+                                    time.sleep(5)
+                                    continue  # Retry the current iteration
+                        continue #break  # Break loop if a search is completed
 
                 except Exception as e:
                     print(f"An error occurred: {e}")
-                    break  
+                    continue  
+            continue
+        return count
 
     def weaviate_serialize_document(self, doc):
             document_title = doc.metadata.get('source', '').split('/')[-1]
@@ -399,10 +402,25 @@ class ArxivSearch:
 
                     shutil.move(src_file_path, dest_file_path)
 
-    def arxiv_pipeline(self, input_pdf, cls, ray=False, recursive=False, iteration = None):
+    def query_arxiv_documents(self, query):
+        self.doc_lst = []
+
+        search = arxiv.Search(
+        query = "quantum",
+        max_results = 10,
+        sort_by = arxiv.SortCriterion.SubmittedDate
+        )
+
+        for result in arxiv.Client().results(search):
+            self.doc_lst.append(result)
+        return self.doc_lst
+
+    def arxiv_pipeline(self, input_pdf, cls, ray=False, recursive=False, iteration = None, paper_limit = None):
         
             """Process all on one actor"""
-
+            self.logger.info(f"the paper limit test {paper_limit}: %s")
+            self.current_paper_count = 0
+            self.logger.info(f"the paper limit test and paper count {self.current_paper_count}: %s")
             current_iter = 1
             base_dir = input_pdf
             for file in os.listdir(input_pdf):
@@ -412,6 +430,7 @@ class ArxivSearch:
                 else:
                     return "No PDF file found in the directory."
             if not recursive:
+                self.logger.info(f"testing checkpoint rec no %s")
                 anystyle_output = self.run_anystyle(input_pdf_path,base_dir)
                 parsed_data = self.process_bib_files(anystyle_output)
                 for ref in parsed_data:
@@ -434,7 +453,11 @@ class ArxivSearch:
 
             if recursive and iteration > 0:
                 base_dir = input_pdf
+                self.logger.info(f"the paper limit test {paper_limit}: %s")
+
+                self.current_paper_count = 0
                 while current_iter <= iteration:
+                    self.logger.info(f"the paper limit test and paper count {self.current_paper_count}: %s")
                     if current_iter == 1:
                         iter_dir = os.path.join(input_pdf, f'iteration_{current_iter}')
                         if not os.path.exists(iter_dir):
@@ -442,10 +465,14 @@ class ArxivSearch:
                         anystyle_output = self.run_anystyle(input_pdf_path,base_dir)
                         parsed_data = self.process_bib_files(anystyle_output)
                         for ref in parsed_data:
-                            self.arxiv_search(ref['title'], ref['authors'], iter_dir)
+                            if self.current_paper_count >= paper_limit:
+                                break
+                            self.current_paper_count = self.arxiv_search(ref['title'], ref['authors'], iter_dir, self.current_paper_count) or self.current_paper_count                           
+                            self.logger.info(f"current_paper_count {self.current_paper_count}: %s", )
 
                         current_iter += 1
-                        
+                    if self.current_paper_count >= paper_limit:
+                                break   
                     elif current_iter >= 2:
                         iter_dir =  os.path.join(input_pdf, f'iteration_{current_iter}')
                         if not os.path.exists(iter_dir):
@@ -459,8 +486,11 @@ class ArxivSearch:
                             
                             parsed_data = self.process_bib_files(anystyle_output)
                             for ref in parsed_data:
+                                if self.current_paper_count >= paper_limit:
+                                    break
                                 if isinstance(ref, dict) and 'title' in ref and 'authors' in ref:
-                                    self.arxiv_search(ref['title'], ref['authors'], iter_dir)
+                                    self.current_paper_count = self.arxiv_search(ref['title'], ref['authors'], iter_dir, self.current_paper_count) or self.current_paper_count
+                                    self.logger.info(f"current_paper_count 2.  {self.current_paper_count}: %s", )
                                 else:
                                     print(f"Unexpected format of reference: {ref}")
                         current_iter += 1
@@ -482,13 +512,14 @@ class ArxivSearch:
     async def VectorDataBase(self, request: ArxivInput):
             try:
                 if request.mode == "Search by query":
-                    response  = self.process_all_docs(request.file_path, request.username, request.class_name)
+                    response  = self.query_arxiv_documents(request.query)
+                    return response
                 elif request.mode == "Upload file":
                     self.logger.info(f"request received {request}: %s", )
                     username = request.username
                     cls = request.class_name
                     full_class_name = f"{username}_{cls}"
-                    response = self.arxiv_pipeline(request.file_path, full_class_name, ray=True, recursive=True, iteration=request.recursive_mode)
+                    response = self.arxiv_pipeline(request.file_path, full_class_name, ray=True, recursive=True, iteration=request.recursive_mode, paper_limit=request.paper_limit)
                     print('response', response)
                     return response
                 self.logger.info(f"request processed successfully {request}: %s", )
