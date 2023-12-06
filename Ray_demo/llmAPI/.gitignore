@@ -1,12 +1,40 @@
 # Ignore all PDF files
 *.pdf
-
 # Ignore all ZIP files
 *.zip
 # 
-*.db
-*.log
 *.wandb
 # Ignore specific directories
 received_files/
 wandb/*
+# .gitignore
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore local development settings
+.env
+
+# Ignore logs and other dynamically created files
+*.log
+logs/
+*.log.*
+*.logs
+
+# Ignore database files
+db.sqlite
+*.db
+
+# Ignore weight files
+weights/
+*.h5
+*.hdf5
+
+# Ignore sensitive files
+secret.txt
+*.key
+*.pem
+

@@ -259,8 +259,7 @@ class VectorDataBase:
                     weaviate_client.schema.create(schema)
                     database_response = self.database.add_collection({"username": username, "collection_name": class_name})
                     if database_response:
-                        self.logger.info("class name added successfully to database") 
-                        
+                        self.logger.info("class name added successfully to database")     
                     self.logger.info(f"success: class {class_name} created for user {username}")
                     return {"success": f"Class {cls} created "}
                 else:

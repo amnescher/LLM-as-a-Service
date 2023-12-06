@@ -16,6 +16,7 @@ from pydantic import BaseModel, parse_raw_as
 import weaviate
 import logging
 import json
+
 # Load environment variables and setup
 current_path = pathlib.Path(__file__).parent
 config_path = current_path.parent.parent.parent / 'cluster_conf.yaml'
@@ -42,17 +43,17 @@ Ray_service_URL = config.get("Ray_service_URL")
 router = APIRouter()
 
 
-
 @router.post("/")
-
-@router.post("/")
-async def query_vectorDB(data: VectorDBRequest = Depends(), 
-                         current_user: User = Depends(get_current_active_user),
-                         file: Optional[UploadFile] = File(None)):
+async def query_vectorDB( class_name: str = Form(...),
+                          mode: str = Form(...),
+                          vectorDB_type: str = Form("Weaviate"),
+                          current_user: User = Depends(get_current_active_user),
+                          file: Optional[UploadFile] = File(None)):
+  
     try:
-        print(f"Received data: {data.dict()}")  # Debug print
+        
         print(f"Received file: {file.filename if file else 'No file'}")
-        data.username = current_user.username
+        username = current_user.username
 
         # Check if a file is included in the request
         if file:
@@ -72,10 +73,15 @@ async def query_vectorDB(data: VectorDBRequest = Depends(),
                         if not zip_info.filename.startswith('__MACOSX/'):
                             zip_ref.extract(zip_info, file_dir)
             # Update the file path in the request data
-            data.file_path = file_dir
+            file_path = file_dir
         else:
-            data.file_path = None
-        data_dict = data.dict()
+            file_path = None
+        data_dict = {
+            "username": username,
+            "class_name": class_name,
+            "mode": mode,
+            "vectorDB_type": vectorDB_type,
+        }
         # Send the request to the external service
         response = requests.post(f"{Ray_service_URL}/VectorDB", json=data_dict)
         response.raise_for_status()  # Raises an HTTPError for unsuccessful status codes
