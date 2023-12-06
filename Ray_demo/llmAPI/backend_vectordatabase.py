@@ -48,9 +48,9 @@ with open("cluster_conf.yaml", 'r') as file:
 MAX_FILE_SIZE = config.max_file_size * 1024 * 1024  
 
 class VDBaseInput(BaseModel):
-    username: str 
+    username: Optional[str] 
     class_name: Optional[str] 
-    mode: str = "add_to_collection"
+    mode: Optional[str]
     vectorDB_type: Optional[str] = "Weaviate"
     file_path: Optional[str] = None
 
@@ -184,15 +184,26 @@ class VectorDataBase:
         return documents
 
     def process_all_docs(self, dir, username, cls):
-        full_class = str(username) + "_" + str(cls)
-        document_list = self.parse_pdf(dir)
-        serialized_docs = self.weaviate_split_multiple_pdf(document_list)
-        if len(serialized_docs) <= 3:
-            self.add_weaviate_document(full_class, serialized_docs)
-        else:
-            doc_workload = self.divide_workload(self.num_actors, serialized_docs)
-            self.add_weaviate_batch_documents(full_class, doc_workload)
-            self.logger.info(f"check weaviate add data, ")
+        response = {"status": "initiated", "message": ""}
+        try:
+            full_class = str(username) + "_" + str(cls)
+            document_list = self.parse_pdf(dir)
+            serialized_docs = self.weaviate_split_multiple_pdf(document_list)
+            if len(serialized_docs) <= 3:
+                self.add_weaviate_document(full_class, serialized_docs)
+                response["status"] = "success"
+                response["message"] = f"Processed {len(serialized_docs)} documents for class {full_class}."
+            else:
+                doc_workload = self.divide_workload(self.num_actors, serialized_docs)
+                self.add_weaviate_batch_documents(full_class, doc_workload)
+                self.logger.info(f"check weaviate add data, ")
+                response["status"] = "success"
+                response["message"] = f"Processed {len(serialized_docs)} documents in batches for class {full_class}."
+            return response
+        except Exception as e:
+            response["status"] = "error"
+            response["message"] = str(e)
+            return response
 
     def add_weaviate_document(self, cls, docs):
         actor = WeaviateEmbedder.remote()
@@ -251,7 +262,7 @@ class VectorDataBase:
                         self.logger.info("class name added successfully to database") 
                         
                     self.logger.info(f"success: class {class_name} created for user {username}")
-                    return {"success": "Class created "}
+                    return {"success": f"Class {cls} created "}
                 else:
                     return {"error": "No class name provided"}
         except Exception as e:
@@ -264,8 +275,12 @@ class VectorDataBase:
                 username = username
                 class_name = class_name
                 full_class_name = str(username) + "_" + str(class_name)
-                weaviate_client.schema.delete_class(full_class_name)
-                self.database.delete_collection({"username": username, "collection_name": class_name})
+                if full_class_name is not None:
+                    weaviate_client.schema.delete_class(full_class_name)
+                    self.database.delete_collection({"username": username, "collection_name": class_name})
+                    return {"success": f"Class {full_class_name} has been removed"}
+                else:
+                    return {"error": "No class name provided"}
             except Exception as e:
                 return {"error": str(e)}
 
@@ -290,7 +305,10 @@ class VectorDataBase:
                 document_title = document.get('document_title')
                 if document_title is not None:
                     document_title_set.add(document_title)
-            return list(document_title_set)
+            if document_title_set is not None:
+                return list(document_title_set)
+            else:
+                return {"error": "No documents found"}
         
         except Exception as e:
                 return {"error": str(e)}
@@ -305,8 +323,10 @@ class VectorDataBase:
             prefix = str(username) + "_"
             prefix = prefix.capitalize()
             filtered_classes = [cls["class"].replace(prefix, "", 1) for cls in classes if cls["class"].startswith(prefix)] #[cls["class"] for cls in classes if cls["class"].startswith(prefix)]
-            return filtered_classes
-        
+            if filtered_classes is not None:
+                return filtered_classes
+            else:
+                return {"error": "No classes found"}
         except Exception as e:
                 return {"error": str(e)}
         
@@ -323,18 +343,16 @@ class VectorDataBase:
                     response = self.query_weaviate_document_names(request.username, request.class_name)
                     return response
                 elif request.mode == "delete_class":
-                    self.delete_weaviate_class(request.username, request.class_name)
+                    response = self.delete_weaviate_class(request.username, request.class_name)
+                    self.logger.info(f"collection delete: {response}: %s", )
+                    return response
                 elif request.mode == "delete_document":
                     self.delete_weaviate_document(request.data, request.collection_name)
                 elif request.mode == "create_collection":
-                    response = self.database.add_collection({"username": request.username, "collection_name": request.class_name})
-                    self.logger.info(f"checking the request/ {request}: and response: {response}%s", )
-                    
+                    self.logger.info(f"checking the request/ {request}: %s", )
                     response = self.add_vdb_class(request.username, request.class_name)
                     return response
-                    #collection_name = response["collection_name"]
-                    #self.add_vdb_class(collection_name)
-                    # request.vectorDB_type needs to be replace with a variable read from config file
+
                 self.logger.info(f"request processed successfully {request}: %s", )
                 return {"username": request.username, "response": response}
             except Exception as e:

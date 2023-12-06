@@ -2,11 +2,9 @@ import requests
 
 # Your existing parameters
 param = {
- # Assuming this should be a non-empty string
-    "collection_name": "videos",  
-    "mode": "create_collection",
-    "vectorDB_type": "Weaviate",
-    # Removed "file_path" because the actual file will be sent in the request
+  "class_name": "zte",
+  "mode": "create_collection",
+  "vectorDB_type": "Weaviate",
 }
 
 # File to be sent
@@ -15,7 +13,7 @@ file_to_send = {
 }
 
 # Token for authorization header
-nils_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbWluIiwiZXhwIjoxNzAxMjY4MzI0fQ.FeQ8EPN1e4WkZt9ZdJMbCUdvBEZgV4o_dvmTiF-sdLM"
+nils_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbWluIiwiZXhwIjoxNzAyMDQ4OTAyfQ.JrG5HMPxFbeS_EI30GQD17XGfyTx2K43BU5wRrXoIQY"
 url = 'http://localhost:8083/vector_DB_request/'
 
 # Sending the request
