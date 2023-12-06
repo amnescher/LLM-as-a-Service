@@ -6,6 +6,6 @@
 # 
 *.db
 *.log
-
+*.wandb
 # Ignore specific directories
 received_files/
