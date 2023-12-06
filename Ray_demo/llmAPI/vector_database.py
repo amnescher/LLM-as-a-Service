@@ -278,6 +278,7 @@ class VectorDataBase:
     @VDB_app.post("/")
     async def VectorDataBase(self, request: VDBaseInput):
             try:
+                
                 if request.mode == "add_to_collection":
                     response  = self.process_all_docs(request.file_path, request.collection_name)
                 elif request.mode == "query_collection":
