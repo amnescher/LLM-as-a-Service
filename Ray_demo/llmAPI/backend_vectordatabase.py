@@ -323,7 +323,9 @@ class VectorDataBase:
                     response = self.query_weaviate_document_names(request.username, request.class_name)
                     return response
                 elif request.mode == "delete_class":
-                    self.delete_weaviate_class(request.username, request.class_name)
+                    response = self.delete_weaviate_class(request.username, request.class_name)
+                    self.logger.info(f"collection delete: {response}: %s", )
+                    return response
                 elif request.mode == "delete_document":
                     self.delete_weaviate_document(request.data, request.collection_name)
                 elif request.mode == "create_collection":

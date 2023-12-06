@@ -44,33 +44,26 @@ router = APIRouter()
 
 
 @router.post("/")
-async def query_vectorDB(data: str = Form(...), 
-                         file: Optional[UploadFile] = File(None),
-                         current_user: User = Depends(get_current_active_user),
-                        
-                         ):
-    try:
-        print('data received', data)
-        print('file received', file)
-        data_dict = json.loads(data)
-        vector_db_request = parse_raw_as(VectorDBRequest, json.dumps(data_dict))
 
-        # Add the username from the current user
-        vector_db_request.username = current_user.username
-        print('Parsed data:', vector_db_request.dict())
-        #data.username = current_user.username
+@router.post("/")
+async def query_vectorDB(data: VectorDBRequest = Depends(), 
+                         current_user: User = Depends(get_current_active_user),
+                         file: Optional[UploadFile] = File(None)):
+    try:
+        print(f"Received data: {data.dict()}")  # Debug print
+        print(f"Received file: {file.filename if file else 'No file'}")
+        data.username = current_user.username
+
         # Check if a file is included in the request
         if file:
             # Create a random directory for the file
             random_dir = secrets.token_hex(8)  # Generates a random 16-character string
             file_dir = os.path.join(received_files_dir, random_dir)
             os.makedirs(file_dir, exist_ok=True)
-
             # Save the file in the random directory
             file_path = os.path.join(file_dir, file.filename)
             with open(file_path, "wb") as file_object:
                 file_object.write(await file.read())
-
             # If the file is a ZIP file, extract it
             if file.content_type == 'application/zip':
                 with zipfile.ZipFile(file_path, 'r') as zip_ref:
@@ -78,28 +71,20 @@ async def query_vectorDB(data: str = Form(...),
                     for zip_info in zip_ref.infolist():
                         if not zip_info.filename.startswith('__MACOSX/'):
                             zip_ref.extract(zip_info, file_dir)
-
             # Update the file path in the request data
-            #data.file_path = file_dir
-        #else:
-            #data.file_path = None
-            vector_db_request.file_path = file_dir
-
-        #data_dict = data.dict()
+            data.file_path = file_dir
+        else:
+            data.file_path = None
+        data_dict = data.dict()
         # Send the request to the external service
-       # print("data_dict",data_dict)
-        response = requests.post(f"{Ray_service_URL}/VectorDB/", json=vector_db_request.dict())
-        #response.raise_for_status()  # Raises an HTTPError for unsuccessful status codes
+        response = requests.post(f"{Ray_service_URL}/VectorDB", json=data_dict)
+        response.raise_for_status()  # Raises an HTTPError for unsuccessful status codes
         response_data = response.json()
         return {"username": current_user.username, "response": response_data}
-
     except requests.HTTPError as e:
         if response.status_code == 400:
             raise HTTPException(status_code=400, detail="Bad request to the other API service.")
         else:
             raise HTTPException(status_code=500, detail=f"Failed to forward request to the other API service. Error: {e}")
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
-
-
