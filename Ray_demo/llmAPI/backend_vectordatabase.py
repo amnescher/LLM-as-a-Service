@@ -93,9 +93,7 @@ class WeaviateEmbedder:
                         #uuid=generate_uuid5(text),
         )
                 self.text_list.append(text)
-        self.logger.info(f"Check the data that is being passed {self.text_list}: %s", )
         results= self.text_list
-        self.logger.info(f"Check the results {results}: %s", )
         ray.get(results)
         return self.text_list
 
@@ -196,7 +194,7 @@ class VectorDataBase:
             else:
                 doc_workload = self.divide_workload(self.num_actors, serialized_docs)
                 self.add_weaviate_batch_documents(full_class, doc_workload)
-                self.logger.info(f"check weaviate add data, ")
+                #self.logger.info(f"check weaviate add data, ")
                 response["status"] = "success"
                 response["message"] = f"Processed {len(serialized_docs)} documents in batches for class {full_class}."
             return response
@@ -333,7 +331,7 @@ class VectorDataBase:
     async def VectorDataBase(self, request: VDBaseInput):
             try:
                 if request.mode == "add_to_collection":
-                    self.logger.info(f"request received {request}: %s", )
+                    #self.logger.info(f"request received {request}: %s", )
                     response  = self.process_all_docs(request.file_path, request.username, request.class_name)
                 elif request.mode == "display_classes":
                     response = self.get_classes(request.username)
