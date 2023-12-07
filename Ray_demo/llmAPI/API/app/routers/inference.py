@@ -30,6 +30,7 @@ router = APIRouter()
 
 @router.post("/")
 async def create_inference(data: InferenceRequest, current_user: User = Depends(get_current_active_user)):
+    print(data.dict())
     try:
         data.username = current_user.username
         if data.llm_model == "Llama_70b" or data.llm_model == None:

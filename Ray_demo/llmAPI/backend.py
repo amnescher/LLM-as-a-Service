@@ -332,6 +332,7 @@ class PredictDeployment:
                     if username[0].isalpha():
                         new_username= username[0].upper() + username[1:]
                     collection_name = f"{new_username}_{collection_name}"
+                    self.logger.info(f"Collection name: {collection_name}")
                     retriever = self.get_collection_based_retriver(self.weaviate_client,collection_name)
                     llm_chain = RetrievalQA.from_chain_type(
                         llm=self.llm,

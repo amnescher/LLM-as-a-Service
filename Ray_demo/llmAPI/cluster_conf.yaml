@@ -38,20 +38,20 @@ batch_wait_timeout_s: 0.1
 cluster_URL:  http://192.168.199.207:8265
 #------------------- LLM Models
 LLMs: 
-  - name: Llama_70b
-    model_id: "meta-llama/Llama-2-70b-chat-hf"
-    temperature: 0.01
-    max_new_tokens: 512
-    repetition_penalty: 1.1
-    batch_size: 2
-    route_prefix: Llama_70b
-    num_gpus: 0.45
-    min_replicas: 1
-    initial_replicas: 1
-    max_replicas: 2
-    target_num_ongoing_requests_per_replica: 2
-    max_concurrent_queries: 2
-    graceful_shutdown_wait_loop_s: 15
+  # - name: Llama_70b
+  #   model_id: "meta-llama/Llama-2-70b-chat-hf"
+  #   temperature: 0.01
+  #   max_new_tokens: 512
+  #   repetition_penalty: 1.1
+  #   batch_size: 2
+  #   route_prefix: Llama_70b
+  #   num_gpus: 0.45
+  #   min_replicas: 1
+  #   initial_replicas: 1
+  #   max_replicas: 2
+  #   target_num_ongoing_requests_per_replica: 2
+  #   max_concurrent_queries: 2
+  #   graceful_shutdown_wait_loop_s: 15
 
   - name: Llama_13b
     model_id: "meta-llama/Llama-2-13b-chat-hf"
