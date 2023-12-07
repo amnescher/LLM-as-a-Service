@@ -29,7 +29,7 @@ def display_user_classes(username, access_token):
         "username": username,
         "mode": "display_classes"
         }
-   
+    file_path = None
 
     print("data:", params)
 
