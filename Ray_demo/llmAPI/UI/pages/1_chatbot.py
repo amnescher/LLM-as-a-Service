@@ -317,7 +317,7 @@ else:
                 selected_collection = st.sidebar.selectbox(
                     "select collection", classes['response']
                 )
-                if st.button("Selected_class"):
+                if st.sidebar.button("Selected_class"):
                     if selected_collection is not None:
                         params = {
                             "username": st.session_state.username,
