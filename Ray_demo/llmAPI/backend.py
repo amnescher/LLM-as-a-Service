@@ -203,6 +203,7 @@ class PredictDeployment:
 
     def get_collection_based_retriver(self, client, collection):
         content = ['page_content']
+        self.logger.info("collection is %s", collection)
         weaviate_vectorstore = Weaviate(
             client,
             str(collection),
@@ -328,15 +329,15 @@ class PredictDeployment:
                 )
             else:
                 #check if collection exists
-                #if self.database.check_collection_exists(request.dict()):
-                    #if username[0].isalpha():
-                    #    new_username= username[0].upper() + username[1:]
-                    collection_name = "Test_user_2_document"#f"{new_username}_{collection_name}"
+                if self.database.check_collection_exists(request.dict()):
+                    if username[0].isalpha():
+                        new_username= username[0].upper() + username[1:]
+                    collection_name = f"{new_username}_{collection_name}"
                     retriever = self.get_collection_based_retriver(self.weaviate_client,collection_name)
                     
-                    temp_retriever = retriever.as_retriever(search_type="similarity", search_kwargs={"k": 6})
-                    retrieved_docs = temp_retriever.get_relevant_documents(input_prompt)
-                    self.logger.info("Retrieved docs: %s", retrieved_docs)
+                    #temp_retriever = retriever.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+                    #retrieved_docs = temp_retriever.get_relevant_documents(input_prompt)
+                    #self.logger.info("Retrieved docs: %s", retrieved_docs)
                     llm_chain = RetrievalQA.from_chain_type(
                         llm=self.llm,
                         chain_type="stuff",
@@ -345,8 +346,8 @@ class PredictDeployment:
                         output_key="output",
                         
                     )
-                #else: 
-                 #   return {"output": "Error: Collection does not exist"}
+                else: 
+                    return {"output": "Error: Collection does not exist"}
             pre_inference_memo = llm_chain.memory.chat_memory.messages
             pre_inference_memo = " ".join(
                 message.content for message in pre_inference_memo

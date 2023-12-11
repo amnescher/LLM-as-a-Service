@@ -23,6 +23,7 @@ from backend_database import Database
 import os
 import logging
 from langchain.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
 
@@ -130,8 +131,8 @@ class VectorDataBase:
         }
     
     def weaviate_split_multiple_pdf(self,docs):    
-        text_splitter = CharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
-
+        #text_splitter = CharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
         text_docs = text_splitter.split_documents(docs)
 
         serialized_docs = [
@@ -177,7 +178,7 @@ class VectorDataBase:
             full_class = str(username) + "_" + str(cls)
             document_list = self.parse_pdf(dir)
             serialized_docs = self.weaviate_split_multiple_pdf(document_list)
-            if len(serialized_docs) <= 3:
+            if len(serialized_docs) <= 160:
                 self.add_weaviate_document(full_class, serialized_docs)
                 response["status"] = "success"
                 response["message"] = f"Processed {len(serialized_docs)} documents for class {full_class}."
