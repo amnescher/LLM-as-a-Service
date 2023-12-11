@@ -27,13 +27,12 @@ def process_text(text):
 def display_user_classes(username, access_token):
     params = {
         "username": username,
+        "mode": "display_classes",
         "vectorDB_type": "Weaviate",
         "mode": "display_classes",
         "class_name": "string"
         }
     file_path = None
-
-    print("data:", params)
 
     #headers = {"Authorization": f"Bearer {access_token}"}
     resp = send_vector_db_request(access_token, params, Weaviate_endpoint)

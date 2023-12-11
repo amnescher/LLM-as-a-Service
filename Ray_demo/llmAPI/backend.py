@@ -332,14 +332,17 @@ class PredictDeployment:
                     if username[0].isalpha():
                         new_username= username[0].upper() + username[1:]
                     collection_name = f"{new_username}_{collection_name}"
-                    self.logger.info(f"Collection name: {collection_name}")
                     retriever = self.get_collection_based_retriver(self.weaviate_client,collection_name)
+                    temp_retriever = retriever.as_retriever(search_type="similarity", search_kwargs={"k": 6})
+                    retrieved_docs = temp_retriever.get_relevant_documents(input_prompt)
+                    self.logger.info("Retrieved docs: %s", retrieved_docs)
                     llm_chain = RetrievalQA.from_chain_type(
                         llm=self.llm,
                         chain_type="stuff",
                         retriever=retriever.as_retriever(),
                         memory=memory,
                         output_key="output",
+                        
                     )
                 else: 
                     return {"output": "Error: Collection does not exist"}
