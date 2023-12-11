@@ -1,16 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Security
-import requests
+
 import os
 import yaml
-import secrets
-import zipfile
 from typing import Optional
-import pathlib
 from sqlalchemy.orm import Session
 import weaviate
 import logging
 import ray
-import binascii
 from typing import Any, List
 import pypdf
 import ray
@@ -20,16 +15,12 @@ import weaviate
 from langchain.vectorstores import Weaviate
 from langchain.text_splitter import CharacterTextSplitter
 import yaml
-import time
 from langchain.document_loaders import TextLoader
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
 from typing import Optional
 from pydantic import BaseModel
 from backend_database import Database
-import zipfile
 import os
-from io import BytesIO
-import shutil
 import logging
 from langchain.document_loaders import PyPDFLoader
 
@@ -84,7 +75,6 @@ class WeaviateEmbedder:
 
     def adding_weaviate_document(self, text_lst, collection_name):
         self.weaviate_client.batch.configure(batch_size=100)
-
         with self.weaviate_client.batch as batch:
             for text in text_lst:
                 batch.add_data_object(
@@ -292,17 +282,15 @@ class VectorDataBase:
             #full_class_name = str(username) + "_" + str(class_name)
             full_class_name = prefix + "_" + str(class_name)
             query = weaviate_client.query.get(full_class_name, class_properties)
-            print('the query', query)
             query = query.do()
-
             document_title_set = set()
             documents = query.get('data', {}).get('Get', {}).get(str(full_class_name), [])
-            #print('the documents', documents)
             for document in documents:
                 document_title = document.get('document_title')
                 if document_title is not None:
                     document_title_set.add(document_title)
             if document_title_set is not None:
+                self.logger.info(f"query success: {len(document_title_set)} documents found")
                 return list(document_title_set)
             else:
                 return {"error": "No documents found"}
@@ -333,9 +321,10 @@ class VectorDataBase:
                 if request.mode == "add_to_collection":
                     #self.logger.info(f"request received {request}: %s", )
                     response  = self.process_all_docs(request.file_path, request.username, request.class_name)
+                    self.logger.info(f"response: {response}: %s", )
                 elif request.mode == "display_classes":
                     response = self.get_classes(request.username)
-                    print('response', response)
+                    self.logger.info(f"classes: {response}: %s", )
                     return response
                 elif request.mode == "display_documents":
                     response = self.query_weaviate_document_names(request.username, request.class_name)
@@ -350,7 +339,6 @@ class VectorDataBase:
                     self.logger.info(f"checking the request/ {request}: %s", )
                     response = self.add_vdb_class(request.username, request.class_name)
                     return response
-
                 self.logger.info(f"request processed successfully {request}: %s", )
                 return {"username": request.username, "response": response}
             except Exception as e:

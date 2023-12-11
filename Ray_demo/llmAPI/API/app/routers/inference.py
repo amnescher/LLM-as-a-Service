@@ -31,6 +31,7 @@ router = APIRouter()
 @router.post("/")
 async def create_inference(data: InferenceRequest, current_user: User = Depends(get_current_active_user)):
     print(f"the data is {data}")
+    print(data.dict())
     try:
         #data.memory = False
         data.username = current_user.username
