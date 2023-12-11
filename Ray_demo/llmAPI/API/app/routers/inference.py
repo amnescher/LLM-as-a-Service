@@ -30,8 +30,11 @@ router = APIRouter()
 
 @router.post("/")
 async def create_inference(data: InferenceRequest, current_user: User = Depends(get_current_active_user)):
+    print(f"the data is {data}")
     try:
+        #data.memory = False
         data.username = current_user.username
+        print(f"the data is {data}")
         if data.llm_model == "Llama_70b" or data.llm_model == None:
             prefix = get_route_prefix_for_llm("Llama_70b") 
             print(f"request  sent to {Ray_service_URL}/{prefix}", data.dict())
