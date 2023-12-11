@@ -146,7 +146,7 @@ class VectorDataBase:
 
         serialized_docs = [
                     self.weaviate_serialize_document(doc) 
-                    for doc in docs
+                    for doc in text_docs
                     ]
         return serialized_docs	
 

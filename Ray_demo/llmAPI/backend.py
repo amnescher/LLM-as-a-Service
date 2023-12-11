@@ -328,11 +328,12 @@ class PredictDeployment:
                 )
             else:
                 #check if collection exists
-                if self.database.check_collection_exists(request.dict()):
-                    if username[0].isalpha():
-                        new_username= username[0].upper() + username[1:]
-                    collection_name = f"{new_username}_{collection_name}"
+                #if self.database.check_collection_exists(request.dict()):
+                    #if username[0].isalpha():
+                    #    new_username= username[0].upper() + username[1:]
+                    collection_name = "Test_user_2_document"#f"{new_username}_{collection_name}"
                     retriever = self.get_collection_based_retriver(self.weaviate_client,collection_name)
+                    
                     llm_chain = RetrievalQA.from_chain_type(
                         llm=self.llm,
                         chain_type="stuff",
@@ -340,8 +341,8 @@ class PredictDeployment:
                         memory=memory,
                         output_key="output",
                     )
-                else: 
-                    return {"output": "Error: Collection does not exist"}
+                #else: 
+                 #   return {"output": "Error: Collection does not exist"}
             pre_inference_memo = llm_chain.memory.chat_memory.messages
             pre_inference_memo = " ".join(
                 message.content for message in pre_inference_memo
@@ -356,7 +357,16 @@ class PredictDeployment:
             if AI_assistance:
                 response = llm_chain.predict(user_input=input_prompt)
             else:
+                #v1 = retriever.asimilarity_search_by_vector(input_prompt, top_k=2)
+                #self.logger.info("v1 is %s", v1)
+                #v2 = retriever.similarity_search_by_vector(input_prompt, top_k=2)
+                #self.logger.info("v2 is %s", v2)
+                #v3 = retriever.similarity_search_with_relevance_scores(input_prompt, top_k=2)
+                #self.logger.info("v3 is %s", v3)
+                #v4 = retriever.max_marginal_relevance_search(input_prompt, top_k=2)
+                #self.logger.info("v4 is %s", v4)
                 response = llm_chain.run(input_prompt)
+
 
             # End measuring time after inference
             inference_end_time = time.time()
