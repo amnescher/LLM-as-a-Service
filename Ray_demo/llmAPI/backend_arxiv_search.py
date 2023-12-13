@@ -88,13 +88,16 @@ with open("cluster_conf.yaml", 'r') as file:
 MAX_FILE_SIZE = config.max_file_size * 1024 * 1024  
 
 class ArxivInput(BaseModel):
-    username: str 
-    class_name: Optional[str]
-    query: Optional[str]
-    paper_limit: Optional[int]
-    recursive_mode: Optional[int] 
+    username: Optional[str]
+    class_name: Optional[str] = None
+    query: Optional[str] = None
+    paper_limit: Optional[int] = None
+    recursive_mode: Optional[int] = None
     mode: Optional[str]
+    title: Optional[str] = None
+    url: Optional[str] = None
     file_path: Optional[str] = None
+    dir_name: Optional[str] = None
 
 Arxiv_app = FastAPI()
 
@@ -185,7 +188,7 @@ class ArxivSearch:
             url=config.weaviate_client_url,   
         )
         self.weaviate_vectorstore = Weaviate(self.weaviate_client, 'Chatbot', 'page_content', attributes=['page_content'])
-        self.num_actors = config.Arxiv_base_actor_num
+        self.num_actors = 2
         self.chunk_size = config.VD_chunk_size
         self.chunk_overlap = config.VD_chunk_overlap
         self.database = Database()
@@ -406,14 +409,24 @@ class ArxivSearch:
         self.doc_lst = []
 
         search = arxiv.Search(
-        query = "quantum",
-        max_results = 10,
-        sort_by = arxiv.SortCriterion.SubmittedDate
+            query = str(query),
+            max_results = 3,
+            sort_by = arxiv.SortCriterion.Relevance,
+            sort_order = arxiv.SortOrder.Descending
         )
 
         for result in arxiv.Client().results(search):
             self.doc_lst.append(result)
         return self.doc_lst
+
+    def download_arxiv_paper(self, url, dir_name):
+        arxiv_id = url.split('/')[-1]
+        search_result = arxiv.Search(id_list=[arxiv_id], max_results=1)
+        results = list(search_result.results())    
+        for result in tqdm(results):
+            result.download_pdf(dirpath=dir_name)
+            return dir_name  
+        return None
 
     def arxiv_pipeline(self, input_pdf, cls, ray=False, recursive=False, iteration = None, paper_limit = None):
         
@@ -513,6 +526,15 @@ class ArxivSearch:
             try:
                 if request.mode == "Search by query":
                     response  = self.query_arxiv_documents(request.query)
+                    return response
+                elif request.mode == "Download paper":
+                    self.logger.info(f"request received {request}: %s", )
+                    paper_path = self.download_arxiv_paper(request.url, request.dir_name)
+                    username = request.username
+                    cls = request.class_name
+                    full_class_name = f"{username}_{cls}"
+                    self.logger.info(f'the paper path {paper_path}: %s',)
+                    response = self.arxiv_pipeline(paper_path, full_class_name, ray=True, recursive=True, iteration=request.recursive_mode, paper_limit=request.paper_limit)
                     return response
                 elif request.mode == "Upload file":
                     self.logger.info(f"request received {request}: %s", )

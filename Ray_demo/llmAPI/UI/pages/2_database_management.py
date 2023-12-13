@@ -4,6 +4,8 @@ import os
 import requests
 from langchain.document_loaders import YoutubeLoader
 import logging
+import pandas as pd
+
 
 logging.basicConfig(
             level=logging.INFO,
@@ -27,7 +29,7 @@ def add_class(username, class_name, access_token):
         "class_name": class_name,
         "mode": "create_collection"
         }
-    print('query data', params)
+    #print('query data', params)
     headers = {"Authorization": f"Bearer {access_token}"}
     resp = send_vector_db_request(access_token, params, Weaviate_endpoint)
     #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
@@ -84,16 +86,16 @@ def display_user_classes(username, access_token):
         }
     file_path = None
 
-    print("data:", params)
+    #print("data:", params)
 
     #headers = {"Authorization": f"Bearer {access_token}"}
     resp = send_vector_db_request(access_token, params, Weaviate_endpoint)
     #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
         # Handle the response
-    print("the response", resp, resp.content)
+    #print("the response", resp, resp.content)
 
     response_content = resp.content.decode("utf-8")
-    print("respcontent", response_content)
+    #print("respcontent", response_content)
     user_classes = json.loads(response_content)
     if resp.status_code == 200:
         print(resp.status_code, resp.content)
@@ -110,8 +112,8 @@ def upload_documents(username, class_name, access_token, file_path):
         "mode": "add_to_collection",
         "vectorDB_type": "Weaviate",
         }
-    print('file path', file_path)
-    print('file name', file_path.name)
+    #print('file path', file_path)
+    #print('file name', file_path.name)
     resp = send_vector_db_request(access_token, params, Weaviate_endpoint,files)
     #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
     if resp.status_code == 200:
@@ -119,16 +121,42 @@ def upload_documents(username, class_name, access_token, file_path):
     else:
         print(resp.status_code, resp.content)
 
-def query_arxiv(access_token, arxiv_mode, query):
+def query_arxiv(access_token, arxiv_mode, query, username):
     params = {
+        "username": username,
         "mode": arxiv_mode,
         "query": query,
         }
     resp = send_vector_db_request(access_token, params, Arxiv_endpoint) 
-    if resp.status_code == 200:
-        print(resp.status_code, resp.content)
+    response_content = resp.content.decode("utf-8")
+    parsed_response = json.loads(response_content)
+    all_entries = []  # List to store all entries
+
+    # Check if there are entries in the response
+    if 'response' in parsed_response and parsed_response['response']:
+        # Iterate through each entry
+        for entry in parsed_response['response']:
+            # Extracting specific information from each entry
+            title = entry.get('title', 'No Title')
+            authors = [author['name'] for author in entry.get('authors', [])]
+            summary = entry.get('summary', 'No Summary')
+            url = entry.get('entry_id', 'No URL')
+
+            # Create a dictionary for the current entry
+            entry_dict = {
+                "title": title,
+                "authors": authors,
+                "summary": summary,
+                "url": url
+            }
+
+            # Add the dictionary to the list
+            all_entries.append(entry_dict)
     else:
-        print(resp.status_code, resp.content)
+        print("No entries found in the response.")
+
+    # Return the list of all entries
+    return all_entries
 
 def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=None, file_path=None):
     if query is not None and file_path is None:
@@ -162,7 +190,7 @@ def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive
 
 def send_vector_db_request(access_token, json_data, endpoint, uploaded_file=None):
     headers = {"Authorization": f"Bearer {access_token}"}
-
+    print('json data', json_data)
 
     response = requests.post(f"{BASE_URL}{endpoint}", data=json_data,headers=headers, files=uploaded_file)
 
@@ -206,6 +234,7 @@ st.sidebar.header("Collections")
 st.header("Documents")
 
 col1, col2 = st.columns(2)
+col1_2, col2_2 = st.columns(2)
 PORT = 8000
 #data_type = "Collection"
 #mode = "get_all"
@@ -269,7 +298,7 @@ else:
             if st.button("Display class"):
                 if selected_collections is not None:
                     doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
-                    print("doc list", doc_list)
+                    #print("doc list", doc_list)
                     # selected_collections = st.multiselect("Select Collections:", collections_list)
                     #documents = display_colleciton_in_table()  # Fetch actual documents
                     st.table(doc_list)
@@ -282,29 +311,70 @@ else:
                     for uploaded_file in uploaded_files:
                         upload_documents(st.session_state.username, str(selected_collections), st.session_state.token, uploaded_file)
                         st.text(f"Document {uploaded_file.name} Uploaded! ✅")
-            st.subheader("Populate collection with Arxiv papers")
             
-            arxiv_mode = st.radio(options= ["Search by query", "Upload file"], label="Type upload")
-            arxiv_recusrive_mode = st.text_input("Number of recursive calls", value=1)
-            arxiv_paper_limit = st.text_input("Number of papers to add", value=10)
-            if arxiv_mode == "Search by query":
-                query = st.text_input("Enter query")
-                if st.button("test button"):
-                    query_res = query_arxiv(st.session_state.token, arxiv_mode, query)
-                    if query_res is not None: 
-                        selected_options = st.multiselect("Select one or more options", query_res)
-                        st.write("You selected:", selected_options)
-                print("query", query, type(query))
-            elif arxiv_mode == "Upload file":
-                query = st.file_uploader("Upload file", type=["pdf"])
-                print("query", query, type(query))
-            if st.button("Populate collection"):
-                if arxiv_mode == "Search by query":
-                    arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=query)
-                    st.text(f"Collection populated! ✅")
-                if arxiv_mode == "Upload file":
-                    arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, file_path=query)
-                    st.text(f"Collection populated! ✅")
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        # with col1_2:
+        #     st.subheader("Populate collection with Arxiv papers")
+            
+        #     arxiv_mode = st.radio(options= ["Search by query", "Upload file"], label="Type upload")
+        #     arxiv_recusrive_mode = st.text_input("Number of recursive calls", value=1)
+        #     arxiv_paper_limit = st.text_input("Number of papers to add", value=10)
+        #     if arxiv_mode == "Search by query":
+        #         query = st.text_input("Enter query")
+        #         if st.button("Search"):
+                    
+        #             query_res = query_arxiv(st.session_state.token, arxiv_mode, query, st.session_state.username)
+        #             #print("query res", query_res)
+        #             df = pd.DataFrame(query_res)
+        #             st.dataframe(df,
+        #                          column_config={
+                                        
+        #                                 "title": "Paper titles",
+        #                                 "authors": "Authors",
+        #                                 "summary": "Summary",
+
+        #                              },
+        #                              hide_index=True,)
+
+        #             # Display the DataFrame
+        #             print(df)
+        #             #title_url_dict = pd.Series(df.url.values, index=df.title).to_dict()
+                
+
+        #             selected_options = st.selectbox("Select one or more options", df['title'])
+        #             #if selected_options:
+        #                         #paper_url = title_url_dict[selected_options]
+        #             #st.write("You selected:", selected_options)
+        #         #print("query", query, type(query))
+        #     elif arxiv_mode == "Upload file":
+        #         query = st.file_uploader("Upload file", type=["pdf"])
+        #         print("query", query, type(query))
+        #     if st.button("Populate collection"):
+        #         if arxiv_mode == "Search by query":
+        #             arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=query)
+        #             st.text(f"Collection populated! ✅")
+        #         if arxiv_mode == "Upload file":
+        #             arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, file_path=query)
+        #             st.text(f"Collection populated! ✅")
                 
 
                 #def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=None, file_path=None):
@@ -324,7 +394,7 @@ else:
        # st.header("Collection selected", selected_collections)
 
 '''''
-        col1_2, col2_2 = st.columns(2)
+        
 
         st.markdown("<br>", unsafe_allow_html=True)
 
