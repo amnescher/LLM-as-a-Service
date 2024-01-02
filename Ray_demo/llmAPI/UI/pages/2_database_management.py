@@ -108,10 +108,11 @@ def delete_document(username, class_name, document_name, access_token):
     params = {
         "username": username,
         "class_name": class_name,
-        "mode": "add_to_collection",
+        "mode": "delete_document",
         "vectorDB_type": "Weaviate",
         "file_title": document_name
         }
+    print('params', params)
     resp = send_vector_db_request(access_token, params, Weaviate_endpoint)
     if resp.status_code == 200:
         print(resp.status_code, resp.content)
@@ -239,23 +240,14 @@ def display_colleciton_in_table():
     collections_list = collections_data.get("collections", [])
     return collections_list
 
-
+st.set_page_config(layout="wide")
 st.title("Vector Database Management Dashboard")
 
 # Fetch and display collections
 st.sidebar.header("Collections")
 
-# Display documents in the main area
-
 PORT = 8000
-#data_type = "Collection"
-#mode = "get_all"
-#POST_URL = f"http://localhost:{PORT}/VectoreDataBase/?data_type={data_type}&mode={mode}"
-#response = requests.post(POST_URL)
 
-#collections_data = response.json()
-
-#collections_list = collections_data.get("collections", [])
 if "username" not in st.session_state or st.sidebar.button("Logout"):
     if "username" not in st.session_state:
         username = st.text_input("Enter your username:")
@@ -282,30 +274,23 @@ else:
             with col1:
                 username = st.session_state.username
                 print('user', username)
-                st.header("user:", st.session_state.username)
+                st.header(f"{username} manageme")
                 class_name = st.text_input("Enter collection name:")
                 class_name = class_name.strip().replace(" ", "-")
                 if st.button("Create Collection"):
                     if class_name is not None:
                         add_class(st.session_state.username, str(class_name), st.session_state.token)
                         st.success(f"Collection {class_name} created!")
-                        #documents = display_colleciton_in_table()
 
                 collection_to_delete = st.text_input("Collection to delete:")
                 if st.button("Delete Collection"):
                     if collection_to_delete is not None:
                         delete_class(st.session_state.username, str(collection_to_delete), st.session_state.token)
                         st.success(f"Collection {collection_to_delete} deleted!")
-                        #documents = display_colleciton_in_table()
-                    # POST_URL = f"http://localhost:{PORT_NUMBER}/VectoreDataBase/?data_type={data_type}&data_path={collection_to_delete}&mode={mode}"
-                    # response = requests.post(POST_URL)
-                    # st.success(f"Collection {collection_to_delete} deleted!")
-                    #  documents = display_colleciton_in_table()
-
 
             with col2:
                 classes = display_user_classes(st.session_state.username, st.session_state.token)
-                st.table(classes)                
+                st.table(classes['response'])                
 
         with st.expander("Manage documents in collection", expanded=True):
             classes = display_user_classes(st.session_state.username, st.session_state.token)
@@ -313,9 +298,9 @@ else:
            
             col1_2, col2_2 = st.columns([1, 1.5])
             #selected_collections = st.text_input("Select Collections:")
-            if st.button("Display class"): 
-                doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)           
-                if selected_collections is not None:
+            #if st.button("Display class"): 
+            doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)           
+            if selected_collections is not None:
                     with col1_2:
                         #doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
                         st.session_state.doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)

@@ -277,7 +277,6 @@ class ArxivSearch:
     
     def run_anystyle(self,input_pdf, base_dir):
         try:
-            self.logger.info(f"the input pdf and test the anystyle? {input_pdf}: %s", )
             new_directory_path = os.path.join(base_dir, 'bib_files')
             os.makedirs(new_directory_path, exist_ok=True)
             
@@ -329,6 +328,54 @@ class ArxivSearch:
         if len(references) % num_actors:
             ref_parts[-1].extend(references[num_actors * refs_per_actor:])
         return ref_parts
+
+    def clean_author_names(self, author_string):
+        cleaned_authors = []
+        for author in author_string.split(" and "):
+            parts = [part for part in author.replace(',', '').split() if len(part.replace('.', '')) > 1 and not all(c.isupper() for c in part.replace('.', ''))]
+            cleaned_authors.extend(parts)
+
+        return cleaned_authors[:4]
+
+    def clean_title(self, title_string):
+        cleaned_title = [part.replace('title:', '').strip() for part in title_string.split(":")]
+        return cleaned_title
+
+    def is_close_match(self, result_title, query_title, result_author, query_author):
+        return (query_title.lower() in result_title.lower()) and (query_author.lower() in result_author.lower())
+
+    def arxiv_search(self, titles, authors, dir, count):
+        for title in titles:
+            self.logger.info(f"checkpoint 1 and check for the author and title {authors} and {titles}", )
+            for author in authors:
+                try:
+                    search_query = f"au:{author} AND ti:{title}"
+                    search_results = arxiv.Search(query=search_query, max_results=1)
+
+                    for result in tqdm(search_results.results()):
+                        result_title = result.title
+                        result_author = ', '.join([a.name for a in result.authors])
+                        print(f"Title: {result_title}, Authors: {result_author}")
+                        if self.is_close_match(result_title, title, result_author, author):
+                                try:
+                                    result.download_pdf(dirpath=dir)
+                                    count += 1
+                                    self.logger.info(f"count {count}: %s", )
+                                    return count # Exit the loop once a match is found and downloaded
+                                except FileNotFoundError:
+                                    print("File not found.")
+                                except HTTPError:
+                                    print("Access forbidden.")
+                                except ConnectionResetError:
+                                    print("Connection reset by peer. Retrying in 5 seconds.")
+                                    time.sleep(5)
+                                      # Retry the current iteration
+                         #break  # Break loop if a search is completed
+
+
+                except Exception as e:
+                    print(f"An error occurred: {e}")  
+        return count
     
     def arxiv_search_ray(self, dir, bib_workload): #count as param
         actors = [RayArxivSearch.remote() for _ in range(3)]
@@ -360,18 +407,7 @@ class ArxivSearch:
         # results = ray.get(futures)
         #        [actor.arxiv_search.remote(bib_refs['title'], bib_refs['authors'], dir, count) for actor, bib_refs in zip(actors, bib_workload)]
         #self.logger.info(f"check 1st step of ray was successful", )
-        
-    def clean_author_names(self, author_string):
-        cleaned_authors = []
-        for author in author_string.split(" and "):
-            parts = [part for part in author.replace(',', '').split() if len(part.replace('.', '')) > 1 and not all(c.isupper() for c in part.replace('.', ''))]
-            cleaned_authors.extend(parts)
-
-        return cleaned_authors[:4]
-
-    def clean_title(self, title_string):
-        cleaned_title = [part.replace('title:', '').strip() for part in title_string.split(":")]
-        return cleaned_title
+       
 
     def weaviate_serialize_document(self, doc):
             document_title = doc.metadata.get('source', '').split('/')[-1]
@@ -514,83 +550,85 @@ class ArxivSearch:
         return None
 
     def arxiv_pipeline(self, input_pdf, cls, ray=False, recursive=False, iteration = None, paper_limit = None):
-        
-            """Process all on one actor"""
-            self.logger.info(f"the paper limit test {paper_limit}: %s")
+            """"""
+            # init the pipeline
             self.current_paper_count = 0
-            self.logger.info(f"the paper limit test and paper count {self.current_paper_count}: %s")
             current_iter = 1
             base_dir = input_pdf
+
             self.logger.info(f"the paper limit test {paper_limit}: %s")
+
+            # check for files sent in the request, there can be more than one
             for file in os.listdir(input_pdf):
                 if file.endswith('.pdf'):
                     input_pdf_path = os.path.join(input_pdf, file)
                     break
                 else:
                     return "No PDF file found in the directory."
+                
+            # if the recusive mode is not used, only the first file will be processed
             if not recursive:
-                self.logger.info(f"testing checkpoint rec no %s")
+                self.logger.info(f"Arxiv pipeline with no recursion")
+                
+                # run the anystyle parser for reference page and clean the refs
                 anystyle_output = self.run_anystyle(input_pdf_path,base_dir)
                 parsed_data = self.process_bib_files(anystyle_output)
+                
+                # run arxiv search on the references
                 for ref in parsed_data:
                     self.arxiv_search(ref['title'], ref['authors'])
 
+                # merge all the pdfs into one directory
                 parsed_text = self.parse_pdf()
+
+                # split the pdfs into chunks and serialize them
                 serialized_text = self.weaviate_split_multiple_pdf(parsed_text)
 
+                # option to use paralellization or not
                 if ray == False:
                     self.weaviate_embedding(serialized_text, cls)
 
                 elif ray is True:
                     self.weaviate_ray_embedding(serialized_text, cls)
 
-
+                # remove pdfs from the directory
+                # TODO fix this to accomodate any name of the directory
                 for filename in os.listdir('./pdfs/'):
                     file_path = os.path.join('./pdfs', filename)
                     if os.path.isfile(file_path) and filename.endswith(".pdf"):
                         os.remove(file_path)
 
+            # if the recursive mode is used, the pipeline will run until the paper limit or max iteration is reached
             if recursive and iteration > 0:
-                base_dir = input_pdf
-                self.logger.info(f"the paper limit test {paper_limit}: %s")
-
+                self.logger.info(f"Arxiv pipeline with recursion with parameters: {recursive}, {iteration}, {paper_limit}")
+                #base_dir = input_pdf
+                # init paper counter
                 self.current_paper_count = 0
                 while current_iter <= iteration:
-                    self.logger.info(f"the paper limit test and paper count {self.current_paper_count}: %s")
+                    #self.logger(f"Arxiv iteration number: {current_iter}")
+                    
+                    # The first iteration will run differently than the nexts
                     if current_iter == 1:
+
+                        # create a directory for the iteration
                         iter_dir = os.path.join(input_pdf, f'iteration_{current_iter}')
                         if not os.path.exists(iter_dir):
                             os.makedirs(iter_dir)
+
+                        # normal run of the pipelines functions
                         anystyle_output = self.run_anystyle(input_pdf_path,base_dir)
                         parsed_data = self.process_bib_files(anystyle_output)
-                        ref_list = self.divide_bib_workload(3, parsed_data)
                         
-                        self.logger.info(f"the references 0 splitted is {len(ref_list)}{ref_list}: %s", )
-                        
-                        self.arxiv_search_ray(iter_dir, ref_list)
+                        for ref in parsed_data:
+                            if self.current_paper_count >= paper_limit:
+                                break
+                            self.current_paper_count = self.arxiv_search(ref['title'], ref['authors'], iter_dir, self.current_paper_count) or self.current_paper_count
 
-                        #actors = [RayArxivSearch.remote() for _ in range(3)]
-
-                        # Distribute work among actors and collect futures
-                        #futures = [actor.arxiv_search.remote(refs, iter_dir) for actor, refs in zip(actors, ref_list)]
-
-                        # Wait for all futures to complete and update counts
-                        #results = ray.get(futures)
-                        #self.logger.info(f"the results of ray {results}: %s", )
-                        #for result in results:
-                        #    self.current_paper_count += result
-                        #    self.logger.info(f"the current paper count {self.current_paper_count}: %s", )
-
-### previously working.
-                        # for refs in ref_list:
-                        #     for ref in refs:
-                        #         if self.current_paper_count >= paper_limit:
-                        #             break
-                        #         self.current_paper_count = self.arxiv_search(ref['title'], ref['authors'], iter_dir, self.current_paper_count) or self.current_paper_count                           
-                        #         self.logger.info(f"current_paper_count {self.current_paper_count}: %s", )
 
                         current_iter += 1
-                    if self.current_paper_count >= paper_limit:
+
+                    # It needs to be elif
+                    elif self.current_paper_count >= paper_limit:
                                 break   
                     elif current_iter >= 2:
                         self.logger.info(f"reached iteration {current_iter}")
@@ -602,9 +640,10 @@ class ArxivSearch:
                         pdf_files = [f for f in os.listdir(previous_dir) if f.endswith('.pdf')]
                         for pdf_file in pdf_files:
                             full_path = os.path.join(previous_dir, pdf_file)
-                            anystyle_output = self.run_anystyle(full_path,base_dir)
                             
+                            anystyle_output = self.run_anystyle(full_path,base_dir)
                             parsed_data = self.process_bib_files(anystyle_output)
+
                             for ref in parsed_data:
                                 if self.current_paper_count >= paper_limit:
                                     break
