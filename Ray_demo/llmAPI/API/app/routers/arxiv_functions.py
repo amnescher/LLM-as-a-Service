@@ -55,6 +55,7 @@ async def query_arxiv_search(class_name: str = Form(None),
                             dir_name: Optional[str] = Form(None),
                             current_user: User = Depends(get_current_active_user),
                             file: Optional[UploadFile] = File(None)):
+    print('checkpoint api 1')
     print('data received 1', 'cls name', class_name, 'mode', mode, 'query', query, 'recursive mode', recursive_mode, 'paper limit', paper_limit, 'file path', file_path, 'ursername', current_user.username, 'title', title, 'url', url)
     username = current_user.username
     try:

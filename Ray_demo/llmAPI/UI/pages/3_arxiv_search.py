@@ -75,19 +75,10 @@ def download_arxiv_paper(username, class_name, access_token, arxiv_mode, arxiv_r
         print(resp.status_code, resp.content)
 
 def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=None, file_path=None):
-    if query is not None and file_path is None:
-        print('it went in the 1st condition')
-        params = {
-            "username": username,
-            "class_name": class_name,
-            "mode": arxiv_mode,
-            "recursive_mode": arxiv_recusrive_mode,
-            "paper_limit": arxiv_paper_limit,
-            "query": query,
-            }
-        resp = send_vector_db_request(access_token, params, Arxiv_endpoint)
-    if file_path is not None and query is None: 
-        print('it went in the 2nd condition')
+    if file_path is not None: 
+        print('checkpoint 1')
+        files = {'file': (file_path.name, file_path, file_path.type)}
+        #print('file path', file_path, 'params', params)
         params = {
             "username": username,
             "class_name": class_name,
@@ -95,10 +86,10 @@ def arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive
             "recursive_mode": arxiv_recusrive_mode,
             "paper_limit": arxiv_paper_limit,
             }
-        resp = send_vector_db_request(access_token, params, Arxiv_endpoint, file_path)
-    print('file path', file_path)
-    
-    
+
+        print('file path', file_path, 'params', params)
+        resp = send_vector_db_request(access_token, params, Arxiv_endpoint, files)
+    print('file path', file_path, 'params', params)
     if resp.status_code == 200:
         print(resp.status_code, resp.content)
     else:
@@ -111,18 +102,8 @@ def display_user_classes(username, access_token):
         "mode": "display_classes",
         "class_name": "string"
         }
-    file_path = None
-
-    #print("data:", params)
-
-    #headers = {"Authorization": f"Bearer {access_token}"}
     resp = send_vector_db_request(access_token, params, Weaviate_endpoint)
-    #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
-        # Handle the response
-    #print("the response", resp, resp.content)
-
     response_content = resp.content.decode("utf-8")
-    #print("respcontent", response_content)
     user_classes = json.loads(response_content)
     if resp.status_code == 200:
         print(resp.status_code, resp.content)
@@ -161,7 +142,7 @@ st.header("Documents")
 
 
 
-col1, col2, col3, col4, col5 = st.columns([0.75, 0.75, 1, 1.1, 2])
+
 
 PORT = 8000
 
@@ -191,64 +172,68 @@ else:
             st.session_state.query_res = None
 
         st.subheader("Populate collection with Arxiv papers")
-        with col1:
-            classes = display_user_classes(st.session_state.username, st.session_state.token)
-            selected_collections = st.selectbox("Select Collections:", classes['response'])
-        
-        with col2: 
-            arxiv_mode = st.radio(options=["Search by query", "Upload file"], label="Type upload")
-        with col3:
-            #arxv_recursive_mode = st.text_input("Number of recursive calls", value="1")
-            arxiv_recursive_mode = st.slider(
-                'Select the number of iterations',
-                0, 7, 1)
-            st.write('Iterations selected:', arxiv_recursive_mode)
-            print('arxiv_recursive_mode', arxiv_recursive_mode)
-        with col4:
-            #arxiv_paper_limit = st.text_input("Number of papers to add", value="10")
-            arxiv_paper_limit = st.slider(
-                'Select the maximum number of papers to add',
-                0, 50, 1)
-            st.write('Iterations selected:', arxiv_paper_limit)
-            print('arxiv_recursive_mode', arxiv_paper_limit)
-        with col5:
-            if arxiv_mode == "Search by query":
-                query = st.text_input("Enter query")
-                search_pressed = st.button("Search")
+        with st.expander("Populate collection with Arxiv papers", expanded=True):
+            col1, col2, col3, col4, col5 = st.columns([0.75, 0.75, 1, 1.1, 2])
+            with col1:
+                print('username', st.session_state.username)
+                classes = display_user_classes(st.session_state.username, st.session_state.token)
+                selected_collections = st.selectbox("Select Collections:", classes['response'])
+            
+            with col2: 
+                arxiv_mode = st.radio(options=["Search by query", "Upload file"], label="Type upload")
+            with col3:
+                #arxv_recursive_mode = st.text_input("Number of recursive calls", value="1")
+                arxiv_recursive_mode = st.slider(
+                    'Select the number of iterations',
+                    0, 7, 1)
+                st.write('Iterations selected:', arxiv_recursive_mode)
+                print('arxiv_recursive_mode', arxiv_recursive_mode)
+            with col4:
+                #arxiv_paper_limit = st.text_input("Number of papers to add", value="10")
+                arxiv_paper_limit = st.slider(
+                    'Select the maximum number of papers to add',
+                    0, 50, 1)
+                st.write('Iterations selected:', arxiv_paper_limit)
+                print('arxiv_recursive_mode', arxiv_paper_limit)
+            with col5:
+                if arxiv_mode == "Search by query":
+                    query = st.text_input("Enter query")
+                    search_pressed = st.button("Search")
 
-                if search_pressed:
-                    # Call your query function and store the result in session state
-                    st.session_state.query_res = query_arxiv(st.session_state.token, arxiv_mode, query, st.session_state.username)
+                    if search_pressed:
+                        # Call your query function and store the result in session state
+                        st.session_state.query_res = query_arxiv(st.session_state.token, arxiv_mode, query, st.session_state.username)
 
-                if st.session_state.query_res is not None:
-                    # Only display the dataframe if query results are available
-                    df = pd.DataFrame(st.session_state.query_res)
-                    st.dataframe(df, column_config={"title": "Paper titles", "authors": "Authors", "summary": "Summary"}, hide_index=True)
-                    title_to_url = pd.Series(df.url.values, index=df.title).to_dict()
+                    if st.session_state.query_res is not None:
+                        # Only display the dataframe if query results are available
+                        df = pd.DataFrame(st.session_state.query_res)
+                        if not df.empty:
+                            st.dataframe(df, column_config={"title": "Paper titles", "authors": "Authors", "summary": "Summary", "url": "Url's"}, hide_index=True)
+                            title_to_url = pd.Series(df.url.values, index=df.title.values).to_dict()
 
-                    # Display the selectbox with titles
-                    selected_title = st.selectbox("Select a paper", df['title'])
+                            # Display the selectbox with titles
+                            selected_title = st.selectbox("Select a paper", df['title'])
 
-                    # Use the selected title to get the corresponding URL
-                    if selected_title:
-                        selected_url = title_to_url[selected_title]
-                        st.write(f"Selected paper URL: {selected_url}")
-                        arxiv_mode = "Download paper"
-                    
+                            # Use the selected title to get the corresponding URL
+                            if selected_title:
+                                selected_url = title_to_url[selected_title]
+                                st.write(f"Selected paper URL: {selected_url}")
+                                arxiv_mode = "Download paper"
+                        
 
-            elif arxiv_mode == "Upload file":
-                query = st.file_uploader("Upload file", type=["pdf"])
+                elif arxiv_mode == "Upload file":
+                    query = st.file_uploader("Upload file", type=["pdf"])
 
-            #populate_pressed = st.button("Populate collection")
-            if st.button("Populate collection"):
-                if arxiv_mode == "Download paper":
-                    print('selected url', selected_url)
-                    selected_file_path = download_arxiv_paper(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recursive_mode, arxiv_paper_limit, selected_url)
-                    print('selected file path', selected_file_path)
-                   # arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recursive_mode, arxiv_paper_limit, query=query)
-                    st.text(f"Collection populated! ✅")
-                if arxiv_mode == "Upload file":
-                    arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recursive_mode, arxiv_paper_limit, file_path=query)
-                    st.text(f"Collection populated! ✅")
-
-                    #def download_arxiv_paper(username, class_name, access_token, arxiv_mode, arxiv_recursive_mode, arxiv_paper_limit, title, url):
+                #populate_pressed = st.button("Populate collection")
+                if st.button("Populate collection"):
+                    if arxiv_mode == "Download paper":
+                        print('selected url', selected_url)
+                        selected_file_path = download_arxiv_paper(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recursive_mode, arxiv_paper_limit, selected_url)
+                        print('selected file path', selected_file_path)
+                    # arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recursive_mode, arxiv_paper_limit, query=query)
+                        st.text(f"Collection populated! ✅")
+                    if arxiv_mode == "Upload file":
+                        arxiv_search(st.session_state.username, str(selected_collections), st.session_state.token, arxiv_mode, arxiv_recursive_mode, arxiv_paper_limit, file_path=query)
+                        st.text(f"Collection populated! ✅")
+    #ef arxiv_search(username, class_name, access_token, arxiv_mode, arxiv_recusrive_mode, arxiv_paper_limit, query=None, file_path=None):
+                        #def download_arxiv_paper(username, class_name, access_token, arxiv_mode, arxiv_recursive_mode, arxiv_paper_limit, title, url):
