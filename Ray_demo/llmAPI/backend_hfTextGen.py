@@ -18,6 +18,8 @@ from backend_database import Database
 from langchain.schema import messages_from_dict, messages_to_dict
 from langchain.memory.chat_message_histories.in_memory import ChatMessageHistory
 from langchain import PromptTemplate, LLMChain
+from langchain.callbacks.streaming_aiter import AsyncIteratorCallbackHandler
+from langchain.callbacks.streaming_stdout_final_only import FinalStreamingStdOutCallbackHandler
 from typing import List
 import json
 import os
@@ -31,6 +33,13 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain.memory import ConversationBufferMemory
 from langchain_community.llms.huggingface_pipeline import HuggingFacePipeline
+import os
+import asyncio
+from typing import Any
+from typing import AsyncIterable
+import uvicorn
+from fastapi import FastAPI, Body
+from fastapi.responses import StreamingResponse
 
 from langchain.chains import ConversationChain
 from langchain.chains import LLMChain
@@ -275,8 +284,8 @@ class PredictDeployment:
         wrapped_text = textwrap.fill(cleaned_text, width=100)
         return wrapped_text
 
-    def AI_assistance(self, request: Input):
-        try:
+    async def AI_assistance(self, request: Input)-> AsyncIterable[str]:
+        #try:
             self.logger.info("Received request: %s", request.dict())
             input_prompt = request.prompt
             AI_assistance = request.AI_assistance
@@ -346,8 +355,8 @@ class PredictDeployment:
                         output_key="output",
                         
                     )
-                else: 
-                    return {"output": "Error: Collection does not exist"}
+                # else: 
+                #     return {"output": "Error: Collection does not exist"}
             pre_inference_memo = llm_chain.memory.chat_memory.messages
             pre_inference_memo = " ".join(
                 message.content for message in pre_inference_memo
@@ -360,69 +369,82 @@ class PredictDeployment:
 
             # Generate a response based on the mode
             if AI_assistance:
-                response = llm_chain({"user_input": input_prompt})["output"]
-            else:
-                #v1 = retriever.asimilarity_search_by_vector(input_prompt, top_k=2)
-                #self.logger.info("v1 is %s", v1)
-                #v2 = retriever.similarity_search_by_vector(input_prompt, top_k=2)
-                #self.logger.info("v2 is %s", v2)
-                #v3 = retriever.similarity_search_with_relevance_scores(input_prompt, top_k=2)
-                #self.logger.info("v3 is %s", v3)
-                #v4 = retriever.max_marginal_relevance_search(input_prompt, top_k=2)
-                #self.logger.info("v4 is %s", v4)
-                response = llm_chain.run(input_prompt)
+                callback = AsyncIteratorCallbackHandler()
+                llm_chain.callbacks = [callback]
+                #response = llm_chain({"user_input": input_prompt})["output"]
+                task = asyncio.create_task(
+        llm_chain.acall({"user_input": input_prompt})
+    )
+                try:
+                    async for token in callback.aiter():
+                        yield token
+                except Exception as e:
+                    print(f"Caught exception: {e}")
+                finally:
+                    callback.done.set()
+                await task
+        #     else:
+        #         #v1 = retriever.asimilarity_search_by_vector(input_prompt, top_k=2)
+        #         #self.logger.info("v1 is %s", v1)
+        #         #v2 = retriever.similarity_search_by_vector(input_prompt, top_k=2)
+        #         #self.logger.info("v2 is %s", v2)
+        #         #v3 = retriever.similarity_search_with_relevance_scores(input_prompt, top_k=2)
+        #         #self.logger.info("v3 is %s", v3)
+        #         #v4 = retriever.max_marginal_relevance_search(input_prompt, top_k=2)
+        #         #self.logger.info("v4 is %s", v4)
+        #         response = llm_chain.run(input_prompt)
 
 
-            # End measuring time after inference
-            inference_end_time = time.time()
+        #     # End measuring time after inference
+        #     inference_end_time = time.time()
 
-            # Calculate and log the elapsed time
-            inference_elapsed_time = inference_end_time - inference_start_time
+        #     # Calculate and log the elapsed time
+        #     inference_elapsed_time = inference_end_time - inference_start_time
 
-            # Store the conversation
-            extracted_messages = llm_chain.memory.chat_memory.messages
-            ingest_to_db = messages_to_dict(extracted_messages)
-            input_token_number = (
-                len(self.tokenizer.tokenize(input_prompt))
-                + pre_inference_memo_token_len
-            )
-            gen_token_number = len(self.tokenizer.tokenize(response))
-            db_response = self.database.update_conversation(
-                {
-                    "username": username,
-                    "content": json.dumps(ingest_to_db),
-                    "gen_token_number": gen_token_number,
-                    "prompt_token_number": input_token_number,
-                    "conversation_number": conversation_number,
-                }
-            )
-            response = self.parse_text(response)
+        #     # Store the conversation
+        #     extracted_messages = llm_chain.memory.chat_memory.messages
+        #     ingest_to_db = messages_to_dict(extracted_messages)
+        #     input_token_number = (
+        #         len(self.tokenizer.tokenize(input_prompt))
+        #         + pre_inference_memo_token_len
+        #     )
+        #     gen_token_number = len(self.tokenizer.tokenize(response))
+        #     db_response = self.database.update_conversation(
+        #         {
+        #             "username": username,
+        #             "content": json.dumps(ingest_to_db),
+        #             "gen_token_number": gen_token_number,
+        #             "prompt_token_number": input_token_number,
+        #             "conversation_number": conversation_number,
+        #         }
+        #     )
+        #     response = self.parse_text(response)
 
-            wandb_log = {
-                "The number of input tokens": input_token_number,
-                "The number of generated tokens": gen_token_number,
-                "Inference Time": inference_elapsed_time,
-                "token/second": gen_token_number / inference_elapsed_time,
-            }
-            if self.wandb_logging_enabled:   
-                wandb.log(wandb_log)
-            self.logger.info("Processed the request successfully")
-            return {"output": response}
+        #     wandb_log = {
+        #         "The number of input tokens": input_token_number,
+        #         "The number of generated tokens": gen_token_number,
+        #         "Inference Time": inference_elapsed_time,
+        #         "token/second": gen_token_number / inference_elapsed_time,
+        #     }
+        #     if self.wandb_logging_enabled:   
+        #         wandb.log(wandb_log)
+        #     self.logger.info("Processed the request successfully")
+        #     return {"output": response}
 
-        except ConnectionError as ce:
-            self.logger.error("Error processing the request: %s", str(ce))
-            # Handle connection errors (for example, interacting with the database or calling APIs)
-            return {"output": "ConnectionError: An error occurred while processing the request"}
+        # except ConnectionError as ce:
+        #     self.logger.error("Error processing the request: %s", str(ce))
+        #     # Handle connection errors (for example, interacting with the database or calling APIs)
+        #     return {"output": "ConnectionError: An error occurred while processing the request"}
 
-        except KeyError as ke:
-            # Handle key errors (for example, accessing a key in a dictionary that doesn’t exist)
-            self.logger.error("Error processing the request: %s", str(ke))
-            return {"output": " KeyError: An error occurred while processing the request"}
+        # except KeyError as ke:
+        #     # Handle key errors (for example, accessing a key in a dictionary that doesn’t exist)
+        #     self.logger.error("Error processing the request: %s", str(ke))
+        #     return {"output": " KeyError: An error occurred while processing the request"}
 
-        except Exception as e:
-            # General exception to catch any other unforeseen errors
-            self.logger.error("Error processing the request: %s", str(e))
-            return {"output": "Exception : An error occurred while processing the request"}
+        # except Exception as e:
+        #     # General exception to catch any other unforeseen errors
+        #     self.logger.error("Error processing the request: %s", str(e))
+        #     return {"output": "Exception : An error occurred while processing the request"}
 
     @serve.batch(
         max_batch_size=config.max_batch_size,
@@ -445,9 +467,11 @@ class PredictDeployment:
     @app.post("/")
     async def root(self, request: Input):
         try:
-            self.logger.info("Received requests to /inference endpoint")
-            response = await self.handle_batch(request)
-            return response
+            #self.logger.info("Received requests to /inference endpoint")
+            #response = await self.handle_batch(request)
+            #return response
+            generator = self.AI_assistance(request)
+            return StreamingResponse(generator, media_type="text/event-stream")
         except Exception as e:
             self.logger.error("Error in /inference endpoint: %s", str(e))
             return {"output": "An error occurred while processing the request"}

@@ -133,3 +133,9 @@ User: thanks
 2024-01-11 11:50:58,676 - INFO - Received a batch of request with batch size of: 1 
 2024-01-11 11:50:58,676 - INFO - Received request: {'username': 'amin', 'prompt': 'Write a paragraph about the science of Sun.', 'memory': True, 'conversation_number': 3, 'AI_assistance': True, 'collection_name': None, 'llm_model': 'Llama_13b'}
 2024-01-11 11:51:01,261 - INFO - Processed the request successfully
+2024-01-11 12:57:01,733 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2024-01-11 13:00:47,071 - INFO - Received request: {'username': 'amin', 'prompt': 'Tell me a joke', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'docs', 'llm_model': 'Llama-13B'}
+2024-01-11 13:17:59,565 - INFO - Load pretrained SentenceTransformer: hkunlp/instructor-xl
+2024-01-11 13:18:15,152 - INFO - Received request: {'username': 'amin', 'prompt': 'Tell me a joke', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'docs', 'llm_model': 'Llama-13B'}
+2024-01-11 13:18:21,041 - INFO - Received request: {'username': 'amin', 'prompt': 'Tell me a joke', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'docs', 'llm_model': 'Llama-13B'}
+2024-01-11 13:18:36,967 - INFO - Received request: {'username': 'amin', 'prompt': 'Tell me a joke', 'memory': False, 'conversation_number': 1, 'AI_assistance': True, 'collection_name': 'docs', 'llm_model': 'Llama-13B'}
