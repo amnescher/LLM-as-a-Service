@@ -1,36 +1,49 @@
----
-version: '3.4'
+version: '3'
 services:
-  weaviate:
-    command:
-    - --host
-    - 0.0.0.0
-    - --port
-    - '8080'
-    - --scheme
-    - http
-    image: semitechnologies/weaviate:1.22.2
+  text-generation:
+    image: ghcr.io/huggingface/text-generation-inference:1.3
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=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
+      - MODEL_ID=meta-llama/Llama-2-13b-chat-hf
+      #- REVISION=None
+      - VALIDATION_WORKERS=2
+      #- QUANTIZE=None
+      #- SPECULATE=None
+      #- DTYPE=None
+      - TRUST_REMOTE_CODE=false
+      - MAX_CONCURRENT_REQUESTS=128
+      - MAX_BEST_OF=2
+      - MAX_STOP_SEQUENCES=4
+      - MAX_TOP_N_TOKENS=5
+      - MAX_INPUT_LENGTH=1024
+      - MAX_TOTAL_TOKENS=2048
+      - WAITING_SERVED_RATIO=1.2
+      - MAX_BATCH_PREFILL_TOKENS=4096
+      #- MAX_BATCH_TOTAL_TOKENS=None
+      - MAX_WAITING_TOKENS=20
+      - HOSTNAME=b36e9ee537f8
+      - PORT=80
+      - SHARD_UDS_PATH=/tmp/text-generation-server
+      - MASTER_ADDR=localhost
+      - MASTER_PORT=29500
+      - HUGGINGFACE_HUB_CACHE=/data
+      #- WEIGHTS_CACHE_OVERRIDE=None
+      - DISABLE_CUSTOM_KERNELS=false
+      - CUDA_MEMORY_FRACTION=1.0
+      #- ROPE_SCALING=None
+      #- ROPE_FACTOR=None
+      - JSON_OUTPUT=false
+      #- OTLP_ENDPOINT=None
+      - CORS_ALLOW_ORIGIN=[]
+      #- WATERMARK_GAMMA=None
+      #- WATERMARK_DELTA=None
+      - NGROK=false
+      #- NGROK_AUTHTOKEN=None
+      #- NGROK_EDGE=None
+      - ENV=false
     ports:
-    - 8080:8080
-    - 50051:50051
-    restart: on-failure:0
-    environment:
-      TRANSFORMERS_INFERENCE_API: 'http://t2v-transformers:8080'
-      QUERY_DEFAULTS_LIMIT: 25
-      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
-      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
-      DEFAULT_VECTORIZER_MODULE: 'text2vec-transformers'
-      ENABLE_MODULES: 'text2vec-transformers'
-      CLUSTER_HOSTNAME: 'node1'
-  t2v-transformers:
-    image: semitechnologies/transformers-inference:sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
-    environment:
-      ENABLE_CUDA: '1'
-      NVIDIA_VISIBLE_DEVICES: 'all'
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - capabilities:
-            - 'gpu'
-...
+      - "8082:80"
+    volumes:
+      - ./data:/data
+    shm_size: 1g
+    runtime: nvidia
