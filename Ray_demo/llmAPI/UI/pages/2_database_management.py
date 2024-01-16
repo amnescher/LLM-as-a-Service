@@ -5,6 +5,7 @@ import requests
 from langchain.document_loaders import YoutubeLoader
 import logging
 import pandas as pd
+import time
 
 
 logging.basicConfig(
@@ -22,7 +23,13 @@ BASE_URL = "http://localhost:8083"
 Weaviate_endpoint = "/vector_DB_request/"
 Arxiv_endpoint = "/arxiv_search/"
 
+def replace_spaces_with_underscores(input_string):
+    output_string = input_string.replace(" ", "_")
+    return output_string
+
 def add_class(username, class_name, access_token):
+    #clean_class_name = replace_spaces_with_underscores(str(class_name))
+    #print('clean class name', clean_class_name)
     params = {
         "username": username,
         "vectorDB_type": "Weaviate",
@@ -134,6 +141,7 @@ def upload_documents(username, class_name, access_token, file_path):
     #resp = requests.post(f"{BASE_URL}/vector_DB_request/",json=params, headers=headers)
     if resp.status_code == 200:
         print(resp.status_code, resp.content)
+        
     else:
         print(resp.status_code, resp.content)
 
@@ -246,6 +254,11 @@ st.title("Vector Database Management Dashboard")
 # Fetch and display collections
 st.sidebar.header("Collections")
 
+def display_documents_in_col2(doc_list):
+    if doc_list and doc_list['response']:
+        with col2_2:
+            st.table(doc_list['response'])
+
 PORT = 8000
 
 if "username" not in st.session_state or st.sidebar.button("Logout"):
@@ -276,7 +289,7 @@ else:
                 print('user', username)
                 st.header(f"{username} manageme")
                 class_name = st.text_input("Enter collection name:")
-                class_name = class_name.strip().replace(" ", "-")
+                class_name = class_name.strip().replace(" ", "_")
                 if st.button("Create Collection"):
                     if class_name is not None:
                         add_class(st.session_state.username, str(class_name), st.session_state.token)
@@ -299,33 +312,73 @@ else:
             col1_2, col2_2 = st.columns([1, 1.5])
             #selected_collections = st.text_input("Select Collections:")
             #if st.button("Display class"): 
-            doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)           
+            doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)   
             if selected_collections is not None:
-                    with col1_2:
-                        #doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
-                        st.session_state.doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
-                        st.subheader("Add Document")
-                        uploaded_files = st.file_uploader("Add files", accept_multiple_files=True)
+                with col1_2:
+                    st.session_state.doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
+                    st.subheader("Add Document")
+                    uploaded_files = st.file_uploader("Add files", accept_multiple_files=True)
+                    if uploaded_files:
+                        st.session_state['uploaded_files'] = uploaded_files
+
+                    if st.button("Upload documents"):
                         if uploaded_files:
-                            st.session_state['uploaded_files'] = uploaded_files
-                        if st.button("Upload documents"):
-                            if uploaded_files:
-                                for uploaded_file in st.session_state['uploaded_files']:
-                                    upload_documents(st.session_state.username, str(selected_collections), st.session_state.token, uploaded_file)
-                                    st.text(f"Document {uploaded_file.name} Uploaded! ✅")
+                            for uploaded_file in st.session_state['uploaded_files']:
+                                upload_documents(st.session_state.username, str(selected_collections), st.session_state.token, uploaded_file)
+                                time.sleep(5)
+                                st.text(f"Document {uploaded_file.name} Uploaded! ✅")
+                            st.session_state.doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
 
-                        st.subheader("Remove Document")
-                        if st.session_state.doc_list['response']:
-                            st.session_state['selected_remove_file'] = st.selectbox("Select document:", st.session_state.doc_list['response'], key="remove_file_selectbox")
+                    st.subheader("Remove Document")
+                    if st.session_state.doc_list.get('response'):
+                        st.session_state['selected_remove_file'] = st.selectbox("Select document:", st.session_state.doc_list['response'], key="remove_file_selectbox")
 
-                        if st.button("Remove document"):
-                            if st.session_state['selected_remove_file'] is not None:
-                                delete_document(st.session_state.username, str(selected_collections), str(st.session_state['selected_remove_file']), st.session_state.token)
-                                st.text(f"Document {st.session_state['selected_remove_file']} removed! ✅")
-               
-                    with col2_2:
-                        st.table(st.session_state.doc_list['response'])
+                    if st.button("Remove document"):
+                        if st.session_state['selected_remove_file'] is not None:
+                            delete_document(st.session_state.username, str(selected_collections), str(st.session_state['selected_remove_file']), st.session_state.token)
+                            st.text(f"Document {st.session_state['selected_remove_file']} removed! ✅")
+                            st.session_state.doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
+
+                # Call the function to display documents in the second column
+                with col2_2:
+                    display_documents_in_col2(st.session_state.get('doc_list', {}))        
+            # if selected_collections is not None:
+            #         with col1_2:
+            #             #doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
+            #             st.session_state.doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
+            #             st.subheader("Add Document")
+            #             uploaded_files = st.file_uploader("Add files", accept_multiple_files=True)
+            #             if uploaded_files:
+            #                 st.session_state['uploaded_files'] = uploaded_files
+            #             if st.button("Upload documents"):
+            #                 if uploaded_files:
+            #                     for uploaded_file in st.session_state['uploaded_files']:
+            #                         upload_documents(st.session_state.username, str(selected_collections), st.session_state.token, uploaded_file)
+                                    
+                                    
+            #                         st.text(f"Document {uploaded_file.name} Uploaded! ✅")
+            #                     st.session_state.doc_list = display_documents(st.session_state.username, str(selected_collections), st.session_state.token)
                         
+            #             display_documents_in_col2(st.session_state.get(doc_list, {}))
+            #             st.subheader("Remove Document")
+            #             if st.session_state.doc_list['response']:
+            #                 st.session_state['selected_remove_file'] = st.selectbox("Select document:", st.session_state.doc_list['response'], key="remove_file_selectbox")
+
+            #             if st.button("Remove document"):
+            #                 if st.session_state['selected_remove_file'] is not None:
+            #                     delete_document(st.session_state.username, str(selected_collections), str(st.session_state['selected_remove_file']), st.session_state.token)
+            #                     st.text(f"Document {st.session_state['selected_remove_file']} removed! ✅")
+               
+            #         with col2_2:
+            #             st.table(st.session_state.doc_list['response'])
+                        
+
+
+
+
+
+
+
                     #     selected_remove_file = st.selectbox("Select document:", doc_list['response'])
                     #     if st.button("Remove document"):
                     #         if selected_remove_file is not None:
