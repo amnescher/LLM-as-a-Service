@@ -41,4 +41,3 @@ class llmService:
         else:
             raise Exception("Database request failed")
         
-
